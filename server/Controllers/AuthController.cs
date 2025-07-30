@@ -8,13 +8,14 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text.RegularExpressions;
 
 namespace server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 
-public class AuthController : ControllerBase
+public partial class AuthController : ControllerBase
 {
   private readonly AppDbContext _context;
   private readonly IConfiguration _config;
@@ -28,8 +29,25 @@ public class AuthController : ControllerBase
   [HttpPost("register")]
   public async Task<IActionResult> Register(CreateUserDto request)
   {
+    if (!ModelState.IsValid)
+    {
+      return BadRequest(ModelState);
+    }
+
     if (await _context.Users.AnyAsync(u => u.Email == request.Email))
       return BadRequest(new { message = "Email already in use" });
+
+    if (!NameRegex().IsMatch(request.FirstName))
+      return BadRequest(new { message = "First name contains invalid characters." });
+
+    if (!NameRegex().IsMatch(request.LastName))
+      return BadRequest(new { message = "Last name contains invalid characters." });
+
+    if (!PhoneNumberRegex().IsMatch(request.PhoneNumber))
+      return BadRequest(new { message = "Phone number must be numeric and be between 10 and 15 digits long." });
+
+    if (!PasswordRegex().IsMatch(request.Password))
+      return BadRequest(new { message = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character." });
 
     var hashedPassword = HashPassword(request.Password);
 
@@ -41,7 +59,7 @@ public class AuthController : ControllerBase
     {
       FirstName = request.FirstName,
       LastName = request.LastName,
-      Email = request.Email,
+      Email = request.Email.ToLower().Trim(),
       PhoneNumber = request.PhoneNumber,
       PasswordHash = hashedPassword,
       RoleId = request.RoleId,
@@ -94,11 +112,11 @@ public class AuthController : ControllerBase
   }
 
   [HttpPost("logout")]
-    public IActionResult Logout()
-    {
-        Response.Cookies.Delete("access_token");
-        return Ok(new { message = "Logged out" });
-    }
+  public IActionResult Logout()
+  {
+    Response.Cookies.Delete("access_token");
+    return Ok(new { message = "Logged out" });
+  }
 
   [HttpDelete("{email}")]
   public async Task<IActionResult> Delete(string email)
@@ -143,33 +161,41 @@ public class AuthController : ControllerBase
 
     return hashed == stored;
   }
-  
+
   private string CreateToken(User user)
-    {
+  {
     var claims = new[]
     {
-            new Claim(ClaimTypes.NameIdentifier, user.Uid.ToString()),
-            new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
-            new Claim(ClaimTypes.Role, user.Role.Name)
-        };
+          new Claim(ClaimTypes.NameIdentifier, user.Uid.ToString()),
+          new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+          new Claim(ClaimTypes.Email, user.Email),
+          new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
+          new Claim(ClaimTypes.Role, user.Role.Name)
+      };
 
-      var key = new SymmetricSecurityKey(
-          Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
-      );
+    var key = new SymmetricSecurityKey(
+        Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
+    );
 
-      var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-      var token = new JwtSecurityToken(
-          issuer: _config["Jwt:Issuer"],
-          audience: _config["Jwt:Audience"],
-          claims: claims,
-          expires: DateTime.UtcNow.AddDays(7),
-          signingCredentials: creds
-      );
+    var token = new JwtSecurityToken(
+        issuer: _config["Jwt:Issuer"],
+        audience: _config["Jwt:Audience"],
+        claims: claims,
+        expires: DateTime.UtcNow.AddDays(7),
+        signingCredentials: creds
+    );
 
-      return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-  
+    return new JwtSecurityTokenHandler().WriteToken(token);
+  }
+
+  [GeneratedRegex(@"^\d{10,15}$")]
+  private static partial Regex PhoneNumberRegex();
+
+  [GeneratedRegex(@"^[a-zA-Z\s-]+$")]
+  private static partial Regex NameRegex();
+
+  [GeneratedRegex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$")]
+  private static partial Regex PasswordRegex();
 }
