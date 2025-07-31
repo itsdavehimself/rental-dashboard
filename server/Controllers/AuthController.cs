@@ -118,21 +118,6 @@ public partial class AuthController : ControllerBase
     return Ok(new { message = "Logged out" });
   }
 
-  [HttpDelete("{email}")]
-  public async Task<IActionResult> Delete(string email)
-  {
-    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-
-    if (user == null)
-    {
-      return NotFound(new { message = "User not found" });
-    }
-
-    _context.Users.Remove(user);
-    await _context.SaveChangesAsync();
-
-    return NoContent();
-  }
   public static string HashPassword(string password)
   {
     byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);

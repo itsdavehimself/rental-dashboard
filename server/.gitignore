@@ -1,0 +1,32 @@
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VS Code / VS junk
+.idea/
+.vscode/
+.vscode/*  # unless you wanna keep extensions.json or settings
+*.njsproj
+*.sln
+*.suo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Others
+*.cache
+*.pdb
+*.dll
+*.exe
+*.db
