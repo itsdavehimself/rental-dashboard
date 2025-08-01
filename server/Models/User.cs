@@ -13,5 +13,8 @@ public class User
   public DateTime LastModifiedAt { get; set; } = DateTime.UtcNow;
   public int RoleId { get; set; }
   public Role Role { get; set; } = null!;
+  public int? JobTitleId { get; set; }
+  public JobTitle? JobTitle { get; set; }
+  public decimal? CustomPayRate { get; set; }
   public bool IsActive { get; set; } = true;
 }

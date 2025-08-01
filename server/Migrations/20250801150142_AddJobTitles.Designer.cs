@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250801150142_AddJobTitles")]
+    partial class AddJobTitles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,7 +56,7 @@ namespace server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("JobTitles", (string)null);
+                    b.ToTable("JobTitles");
                 });
 
             modelBuilder.Entity("server.Models.Permission", b =>
@@ -70,7 +73,7 @@ namespace server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions", (string)null);
+                    b.ToTable("Permissions");
                 });
 
             modelBuilder.Entity("server.Models.Role", b =>
@@ -87,7 +90,7 @@ namespace server.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("server.Models.User", b =>
@@ -145,7 +148,7 @@ namespace server.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("PermissionRole", b =>

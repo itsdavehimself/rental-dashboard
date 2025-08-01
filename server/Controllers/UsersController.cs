@@ -29,11 +29,11 @@ public class UsersController : ControllerBase
 
     var query = _context.Users.AsQueryable();
 
-    if (isAdmin && isActive.HasValue)
+    if (isActive.HasValue)
     {
       query = query.Where(u => u.IsActive == isActive.Value);
     }
-    else
+    else if (!isAdmin)
     {
       query = query.Where(u => u.IsActive);
     }
@@ -50,6 +50,7 @@ public class UsersController : ControllerBase
         u.CreatedAt,
         u.LastModifiedAt,
         u.IsActive,
+        jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
         role = u.Role.Name
       }).ToListAsync();
 
@@ -63,7 +64,8 @@ public class UsersController : ControllerBase
         u.FirstName,
         u.LastName,
         u.Email,
-        u.PhoneNumber
+        u.PhoneNumber,
+        jobTitle = u.JobTitle != null ? u.JobTitle.Title : null
       }).ToListAsync();
 
       return Ok(users);
@@ -86,6 +88,7 @@ public class UsersController : ControllerBase
       u.CreatedAt,
       u.LastModifiedAt,
       u.IsActive,
+      jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
       role = u.Role.Name
     }).FirstOrDefaultAsync();
 
@@ -138,6 +141,15 @@ public class UsersController : ControllerBase
 
       if (request.IsActive != null)
         user.IsActive = request.IsActive.Value;
+
+      if (request.JobTitleId != null)
+      {
+        var jobTitleEntity = await _context.JobTitles.FindAsync(request.JobTitleId.Value);
+        if (jobTitleEntity == null)
+          return BadRequest(new { message = "Invalid Job Title ID" });
+
+        user.JobTitleId = request.JobTitleId.Value;
+      }
     }
 
     user.LastModifiedAt = DateTime.UtcNow;
@@ -164,7 +176,7 @@ public class UsersController : ControllerBase
         u.LastName,
         u.Email,
         role = u.Role.Name,
-        u.IsActive
+        jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
       })
       .FirstOrDefaultAsync();
       if (user is null) return Unauthorized();

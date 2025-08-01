@@ -76,6 +76,14 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
+    foreach (var jobTitle in JobTitleData.JobTitles)
+    {
+        if (!context.JobTitles.Any(j => j.Title == jobTitle.Title))
+        {
+            context.JobTitles.Add(jobTitle);
+        }
+    }
+
     await context.SaveChangesAsync();
 }
 
