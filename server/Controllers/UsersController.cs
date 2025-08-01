@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using server.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace server.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 
@@ -21,32 +24,58 @@ public class UsersController : ControllerBase
   [HttpGet]
   public async Task<IActionResult> SearchUsers([FromQuery] bool? isActive)
   {
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    var isAdmin = role == "Admin";
+
     var query = _context.Users.AsQueryable();
 
-    if (isActive.HasValue)
+    if (isAdmin && isActive.HasValue)
     {
       query = query.Where(u => u.IsActive == isActive.Value);
     }
-
-    var users = await query.Select(u => new
+    else
     {
-      u.Uid,
-      u.FirstName,
-      u.LastName,
-      u.Email,
-      u.PhoneNumber,
-      u.CreatedAt,
-      u.LastModifiedAt,
-      u.IsActive,
-      role = u.Role.Name
-    }).ToListAsync();
+      query = query.Where(u => u.IsActive);
+    }
 
-    return Ok(users);
+    if (isAdmin)
+    {
+      var users = await query.Select(u => new
+      {
+        u.Uid,
+        u.FirstName,
+        u.LastName,
+        u.Email,
+        u.PhoneNumber,
+        u.CreatedAt,
+        u.LastModifiedAt,
+        u.IsActive,
+        role = u.Role.Name
+      }).ToListAsync();
+
+      return Ok(users);
+    }
+    else
+    {
+      var users = await query.Select(u => new
+      {
+        u.Uid,
+        u.FirstName,
+        u.LastName,
+        u.Email,
+        u.PhoneNumber
+      }).ToListAsync();
+
+      return Ok(users);
+    }
   }
 
   [HttpGet("{uid}")]
-  public async Task<IActionResult> GetUser(Guid uid)
+  public async Task<IActionResult> GetUser([FromRoute] Guid uid)
   {
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    if (role != "Admin") return Forbid();
+
     var user = await _context.Users.Where(u => u.Uid == uid).Select(u => new
     {
       u.Uid,
@@ -71,8 +100,16 @@ public class UsersController : ControllerBase
   [HttpPatch("{uid}")]
   public async Task<IActionResult> UpdateUser(Guid uid, [FromBody] UpdateUserDto request)
   {
-    var user = await _context.Users.Where(u => u.Uid == uid).FirstOrDefaultAsync();
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    var userIdFromToken = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+    var isAdmin = role == "Admin";
+    var isSelf = userIdFromToken == uid.ToString();
+
+    if (!isAdmin && !isSelf)
+      return Forbid();
+
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == uid);
     if (user == null)
       return NotFound(new { message = "User not found" });
 
@@ -83,16 +120,25 @@ public class UsersController : ControllerBase
       user.LastName = request.LastName;
 
     if (request.Email != null)
-      user.Email = request.Email;
+      user.Email = request.Email.Trim().ToLower();
 
     if (request.PhoneNumber != null)
       user.PhoneNumber = request.PhoneNumber;
 
-    if (request.RoleId != null)
-      user.RoleId = request.RoleId.Value;
+    if (isAdmin)
+    {
+      if (request.RoleId != null)
+      {
+        var roleEntity = await _context.Roles.FindAsync(request.RoleId.Value);
+        if (roleEntity == null)
+          return BadRequest(new { message = "Invalid role ID" });
 
-    if (request.IsActive != null)
-      user.IsActive = request.IsActive.Value;
+        user.RoleId = request.RoleId.Value;
+      }
+
+      if (request.IsActive != null)
+        user.IsActive = request.IsActive.Value;
+    }
 
     user.LastModifiedAt = DateTime.UtcNow;
 
@@ -101,9 +147,37 @@ public class UsersController : ControllerBase
     return NoContent();
   }
 
+  [HttpGet("me")]
+  public async Task<IActionResult> Me()
+  {
+      var email = User.FindFirst(ClaimTypes.Email)?.Value;
+      if (email is null) return Unauthorized();
+
+      var username = User.FindFirst(ClaimTypes.Name)?.Value;
+      if (username is null) return Unauthorized();
+
+      var user = await _context.Users.Where(u => u.Email == email)
+      .Select(u => new
+      {
+        u.Uid,
+        u.FirstName,
+        u.LastName,
+        u.Email,
+        role = u.Role.Name,
+        u.IsActive
+      })
+      .FirstOrDefaultAsync();
+      if (user is null) return Unauthorized();
+
+      return Ok(user);
+  }
+
   [HttpDelete("{uid}")]
   public async Task<IActionResult> Delete(Guid uid)
   {
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    if (role != "Admin") return Forbid();
+
     var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == uid);
 
     if (user == null)

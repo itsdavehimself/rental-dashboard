@@ -58,6 +58,7 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -87,6 +88,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

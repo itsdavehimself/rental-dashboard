@@ -9,6 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace server.Controllers;
 
@@ -26,9 +28,13 @@ public partial class AuthController : ControllerBase
     _config = config;
   }
 
+  [Authorize]
   [HttpPost("register")]
   public async Task<IActionResult> Register(CreateUserDto request)
   {
+    var requesterRole = User.FindFirst(ClaimTypes.Role)?.Value;
+    if (requesterRole != "Admin") return Forbid();
+
     if (!ModelState.IsValid)
     {
       return BadRequest(ModelState);
