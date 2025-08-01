@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { fetchUsers } from "../service/userService";
-import type { User } from "../types/User";
+import { fetchUsers } from "../../service/userService";
+import type { User } from "../../types/User";
+import MemberCard from "./components/MemberCard";
 
 const Team: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -10,7 +11,6 @@ const Team: React.FC = () => {
 
   const handleUserFetch = async (url: string): Promise<void> => {
     const userList: User[] = await fetchUsers(apiUrl, url);
-    console.log(userList);
     setUsers(userList);
   };
 
@@ -22,8 +22,10 @@ const Team: React.FC = () => {
   }, [filter]);
 
   return (
-    <div className="bg-white h-screen w-full shadow-md rounded-3xl">
-      {users.map((u) => u.firstName)}
+    <div className="flex flex-col justify-center items-center bg-white h-screen w-full shadow-md rounded-3xl">
+      {users.map((u) => (
+        <MemberCard key={u.uid} user={u} />
+      ))}
     </div>
   );
 };

@@ -9,7 +9,7 @@ import WithSidebar from "./layouts/WithSidebar";
 import Inventory from "./containers/Inventory";
 import Events from "./containers/Events";
 import Clients from "./containers/Clients";
-import Team from "./containers/Team";
+import Team from "./containers/Team/Team";
 
 function App() {
   const dispatch = useAppDispatch();
