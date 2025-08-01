@@ -50,6 +50,7 @@ public class UsersController : ControllerBase
         u.CreatedAt,
         u.LastModifiedAt,
         u.IsActive,
+        startDate = u.StartDate != null ? u.StartDate : null,
         jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
         role = u.Role.Name
       }).ToListAsync();
@@ -65,6 +66,7 @@ public class UsersController : ControllerBase
         u.LastName,
         u.Email,
         u.PhoneNumber,
+        startDate = u.StartDate != null ? u.StartDate : null,
         jobTitle = u.JobTitle != null ? u.JobTitle.Title : null
       }).ToListAsync();
 
@@ -88,6 +90,7 @@ public class UsersController : ControllerBase
       u.CreatedAt,
       u.LastModifiedAt,
       u.IsActive,
+      startDate = u.StartDate != null ? u.StartDate : null,
       jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
       role = u.Role.Name
     }).FirstOrDefaultAsync();
@@ -150,6 +153,11 @@ public class UsersController : ControllerBase
 
         user.JobTitleId = request.JobTitleId.Value;
       }
+
+      if (request.StartDate != null)
+      {
+        user.StartDate = request.StartDate;
+      }
     }
 
     user.LastModifiedAt = DateTime.UtcNow;
@@ -176,6 +184,7 @@ public class UsersController : ControllerBase
         u.LastName,
         u.Email,
         role = u.Role.Name,
+        startDate = u.StartDate != null ? u.StartDate : null,
         jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
       })
       .FirstOrDefaultAsync();
