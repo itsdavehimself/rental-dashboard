@@ -74,7 +74,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white justify-center items-center gap-10 px-10">
-      <div className="flex flex-col justify-center items-center gap-10 w-full p-10 rounded-xl md:w-1/2 xl:w-100 ring-1 ring-gray-200">
+      <div className="flex flex-col justify-center items-center gap-10 w-full p-10 rounded-xl sm:w-100 ring-1 ring-gray-200">
         <div className="flex flex-col gap-6">
           <h1 className="text-4xl font-bold text-text">AD Rentals</h1>
         </div>
