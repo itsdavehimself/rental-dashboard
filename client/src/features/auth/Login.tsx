@@ -4,6 +4,8 @@ import type { SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router";
 import SubmitButton from "../../components/common/SubmitButton";
 import ValidatedInput from "../../components/common/ValidatedInput";
+import { useAppDispatch } from "../../app/hooks";
+import { fetchUser } from "../../app/slices/userSlice";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,6 +17,7 @@ type Inputs = {
 const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const {
     register,
@@ -56,6 +59,7 @@ const Login: React.FC = () => {
       }
 
       setError(null);
+      await dispatch(fetchUser());
       navigate("/dashboard");
     } catch (err) {
       if (err instanceof Error) {
