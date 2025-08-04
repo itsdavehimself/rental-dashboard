@@ -6,3 +6,7 @@
   --color-primary: #0d0d0d;
   --color-primary-hover: #1e1e1e;
 }
+
+body {
+  @apply text-primary;
+}

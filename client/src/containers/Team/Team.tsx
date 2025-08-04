@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { fetchUsers } from "../../service/userService";
 import type { User } from "../../types/User";
 import MemberCard from "./components/MemberCard";
+import Table from "../../components/Table/Table";
+import SearchBar from "../../components/common/SearchBar";
+import AddButton from "../../components/common/AddButton";
+import { Plus } from "lucide-react";
 
 const Team: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -14,6 +18,9 @@ const Team: React.FC = () => {
     setUsers(userList);
   };
 
+  const headers = ["Name", "Role", "Phone Number", "Started", ""];
+  const columnTemplate = "[grid-template-columns:1fr_1fr_1fr_1fr_3rem]";
+
   useEffect(() => {
     let url = "api/users";
     if (filter === "active") url += "?isActive=true";
@@ -22,10 +29,22 @@ const Team: React.FC = () => {
   }, [filter]);
 
   return (
-    <div className="flex flex-col justify-center items-center bg-white h-screen w-full shadow-md rounded-3xl">
-      {users.map((u) => (
-        <MemberCard key={u.uid} user={u} />
-      ))}
+    <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
+      <div className="flex justify-between w-full">
+        <SearchBar placeholder="Search" />
+        <AddButton
+          Icon={Plus}
+          label="Team Member"
+          onClick={() => console.log("hi")}
+        />
+      </div>
+      <Table
+        columnTemplate={columnTemplate}
+        headers={headers}
+        tableItems={users}
+        tableCardType={MemberCard}
+        getKey={(user) => user.uid}
+      />
     </div>
   );
 };
