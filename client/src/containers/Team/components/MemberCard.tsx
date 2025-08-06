@@ -16,7 +16,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   return (
     <div
       className={`grid ${columnTemplate} items-center w-full gap-4 px-8 py-4 text-sm hover:bg-gray-50 hover:cursor-pointer transition-all duration-200 ${
-        isLast ? "" : "border-b border-gray-200"
+        isLast ? "rounded-b-xl" : "border-b border-gray-200"
       }`}
     >
       <p>

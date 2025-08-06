@@ -29,7 +29,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   return (
-    <div className="flex items-center rounded-lg w-80 text-sm min-h-10 px-3 outline-0 ring-1 ring-gray-200 hover:ring-primary focus:ring-primary transition-all duration-200">
+    <div className="flex items-center rounded-lg w-80 text-sm min-h-10 px-3 outline-0 ring-1 ring-gray-200 hover:ring-primary focus-within:ring-primary transition-all duration-200">
       <Search className="h-5 w-5" />
       <input
         className="outline-0 border-0 w-full pl-2"
