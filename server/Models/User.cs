@@ -16,6 +16,6 @@ public class User
   public Role Role { get; set; } = null!;
   public int? JobTitleId { get; set; }
   public JobTitle? JobTitle { get; set; }
-  public decimal? CustomPayRate { get; set; }
+  public decimal PayRate { get; set; }
   public bool IsActive { get; set; } = true;
 }

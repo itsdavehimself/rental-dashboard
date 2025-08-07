@@ -28,4 +28,5 @@ public class CreateUserDto
   public int JobTitleId { get; set; }
   [ValidStartDate]
   public DateTime? StartDate { get; set; }
+  public decimal PayRate { get; set; }
 }

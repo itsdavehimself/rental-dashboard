@@ -6,7 +6,7 @@ public static class JobTitleData
 {
   public static readonly List<JobTitle> JobTitles = new()
   {
-    new JobTitle { Title = "General Manager", PayRate = 30.00m },
-    new JobTitle { Title = "Delivery Crew", PayRate = 21.00m }
+    new JobTitle { Title = "Operations Manager"},
+    new JobTitle { Title = "Driver/Installer"}
   };
 }

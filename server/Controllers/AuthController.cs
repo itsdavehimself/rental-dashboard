@@ -50,7 +50,7 @@ public partial class AuthController : ControllerBase
       return BadRequest(new { message = "Last name contains invalid characters." });
 
     if (!PhoneNumberRegex().IsMatch(request.PhoneNumber))
-      return BadRequest(new { message = "Phone number must be numeric and be between 10 and 15 digits long." });
+      return BadRequest(new { message = "Phone number must be in the XXX-XXX-XXXX format." });
 
     if (!PasswordRegex().IsMatch(request.Password))
       return BadRequest(new { message = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character." });
@@ -70,6 +70,8 @@ public partial class AuthController : ControllerBase
       PasswordHash = hashedPassword,
       RoleId = request.RoleId,
       Role = role,
+      JobTitleId = request.JobTitleId,
+      StartDate = request.StartDate,
       CreatedAt = DateTime.UtcNow,
       IsActive = true,
     };
@@ -181,8 +183,8 @@ public partial class AuthController : ControllerBase
     return new JwtSecurityTokenHandler().WriteToken(token);
   }
 
-  [GeneratedRegex(@"^\d{10,15}$")]
-  private static partial Regex PhoneNumberRegex();
+  [GeneratedRegex(@"^\d{3}-\d{3}-\d{4}$")]
+private static partial Regex PhoneNumberRegex();
 
   [GeneratedRegex(@"^[a-zA-Z\s-]+$")]
   private static partial Regex NameRegex();
