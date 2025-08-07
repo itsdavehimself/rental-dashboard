@@ -6,9 +6,10 @@ interface DropdownProps {
   openDropdown: string | null;
   setOpenDropdown: React.Dispatch<React.SetStateAction<string | null>>;
   label: string;
-  value: string;
-  onChange: (val: string) => void;
-  options: { value: string; label: string }[];
+  value: string | number;
+  selectedLabel: string;
+  onChange: (val: string | number) => void;
+  options: { value: string | number; label: string }[];
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -17,6 +18,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   setOpenDropdown,
   label,
   value,
+  selectedLabel,
   onChange,
   options,
 }) => {
@@ -26,18 +28,18 @@ const Dropdown: React.FC<DropdownProps> = ({
       <div
         className="hover:ring-primary text-theme-black ring-1 ring-gray-200 rounded-lg p-2 mt-0.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-theme-black hover:cursor-pointer hover:ring-theme-black transition duration-200"
         onClick={() => {
-          if (openDropdown === "condition") {
+          if (openDropdown === label) {
             setOpenDropdown(null);
-          } else setOpenDropdown("condition");
+          } else setOpenDropdown(label);
         }}
       >
         <div className="flex justify-between items-center">
-          <span>{value}</span>
-          {openDropdown === "condition" ? <ChevronUp /> : <ChevronDown />}
+          <span>{selectedLabel}</span>
+          {openDropdown === label ? <ChevronUp /> : <ChevronDown />}
         </div>
       </div>
-      {openDropdown === "condition" && (
-        <ul className="flex flex-col border-1 bg-white w-full border-gray-300 rounded-lg overflow-hidden absolute mt-0.5">
+      {openDropdown === label && (
+        <ul className="flex flex-col border-1 bg-white w-full border-gray-300 rounded-lg overflow-hidden absolute mt-0.5 z-100">
           {options.map((opt) => (
             <li
               key={opt.value}
