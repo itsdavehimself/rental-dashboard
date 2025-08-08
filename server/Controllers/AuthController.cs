@@ -40,18 +40,6 @@ public partial class AuthController : ControllerBase
       return BadRequest(ModelState);
     }
 
-    if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-      return BadRequest(new { message = "Email already in use" });
-
-    if (!NameRegex().IsMatch(request.FirstName))
-      return BadRequest(new { message = "First name contains invalid characters." });
-
-    if (!NameRegex().IsMatch(request.LastName))
-      return BadRequest(new { message = "Last name contains invalid characters." });
-
-    if (!PhoneNumberRegex().IsMatch(request.PhoneNumber))
-      return BadRequest(new { message = "Phone number must be in the XXX-XXX-XXXX format." });
-
     var phoneParts = request.PhoneNumber.Split('-');
 
     var hashedPassword = HashPassword($"Welcome{request.FirstName}{phoneParts[1]}!");
@@ -59,6 +47,10 @@ public partial class AuthController : ControllerBase
     var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == request.RoleId);
     if (role == null)
       return BadRequest(new { message = "Invalid role" });
+
+    var jobTitle = await _context.JobTitles.FirstOrDefaultAsync(jt => jt.Id == request.JobTitleId);
+    if (jobTitle == null)
+      return BadRequest(new { message = "Invalid job title id" });
 
     var user = new User
     {
