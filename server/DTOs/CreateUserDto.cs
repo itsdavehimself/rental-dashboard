@@ -18,10 +18,6 @@ public class CreateUserDto
   [Phone]
   public string PhoneNumber { get; set; } = string.Empty;
   [Required]
-  [MinLength(8)]
-  [MaxLength(24)]
-  public string Password { get; set; } = string.Empty;
-  [Required]
   [Range(1, 2, ErrorMessage = "RoleId must be a positive number.")]
   public int RoleId { get; set; }
   [Range(1, 2, ErrorMessage = "JobTitleId must be a positive number.")]

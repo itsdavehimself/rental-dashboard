@@ -52,10 +52,9 @@ public partial class AuthController : ControllerBase
     if (!PhoneNumberRegex().IsMatch(request.PhoneNumber))
       return BadRequest(new { message = "Phone number must be in the XXX-XXX-XXXX format." });
 
-    if (!PasswordRegex().IsMatch(request.Password))
-      return BadRequest(new { message = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character." });
+    var phoneParts = request.PhoneNumber.Split('-');
 
-    var hashedPassword = HashPassword(request.Password);
+    var hashedPassword = HashPassword($"Welcome{request.FirstName}{phoneParts[1]}!");
 
     var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == request.RoleId);
     if (role == null)
@@ -184,7 +183,7 @@ public partial class AuthController : ControllerBase
   }
 
   [GeneratedRegex(@"^\d{3}-\d{3}-\d{4}$")]
-private static partial Regex PhoneNumberRegex();
+  private static partial Regex PhoneNumberRegex();
 
   [GeneratedRegex(@"^[a-zA-Z\s-]+$")]
   private static partial Regex NameRegex();
