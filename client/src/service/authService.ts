@@ -1,9 +1,9 @@
-import type { CreateUser } from "../types/User";
+import type { CreateUser, User } from "../types/User";
 
 const registerUser = async (
   apiUrl: string,
   data: CreateUser
-): Promise<void> => {
+): Promise<User> => {
   const response = await fetch(`${apiUrl}/api/auth/register`, {
     method: "POST",
     headers: {
@@ -18,7 +18,7 @@ const registerUser = async (
       startDate: data.startDate,
       jobTitleId: data.jobTitleId,
       roleId: data.roleId,
-      payRate: data.payRate / 100,
+      payRate: data.payRate ? data.payRate / 100 : 0,
     }),
   });
 

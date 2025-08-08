@@ -5,7 +5,7 @@ type UserMe = {
   lastName: string;
   isActive: string;
   startDate: string;
-  role: string;
+  roleId: number;
 };
 
 type User = {
@@ -18,7 +18,8 @@ type User = {
   lastModifiedAt?: Date;
   jobTitle: string;
   isActive: string;
-  role: string;
+  roleId: number;
+  payRate?: number;
 };
 
 type CreateUser = {

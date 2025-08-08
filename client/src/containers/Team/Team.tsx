@@ -35,12 +35,16 @@ const Team: React.FC = () => {
     }
   };
 
-  const headers = ["Name", "Role", "Phone Number", "Started", ""];
+  const headers = ["Name", "Position", "Phone Number", "Started", ""];
   const columnTemplate = "[grid-template-columns:1fr_1fr_1fr_1fr_3rem]";
 
   const onSubmit: SubmitHandler<TeamMemberInputs> = async (data) => {
     try {
-      registerUser(apiUrl, data);
+      const newUser = await registerUser(apiUrl, data);
+      console.log("new user:", newUser);
+      const updatedUsers = [...users, newUser];
+      setUsers(updatedUsers);
+      setAddModalOpen(false);
     } catch (err) {
       if (err instanceof Error) {
         console.error("Network or server error:", err.message);
