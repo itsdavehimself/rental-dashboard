@@ -73,22 +73,32 @@ public partial class AuthController : ControllerBase
       StartDate = request.StartDate,
       CreatedAt = DateTime.UtcNow,
       IsActive = true,
+      PayRate = request.PayRate
     };
 
     _context.Users.Add(user);
     await _context.SaveChangesAsync();
 
-    var token = CreateToken(user);
+    var savedUser = await _context.Users
+    .Include(u => u.JobTitle)
+    .FirstOrDefaultAsync(u => u.Id == user.Id);
+    
+    if (savedUser == null)
+    return NotFound();
 
-    Response.Cookies.Append("access_token", token, new CookieOptions
+    return Ok(new
     {
-      HttpOnly = true,
-      Secure = false,
-      SameSite = SameSiteMode.Strict,
-      Expires = DateTime.UtcNow.AddDays(7)
+      savedUser.Uid,
+      savedUser.FirstName,
+      savedUser.LastName,
+      savedUser.Email,
+      savedUser.PhoneNumber,
+      JobTitle = savedUser.JobTitle?.Title,
+      savedUser.StartDate,
+      savedUser.CreatedAt,
+      savedUser.IsActive,
+      savedUser.PayRate
     });
-
-    return Ok(new { message = "User registered" });
   }
 
   [HttpPost("login")]

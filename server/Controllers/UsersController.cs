@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using server.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using server.Models;
 
 namespace server.Controllers;
 
@@ -52,7 +53,8 @@ public class UsersController : ControllerBase
         u.IsActive,
         startDate = u.StartDate != null ? u.StartDate : null,
         jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
-        role = u.Role.Name
+        roleId = u.Role.Id,
+        u.PayRate
       }).ToListAsync();
 
       return Ok(users);
@@ -92,7 +94,8 @@ public class UsersController : ControllerBase
       u.IsActive,
       startDate = u.StartDate != null ? u.StartDate : null,
       jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
-      role = u.Role.Name
+      roleId = u.Role.Id,
+      u.PayRate
     }).FirstOrDefaultAsync();
 
     if (user == null)
@@ -158,6 +161,11 @@ public class UsersController : ControllerBase
       {
         user.StartDate = request.StartDate;
       }
+
+      if (request.PayRate != null)
+      {
+        user.PayRate = request.PayRate.Value;
+      }
     }
 
     user.LastModifiedAt = DateTime.UtcNow;
@@ -183,7 +191,7 @@ public class UsersController : ControllerBase
         u.FirstName,
         u.LastName,
         u.Email,
-        role = u.Role.Name,
+        roleId = u.RoleId,
         startDate = u.StartDate != null ? u.StartDate : null,
         jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
       })

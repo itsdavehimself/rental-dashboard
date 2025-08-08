@@ -21,4 +21,5 @@ public class UpdateUserDto
   public bool? IsActive { get; set; }
   [ValidStartDate]
   public DateTime? StartDate { get; set; }
+  public decimal? PayRate { get; set; }
 }
