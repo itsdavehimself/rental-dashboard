@@ -14,7 +14,7 @@ const fetchJobTitles = async (apiUrl: string): Promise<JobTitle[]> => {
     const message = Array.isArray(errorData)
       ? errorData.join(", ")
       : errorData?.message ||
-        "Couldn't get job titles. Please try again or contact IT if the issue persists.";
+        "Error getting job titles. Please try again or contact IT if the issue persists.";
     throw new Error(message);
   }
   return await response.json();

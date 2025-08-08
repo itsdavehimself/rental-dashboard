@@ -9,31 +9,47 @@ import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import type { SubmitHandler } from "react-hook-form";
 import TeamMemberForm from "./components/TeamMemberForm";
-
-export type TeamMemberInputs = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-};
+import { registerUser } from "../../service/authService";
+import type { TeamMemberInputs } from "./components/TeamMemberForm";
 
 const Team: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const [filter, setFilter] = useState<"active" | "inactive" | "all">("active");
+  const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
 
   const handleUserFetch = async (url: string): Promise<void> => {
-    const userList: User[] = await fetchUsers(apiUrl, url);
-    setUsers(userList);
+    try {
+      const userList: User[] = await fetchUsers(apiUrl, url);
+      setUsers(userList);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error("Network or server error:", err.message);
+        setError("Something went wrong: " + err.message);
+      } else {
+        console.error("Unknown error:", err);
+        setError("An unknown error occurred.");
+      }
+    }
   };
 
   const headers = ["Name", "Role", "Phone Number", "Started", ""];
   const columnTemplate = "[grid-template-columns:1fr_1fr_1fr_1fr_3rem]";
 
   const onSubmit: SubmitHandler<TeamMemberInputs> = async (data) => {
-    console.log(data);
+    try {
+      registerUser(apiUrl, data);
+    } catch (err) {
+      if (err instanceof Error) {
+        console.error("Network or server error:", err.message);
+        setError("Something went wrong: " + err.message);
+      } else {
+        console.error("Unknown error:", err);
+        setError("An unknown error occurred.");
+      }
+    }
   };
 
   useEffect(() => {

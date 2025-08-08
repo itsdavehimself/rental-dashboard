@@ -14,7 +14,7 @@ const fetchUsers = async (apiUrl: string, url: string): Promise<User[]> => {
     const message = Array.isArray(errorData)
       ? errorData.join(", ")
       : errorData?.message ||
-        "Couldn't get users. Please try again or contact IT if the issue persists.";
+        "Error getting users. Please try again or contact IT if the issue persists.";
     throw new Error(message);
   }
 

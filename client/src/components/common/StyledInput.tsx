@@ -4,12 +4,14 @@ interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   register?: UseFormRegisterReturn;
   label: string;
   placeholder: string;
+  type?: string;
 }
 
 const StyledInput: React.FC<StyledInputProps> = ({
   label,
   register,
   placeholder,
+  type = "text",
   ...rest
 }) => {
   return (
@@ -18,6 +20,7 @@ const StyledInput: React.FC<StyledInputProps> = ({
       <input
         {...register}
         {...rest}
+        type={type}
         placeholder={placeholder}
         className={`text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 hover:outline-black focus:outline-primary focus:outline-1`}
       />

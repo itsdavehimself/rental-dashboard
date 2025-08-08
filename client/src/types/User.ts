@@ -21,4 +21,15 @@ type User = {
   role: string;
 };
 
-export type { UserMe, User };
+type CreateUser = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  startDate: Date;
+  jobTitleId: number;
+  roleId: number;
+  payRate: number;
+};
+
+export type { UserMe, User, CreateUser };

@@ -14,7 +14,7 @@ const fetchRoles = async (apiUrl: string): Promise<Role[]> => {
     const message = Array.isArray(errorData)
       ? errorData.join(", ")
       : errorData?.message ||
-        "Couldn't get roles. Please try again or contact IT if the issue persists.";
+        "Error getting roles. Please try again or contact IT if the issue persists.";
     throw new Error(message);
   }
   return await response.json();

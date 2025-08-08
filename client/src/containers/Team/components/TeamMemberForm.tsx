@@ -7,6 +7,7 @@ import { useEffect, useState, useRef } from "react";
 import { fetchJobTitles } from "../../../service/jobTitleService";
 import { fetchRoles } from "../../../service/roleService";
 import CurrencyInput from "../../../components/common/CurrencyInput";
+import DatePicker from "../../../components/common/DatePicker";
 
 export type TeamMemberInputs = {
   firstName: string;
@@ -16,6 +17,7 @@ export type TeamMemberInputs = {
   jobTitleId: number;
   roleId: number;
   payRate: number;
+  startDate: Date;
 };
 
 interface TeamMemberFormProps {
@@ -23,8 +25,9 @@ interface TeamMemberFormProps {
 }
 
 const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
-  const { handleSubmit, register, watch, setValue } =
-    useForm<TeamMemberInputs>();
+  const { handleSubmit, register, watch, setValue } = useForm<TeamMemberInputs>(
+    { defaultValues: { startDate: new Date() } }
+  );
 
   type Option = { value: number | string; label: string };
 
@@ -39,6 +42,7 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
   const jobTitleId = watch("jobTitleId");
   const roleId = watch("roleId");
   const payRate = watch("payRate");
+  const startDate = watch("startDate");
 
   const toOptions = <T extends { id: number | string }>(
     list: T[],
@@ -101,13 +105,18 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
         register={register("email")}
       />
       <PhoneInput label="Phone Number" register={register("phoneNumber")} />
+      <DatePicker
+        label="Start Date"
+        date={startDate}
+        onSelect={(val) => setValue("startDate", val)}
+      />
       <Dropdown
         ref={jobTitleRef}
         label="Job Title"
         value={jobTitleId}
         selectedLabel={
           jobTitles.find((j) => j.value === jobTitleId)?.label ??
-          "Select a Job Title"
+          "Select a job title"
         }
         options={jobTitles}
         openDropdown={openDropdown}
@@ -119,7 +128,7 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
         label="Role"
         value={roleId}
         selectedLabel={
-          roles.find((r) => r.value === roleId)?.label ?? "Select a Role"
+          roles.find((r) => r.value === roleId)?.label ?? "Select a role"
         }
         options={roles}
         openDropdown={openDropdown}
