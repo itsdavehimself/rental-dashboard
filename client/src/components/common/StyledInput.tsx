@@ -5,6 +5,7 @@ interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   placeholder: string;
   type?: string;
+  error: string | undefined;
 }
 
 const StyledInput: React.FC<StyledInputProps> = ({
@@ -12,18 +13,26 @@ const StyledInput: React.FC<StyledInputProps> = ({
   register,
   placeholder,
   type = "text",
+  error,
   ...rest
 }) => {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-semibold">{label}</label>
-      <input
-        {...register}
-        {...rest}
-        type={type}
-        placeholder={placeholder}
-        className={`text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 hover:outline-black focus:outline-primary focus:outline-1`}
-      />
+    <div className="flex flex-col">
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-semibold">{label}</label>
+        <input
+          {...register}
+          {...rest}
+          type={type}
+          placeholder={placeholder}
+          className={`text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 hover:outline-black focus:outline-primary focus:outline-1 ${
+            error
+              ? "outline-red-500 hover:outline-red-500 focus:outline-red-500"
+              : ""
+          }`}
+        />
+      </div>
+      {error && <p className="text-red-500 text-sm pt-1">{error}</p>}
     </div>
   );
 };

@@ -24,11 +24,15 @@ const registerUser = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-    const message = Array.isArray(errorData)
-      ? errorData.join(", ")
-      : errorData?.message ||
-        "Error registering user. Please try again or contact IT if the issue persists.";
-    throw new Error(message);
+
+    if (errorData && errorData.errors) {
+      const validationErrors = errorData.errors;
+      throw validationErrors;
+    }
+
+    const errorMessage =
+      errorData?.message || "Error registering user. Please try again.";
+    throw new Error(errorMessage);
   }
 
   return await response.json();

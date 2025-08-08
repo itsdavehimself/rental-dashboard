@@ -10,6 +10,7 @@ interface DropdownProps {
   selectedLabel: string;
   onChange: (val: string | number) => void;
   options: { value: string | number; label: string }[];
+  error: string | undefined;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -21,12 +22,15 @@ const Dropdown: React.FC<DropdownProps> = ({
   selectedLabel,
   onChange,
   options,
+  error,
 }) => {
   return (
     <div ref={ref} className="relative">
       <p className="text-sm font-semibold mb-1">{label}</p>
       <div
-        className="hover:ring-primary text-theme-black ring-1 ring-gray-200 rounded-lg p-2 mt-0.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-theme-black hover:cursor-pointer hover:ring-theme-black transition duration-200"
+        className={`hover:ring-primary text-theme-black ring-1 ring-gray-200 rounded-lg p-2 mt-0.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-theme-black hover:cursor-pointer hover:ring-theme-black transition duration-200 ${
+          error ? "ring-red-500 hover:ring-red-500 focus:ring-red-500" : ""
+        }`}
         onClick={() => {
           if (openDropdown === label) {
             setOpenDropdown(null);
@@ -56,6 +60,7 @@ const Dropdown: React.FC<DropdownProps> = ({
           ))}
         </ul>
       )}
+      {error && <p className="text-red-500 text-sm pt-1">{error}</p>}
     </div>
   );
 };

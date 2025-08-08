@@ -22,12 +22,22 @@ export type TeamMemberInputs = {
 
 interface TeamMemberFormProps {
   onSubmit: SubmitHandler<TeamMemberInputs>;
+  errors: object | null;
 }
 
-const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
-  const { handleSubmit, register, watch, setValue } = useForm<TeamMemberInputs>(
-    { defaultValues: { startDate: new Date() } }
-  );
+const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
+  onSubmit,
+  errors,
+}) => {
+  const {
+    handleSubmit,
+    register,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
+    formState: { errors: formErrors },
+  } = useForm<TeamMemberInputs>({ defaultValues: { startDate: new Date() } });
 
   type Option = { value: number | string; label: string };
 
@@ -43,6 +53,42 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
   const roleId = watch("roleId");
   const payRate = watch("payRate");
   const startDate = watch("startDate");
+
+  useEffect(() => {
+    clearErrors();
+    if (errors && typeof errors === "object" && !Array.isArray(errors)) {
+      Object.entries(errors).forEach(([fieldName, errorMessages]) => {
+        const camelCaseFieldName =
+          fieldName.charAt(0).toLowerCase() + fieldName.slice(1);
+
+        const fieldKey = camelCaseFieldName as keyof TeamMemberInputs;
+
+        if (Array.isArray(errorMessages) && errorMessages.length > 0) {
+          setError(fieldKey, {
+            type: "server",
+            message: errorMessages[0],
+          });
+        }
+      });
+    }
+  }, [errors, setError, clearErrors]);
+
+  useEffect(() => {
+    if (formErrors.jobTitleId || formErrors.roleId) {
+      if (jobTitleId && formErrors.jobTitleId) {
+        clearErrors("jobTitleId");
+      }
+      if (roleId && formErrors.roleId) {
+        clearErrors("roleId");
+      }
+    }
+  }, [
+    jobTitleId,
+    roleId,
+    clearErrors,
+    formErrors.jobTitleId,
+    formErrors.roleId,
+  ]);
 
   const toOptions = <T extends { id: number | string }>(
     list: T[],
@@ -93,18 +139,25 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
         label="First Name"
         placeholder="Becky"
         register={register("firstName")}
+        error={formErrors.firstName?.message}
       />
       <StyledInput
         label="Last Name"
         placeholder="Bouncehouse"
         register={register("lastName")}
+        error={formErrors.lastName?.message}
       />
       <StyledInput
         label="Email"
         placeholder="beckybouncehouse@adrentals.com"
         register={register("email")}
+        error={formErrors.email?.message}
       />
-      <PhoneInput label="Phone Number" register={register("phoneNumber")} />
+      <PhoneInput
+        label="Phone Number"
+        register={register("phoneNumber")}
+        error={formErrors.phoneNumber?.message}
+      />
       <DatePicker
         label="Start Date"
         date={startDate}
@@ -122,6 +175,7 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
         openDropdown={openDropdown}
         setOpenDropdown={setOpenDropdown}
         onChange={(val) => setValue("jobTitleId", val as number)}
+        error={formErrors.jobTitleId?.message}
       />
       <Dropdown
         ref={roleRef}
@@ -134,6 +188,7 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({ onSubmit }) => {
         openDropdown={openDropdown}
         setOpenDropdown={setOpenDropdown}
         onChange={(val) => setValue("roleId", val as number)}
+        error={formErrors.roleId?.message}
       />
       <CurrencyInput
         label="Hourly Pay Rate"

@@ -21,12 +21,14 @@ interface PhoneInputProps {
   register?: UseFormRegisterReturn;
   label: string;
   value?: string;
+  error: string | undefined;
 }
 
 const PhoneInput: React.FC<PhoneInputProps> = ({
   label,
   value = "",
   register,
+  error,
   ...rest
 }) => {
   const [displayValue, setDisplayValue] = useState("");
@@ -54,19 +56,26 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-semibold">{label}</label>
-      <input
-        {...rest}
-        {...register}
-        type="tel"
-        inputMode="tel"
-        value={displayValue}
-        onChange={handleChange}
-        placeholder="847-555-1337"
-        maxLength={12}
-        className="text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 hover:outline-black focus:outline-primary focus:outline-1"
-      />
+    <div className="flex flex-col">
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-semibold">{label}</label>
+        <input
+          {...rest}
+          {...register}
+          type="tel"
+          inputMode="tel"
+          value={displayValue}
+          onChange={handleChange}
+          placeholder="847-555-1337"
+          maxLength={12}
+          className={`text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 hover:outline-black focus:outline-primary focus:outline-1 ${
+            error
+              ? "outline-red-500 hover:outline-red-500 focus:outline-red-500"
+              : ""
+          }`}
+        />
+      </div>
+      {error && <p className="text-red-500 text-sm pt-1">{error}</p>}
     </div>
   );
 };
