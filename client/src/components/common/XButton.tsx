@@ -1,8 +1,9 @@
 import { X } from "lucide-react";
+import type { ErrorsState } from "../../helpers/handleError";
 
 interface XButtonProps {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setErrors: React.Dispatch<React.SetStateAction<object | null>>;
+  setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
 }
 
 const XButton: React.FC<XButtonProps> = ({ setIsModalOpen, setErrors }) => {

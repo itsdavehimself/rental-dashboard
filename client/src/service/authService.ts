@@ -1,4 +1,5 @@
 import type { CreateUser, User } from "../types/User";
+import { CustomError } from "../types/CustomError";
 
 const registerUser = async (
   apiUrl: string,
@@ -24,15 +25,7 @@ const registerUser = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-
-    if (errorData && errorData.errors) {
-      const validationErrors = errorData.errors;
-      throw validationErrors;
-    }
-
-    const errorMessage =
-      errorData?.message || "Error registering user. Please try again.";
-    throw new Error(errorMessage);
+    throw new CustomError("Registration failed.", errorData);
   }
 
   return await response.json();

@@ -1,4 +1,5 @@
 import type { User } from "../types/User";
+import { CustomError } from "../types/CustomError";
 
 const fetchUsers = async (apiUrl: string, url: string): Promise<User[]> => {
   const response = await fetch(`${apiUrl}/${url}`, {
@@ -11,11 +12,7 @@ const fetchUsers = async (apiUrl: string, url: string): Promise<User[]> => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    const message = Array.isArray(errorData)
-      ? errorData.join(", ")
-      : errorData?.message ||
-        "Error getting users. Please try again or contact IT if the issue persists.";
-    throw new Error(message);
+    throw new CustomError("Registration failed.", errorData);
   }
 
   return await response.json();

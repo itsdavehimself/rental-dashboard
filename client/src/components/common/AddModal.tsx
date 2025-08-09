@@ -1,11 +1,11 @@
 import XButton from "./XButton";
-import type React from "react";
+import type { ErrorsState } from "../../helpers/handleError";
 
 interface AddModalProps {
   title: string;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   children: React.ReactNode;
-  setErrors: React.Dispatch<React.SetStateAction<object | null>>;
+  setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
 }
 
 const AddModal: React.FC<AddModalProps> = ({

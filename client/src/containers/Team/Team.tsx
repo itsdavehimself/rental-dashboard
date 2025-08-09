@@ -11,12 +11,16 @@ import type { SubmitHandler } from "react-hook-form";
 import TeamMemberForm from "./components/TeamMemberForm";
 import { registerUser } from "../../service/authService";
 import type { TeamMemberInputs } from "./components/TeamMemberForm";
+import { handleError } from "../../helpers/handleError";
+import type { ErrorsState } from "../../helpers/handleError";
+import { useToast } from "../../hooks/useToast";
 
 const Team: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  const { addToast } = useToast();
 
   const [filter, setFilter] = useState<"active" | "inactive" | "all">("active");
-  const [errors, setErrors] = useState<object | null>(null);
+  const [errors, setErrors] = useState<ErrorsState>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
 
@@ -25,16 +29,7 @@ const Team: React.FC = () => {
       const userList: User[] = await fetchUsers(apiUrl, url);
       setUsers(userList);
     } catch (err) {
-      if (err && typeof err === "object") {
-        console.error("Validation errors:", err);
-        setErrors(err);
-      } else if (err instanceof Error) {
-        console.error(err.message);
-        setErrors({ general: err.message });
-      } else {
-        console.error("Unknown error:", err);
-        setErrors({ general: "An unknown error occurred." });
-      }
+      handleError(err, setErrors);
     }
   };
 
@@ -48,17 +43,12 @@ const Team: React.FC = () => {
       const updatedUsers = [...users, newUser];
       setUsers(updatedUsers);
       setAddModalOpen(false);
+      addToast(
+        "Success",
+        `${newUser.firstName} ${newUser.lastName} successfully added to the team.`
+      );
     } catch (err) {
-      if (err && typeof err === "object") {
-        console.error("Validation errors:", err);
-        setErrors(err);
-      } else if (err instanceof Error) {
-        console.error(err.message);
-        setErrors({ general: err.message });
-      } else {
-        console.error("Unknown error:", err);
-        setErrors({ general: "An unknown error occurred." });
-      }
+      handleError(err, setErrors);
     }
   };
 
@@ -68,6 +58,12 @@ const Team: React.FC = () => {
     else if (filter === "inactive") url += "?isActive=false";
     handleUserFetch(url);
   }, [filter]);
+
+  useEffect(() => {
+    if (errors && "general" in errors) {
+      addToast("Error", errors?.general as string);
+    }
+  }, [errors, addToast]);
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
