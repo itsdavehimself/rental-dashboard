@@ -25,7 +25,15 @@ public class JobTitleController : ControllerBase
   {
     var role = User.FindFirst(ClaimTypes.Role)?.Value;
     if (role != "Admin")
-      return Forbid();
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };
 
     var jobs = await _context.JobTitles.Select(jt => new
     {

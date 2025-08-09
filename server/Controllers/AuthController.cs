@@ -46,11 +46,27 @@ public partial class AuthController : ControllerBase
 
     var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == request.RoleId);
     if (role == null)
-      return BadRequest(new { message = "Invalid role" });
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Bad Request",
+        Detail = "Invalid Role ID.",
+        Status = StatusCodes.Status400BadRequest
+      })
+      {
+        StatusCode = StatusCodes.Status400BadRequest
+      };
 
     var jobTitle = await _context.JobTitles.FirstOrDefaultAsync(jt => jt.Id == request.JobTitleId);
     if (jobTitle == null)
-      return BadRequest(new { message = "Invalid job title id" });
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Bad Request",
+        Detail = "Invalid Job Title ID.",
+        Status = StatusCodes.Status400BadRequest
+      })
+      {
+        StatusCode = StatusCodes.Status400BadRequest
+      };
 
     var user = new User
     {

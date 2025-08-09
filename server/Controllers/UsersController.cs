@@ -80,7 +80,16 @@ public class UsersController : ControllerBase
   public async Task<IActionResult> GetUser([FromRoute] Guid uid)
   {
     var role = User.FindFirst(ClaimTypes.Role)?.Value;
-    if (role != "Admin") return Forbid();
+    if (role != "Admin")
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };
 
     var user = await _context.Users.Where(u => u.Uid == uid).Select(u => new
     {
@@ -99,9 +108,15 @@ public class UsersController : ControllerBase
     }).FirstOrDefaultAsync();
 
     if (user == null)
-    {
-      return NotFound(new { message = "User not found" });
-    }
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "User not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
 
     return Ok(user);
   }
@@ -116,11 +131,27 @@ public class UsersController : ControllerBase
     var isSelf = userIdFromToken == uid.ToString();
 
     if (!isAdmin && !isSelf)
-      return Forbid();
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };
 
     var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == uid);
     if (user == null)
-      return NotFound(new { message = "User not found" });
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "User not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
 
     if (request.FirstName != null)
       user.FirstName = request.FirstName;
@@ -140,7 +171,15 @@ public class UsersController : ControllerBase
       {
         var roleEntity = await _context.Roles.FindAsync(request.RoleId.Value);
         if (roleEntity == null)
-          return BadRequest(new { message = "Invalid role ID" });
+        return new ObjectResult(new ProblemDetails
+        {
+          Title = "Bad Request",
+          Detail = "Invalid Role ID.",
+          Status = StatusCodes.Status400BadRequest
+        })
+        {
+          StatusCode = StatusCodes.Status400BadRequest
+        };
 
         user.RoleId = request.RoleId.Value;
       }
@@ -152,7 +191,15 @@ public class UsersController : ControllerBase
       {
         var jobTitleEntity = await _context.JobTitles.FindAsync(request.JobTitleId.Value);
         if (jobTitleEntity == null)
-          return BadRequest(new { message = "Invalid Job Title ID" });
+        return new ObjectResult(new ProblemDetails
+        {
+          Title = "Bad Request",
+          Detail = "Invalid Job Title ID.",
+          Status = StatusCodes.Status400BadRequest
+        })
+        {
+          StatusCode = StatusCodes.Status400BadRequest
+        };
 
         user.JobTitleId = request.JobTitleId.Value;
       }
@@ -179,10 +226,28 @@ public class UsersController : ControllerBase
   public async Task<IActionResult> Me()
   {
       var email = User.FindFirst(ClaimTypes.Email)?.Value;
-      if (email is null) return Unauthorized();
+      if (email is null)
+      return new ObjectResult(new ProblemDetails
+        {
+          Title = "Unauthorized",
+          Detail = "You are not authorized to perform this action.",
+          Status = StatusCodes.Status401Unauthorized
+        })
+        {
+          StatusCode = StatusCodes.Status401Unauthorized
+        };
 
       var username = User.FindFirst(ClaimTypes.Name)?.Value;
-      if (username is null) return Unauthorized();
+      if (username is null)
+      return new ObjectResult(new ProblemDetails
+        {
+          Title = "Unauthorized",
+          Detail = "You are not authorized to perform this action.",
+          Status = StatusCodes.Status401Unauthorized
+        })
+        {
+          StatusCode = StatusCodes.Status401Unauthorized
+        };
 
       var user = await _context.Users.Where(u => u.Email == email)
       .Select(u => new
@@ -196,7 +261,16 @@ public class UsersController : ControllerBase
         jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
       })
       .FirstOrDefaultAsync();
-      if (user is null) return Unauthorized();
+      if (user is null)
+      return new ObjectResult(new ProblemDetails
+        {
+          Title = "Unauthorized",
+          Detail = "You are not authorized to perform this action.",
+          Status = StatusCodes.Status401Unauthorized
+        })
+        {
+          StatusCode = StatusCodes.Status401Unauthorized
+        };
 
       return Ok(user);
   }
@@ -205,14 +279,29 @@ public class UsersController : ControllerBase
   public async Task<IActionResult> Delete(Guid uid)
   {
     var role = User.FindFirst(ClaimTypes.Role)?.Value;
-    if (role != "Admin") return Forbid();
+    if (role != "Admin")
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };
 
     var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == uid);
 
     if (user == null)
-    {
-      return NotFound(new { message = "User not found" });
-    }
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "User not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
 
     _context.Users.Remove(user);
     await _context.SaveChangesAsync();
