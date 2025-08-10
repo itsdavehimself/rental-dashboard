@@ -26,10 +26,14 @@ const Team: React.FC = () => {
 
   const handleUserFetch = async (url: string): Promise<void> => {
     try {
-      const userList: User[] = await fetchUsers(apiUrl, url);
+      const userList = await fetchUsers(apiUrl, url);
       setUsers(userList);
     } catch (err) {
       handleError(err, setErrors);
+      addToast(
+        "Error",
+        "There was a problem fetching team members. Please try again."
+      );
     }
   };
 
