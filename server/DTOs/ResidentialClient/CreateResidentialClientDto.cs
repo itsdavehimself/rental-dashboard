@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using server.Validators;
 
-namespace server.DTOs;
+namespace server.DTOs.ResidentialClient;
 
-public class CreateUserDto
+public class CreateResidentialClientDto
 {
   [Required(ErrorMessage = "First name is required")]
   [MinLength(2, ErrorMessage = "First name must be at least 2 characters")]
@@ -19,14 +18,6 @@ public class CreateUserDto
   [Required(ErrorMessage = "Phone number is required")]
   [RegularExpression(@"^\d{3}-\d{3}-\d{4}$", ErrorMessage = "Phone number must be in XXX-XXX-XXXX format")]
   public string PhoneNumber { get; set; } = string.Empty;
-  [Required]
-  [Range(1, 2, ErrorMessage = "Please select a valid role")]
-  public int RoleId { get; set; }
-  [Range(1, 2, ErrorMessage = "Please select a valid job title")]
-  public int JobTitleId { get; set; }
-  [Required]
-  [ValidStartDate]
-  public DateTime? StartDate { get; set; }
-  [Required]
-  public decimal PayRate { get; set; }
+  public AddressDto Address { get; set; } = new();
+  public string? Notes { get; set; }
 }

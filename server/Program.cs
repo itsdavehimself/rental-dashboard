@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using server.Models;
+using server.Models.User;
 using server.Data.Seed;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

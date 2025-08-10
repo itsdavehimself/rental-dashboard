@@ -1,4 +1,4 @@
-using server.Models;
+using server.Models.User;
 
 namespace server.Data.Seed;
 

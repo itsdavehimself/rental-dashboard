@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using server.DTOs.User;
 using server.DTOs;
-using server.Models;
+using server.Models.User;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
@@ -10,7 +11,6 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace server.Controllers;
 
@@ -33,7 +33,16 @@ public partial class AuthController : ControllerBase
   public async Task<IActionResult> Register(CreateUserDto request)
   {
     var requesterRole = User.FindFirst(ClaimTypes.Role)?.Value;
-    if (requesterRole != "Admin") return Forbid();
+    if (requesterRole != "Admin")
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };
 
     if (!ModelState.IsValid)
     {
@@ -50,7 +59,7 @@ public partial class AuthController : ControllerBase
       {
         Title = "Bad Request",
         Detail = "Invalid Role ID.",
-        Status = StatusCodes.Status400BadRequest
+        Status = StatusCodes.Status403Forbidden
       })
       {
         StatusCode = StatusCodes.Status400BadRequest

@@ -1,4 +1,4 @@
-namespace server.DTOs;
+namespace server.DTOs.User;
 using System.ComponentModel.DataAnnotations;
 
 

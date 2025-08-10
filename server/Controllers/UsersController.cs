@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using server.DTOs;
+using server.DTOs.User;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using server.Models;
+using server.Models.User;
 
 namespace server.Controllers;
 

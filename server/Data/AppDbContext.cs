@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using server.Models;
+using server.Models.User;
+using server.Models.Client;
 public class AppDbContext : DbContext
 {
   public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -8,6 +9,9 @@ public class AppDbContext : DbContext
   public DbSet<Role> Roles => Set<Role>();
   public DbSet<Permission> Permissions => Set<Permission>();
   public DbSet<JobTitle> JobTitles => Set<JobTitle>();
+  public DbSet<Client> Clients => Set<Client>();
+  public DbSet<ResidentialClient> ResidentialClients => Set<ResidentialClient>();
+  public DbSet<BusinessClient> BusinessClients => Set<BusinessClient>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -15,5 +19,23 @@ public class AppDbContext : DbContext
         .HasMany(r => r.Permissions)
         .WithMany(p => p.Roles)
         .UsingEntity(j => j.ToTable("RolePermissions"));
+
+    modelBuilder.Entity<Client>()
+        .HasOne(c => c.ResidentialClient)
+        .WithOne(rc => rc.Client)
+        .HasForeignKey<ResidentialClient>(rc => rc.ClientId);
+
+    modelBuilder.Entity<Client>()
+        .HasOne(c => c.BusinessClient)
+        .WithOne(rc => rc.Client)
+        .HasForeignKey<BusinessClient>(rc => rc.ClientId);
+
+    modelBuilder.Entity<ResidentialClient>()
+      .OwnsOne(rc => rc.Address);
+
+    modelBuilder.Entity<BusinessClient>()
+      .HasMany(bc => bc.Contacts)
+      .WithOne(c => c.BusinessClient)
+      .HasForeignKey(c => c.BusinessClientId);
   }
 }
