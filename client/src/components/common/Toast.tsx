@@ -26,7 +26,7 @@ const Toast: React.FC<ToastProps> = ({ id, type, message, onClose }) => {
 
   return (
     <div
-      className={`absolute top-10 border-1 rounded-lg px-4 py-2 text-sm shadow-md ${styles[type]} z-500`}
+      className={`border-1 rounded-lg px-4 py-2 text-sm shadow-md ${styles[type]} z-500`}
     >
       <span className="font-semibold">{type}:</span> {message}
     </div>
