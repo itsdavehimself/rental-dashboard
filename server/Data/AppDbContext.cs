@@ -23,7 +23,7 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<Client>()
         .HasOne(c => c.ResidentialClient)
         .WithOne(rc => rc.Client)
-        .HasForeignKey<ResidentialClient>(rc => rc.ClientId);
+        .HasForeignKey<ResidentialClient>(rc => rc.Uid);
 
     modelBuilder.Entity<Client>()
         .HasOne(c => c.BusinessClient)

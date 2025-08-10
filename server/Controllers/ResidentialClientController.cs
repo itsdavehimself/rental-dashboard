@@ -27,6 +27,8 @@ public class ResidentialClientController : ControllerBase
   [HttpGet]
   public async Task<IActionResult> GetResidentialClients([FromQuery] int page = 1, [FromQuery] int pageSize = 25)
   {
+    var totalCount = await _context.ResidentialClients.CountAsync();
+
     var query = _context.ResidentialClients
         .Include(rc => rc.Client)
         .OrderBy(rc => rc.LastName)
@@ -34,7 +36,7 @@ public class ResidentialClientController : ControllerBase
         .Take(pageSize)
         .Select(rc => new ResidentialClientResponseDto
         {
-          ClientId = rc.Client.Uid,
+          Uid = rc.Client.Uid,
           FirstName = rc.FirstName,
           LastName = rc.LastName,
           Email = rc.Email,
@@ -53,7 +55,16 @@ public class ResidentialClientController : ControllerBase
 
     var results = await query.ToListAsync();
 
-    return Ok(results);
+    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+    return Ok(new PaginatedResponse<ResidentialClientResponseDto>
+    {
+      Page = page,
+      PageSize = pageSize,
+      TotalCount = totalCount,
+      TotalPages = totalPages,
+      Data = results
+    });
   }
 
   [HttpPost("create")]
@@ -76,7 +87,7 @@ public class ResidentialClientController : ControllerBase
 
     var residential = new ResidentialClient
     {
-      ClientId = client.Id,
+      Uid = client.Id,
       FirstName = request.FirstName,
       LastName = request.LastName,
       PhoneNumber = request.PhoneNumber,
@@ -96,7 +107,7 @@ public class ResidentialClientController : ControllerBase
 
     return Ok(new ResidentialClientResponseDto
     {
-      ClientId = client.Uid,
+      Uid = client.Uid,
       FirstName = residential.FirstName,
       LastName = residential.LastName,
       Email = residential.Email,

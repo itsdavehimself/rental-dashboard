@@ -2,7 +2,7 @@ namespace server.DTOs.ResidentialClient;
 
 public class ResidentialClientResponseDto
 {
-  public Guid ClientId { get; set; }
+  public Guid Uid { get; set; }
 
   public string FirstName { get; set; } = string.Empty;
 
