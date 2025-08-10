@@ -8,7 +8,7 @@ import { fetchUser } from "./app/slices/userSlice";
 import WithSidebar from "./layouts/WithSidebar";
 import Inventory from "./containers/Inventory";
 import Events from "./containers/Events";
-import Clients from "./containers/Clients";
+import Clients from "./containers/Clients/Clients";
 import Team from "./containers/Team/Team";
 import ToastProvider from "./context/ToastProvider";
 
