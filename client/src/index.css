@@ -9,3 +9,7 @@
 body {
   @apply text-primary;
 }
+
+.rdp-day_button:focus {
+  outline: 2px solid #0d0d0d;
+}

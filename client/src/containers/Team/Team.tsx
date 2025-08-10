@@ -69,6 +69,8 @@ const Team: React.FC = () => {
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
       {addModalOpen && (
         <AddModal
+          openModal={addModalOpen}
+          setOpenModal={setAddModalOpen}
           title="Add Team Member"
           setIsModalOpen={setAddModalOpen}
           setErrors={setErrors}
