@@ -4,11 +4,18 @@ import type { ResidentialClient } from "../../types/ResidentialClient";
 import ResidentialClientCard from "./components/ResidentialClientCard";
 import { useToast } from "../../hooks/useToast";
 import { type ErrorsState, handleError } from "../../helpers/handleError";
-import { fetchResidentialClients } from "../../service/clientService";
+import {
+  createResidentialClient,
+  fetchResidentialClients,
+} from "../../service/clientService";
 import AddButton from "../../components/common/AddButton";
 import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import SearchBar from "../../components/common/SearchBar";
+import ResidentialClientForm, {
+  type ResidentialClientInputs,
+} from "./components/ResidentialClientForm";
+import type { SubmitHandler } from "react-hook-form";
 
 const Clients: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -41,6 +48,27 @@ const Clients: React.FC = () => {
   ];
   const columnTemplate = "[grid-template-columns:1fr_1fr_1fr_1fr_3rem]";
 
+  const onSubmit: SubmitHandler<ResidentialClientInputs> = async (data) => {
+    try {
+      setErrors(null);
+      const newClient = await createResidentialClient(apiUrl, data);
+
+      const updatedUsers = [...clients, newClient].sort((a, b) => {
+        const last = a.lastName.localeCompare(b.lastName);
+        return last !== 0 ? last : a.firstName.localeCompare(b.firstName);
+      });
+
+      setClients(updatedUsers);
+      setAddModalOpen(false);
+      addToast(
+        "Success",
+        `${newClient.firstName} ${newClient.lastName} successfully added as a client.`
+      );
+    } catch (err) {
+      handleError(err, setErrors);
+    }
+  };
+
   useEffect(() => {
     handleClientFetch();
   }, [page]);
@@ -54,7 +82,9 @@ const Clients: React.FC = () => {
           title="Add Client"
           setIsModalOpen={setAddModalOpen}
           setErrors={setErrors}
-        ></AddModal>
+        >
+          <ResidentialClientForm onSubmit={onSubmit} errors={errors} />
+        </AddModal>
       )}
       <div className="flex justify-between w-full">
         <SearchBar placeholder="Search" />
