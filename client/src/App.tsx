@@ -11,6 +11,7 @@ import Events from "./containers/Events";
 import Clients from "./containers/Clients/Clients";
 import Team from "./containers/Team/Team";
 import ToastProvider from "./context/ToastProvider";
+import ResidentialClient from "./containers/Clients/ResidentialClient";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -33,7 +34,11 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/events" element={<Events />} />
-          <Route path="/clients" element={<Clients />} />
+          <Route path="/clients">
+            <Route index element={<Clients />} />
+            <Route path=":uid" element={<ResidentialClient />} />
+          </Route>
+
           <Route path="/team" element={<Team />} />
         </Route>
       </Routes>

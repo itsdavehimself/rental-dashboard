@@ -1,6 +1,7 @@
 import type { ResidentialClient } from "../../../types/ResidentialClient";
 import { Ellipsis } from "lucide-react";
 import { formatDate } from "date-fns";
+import { useNavigate } from "react-router";
 
 interface ResidentialClientCardProps {
   item: ResidentialClient;
@@ -13,11 +14,13 @@ const ResidentialClientCard: React.FC<ResidentialClientCardProps> = ({
   isLast,
   columnTemplate,
 }) => {
+  const navigate = useNavigate();
   return (
     <div
       className={`grid ${columnTemplate} items-center w-full gap-4 px-8 py-4 text-sm hover:bg-gray-50 hover:cursor-pointer transition-all duration-200 ${
         isLast ? "rounded-b-xl" : "border-b border-gray-200"
       }`}
+      onClick={() => navigate(`${item.uid}`)}
     >
       <p>{item.lastName}</p>
       <p>{item.firstName} </p>

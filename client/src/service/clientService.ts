@@ -28,6 +28,26 @@ const fetchResidentialClients = async (
   return await response.json();
 };
 
+const getResidentialClient = async (
+  apiUrl: string,
+  uid: string
+): Promise<ResidentialClient> => {
+  const response = await fetch(`${apiUrl}/api/residentialclient/${uid}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Getting client failed.", errorData);
+  }
+
+  return await response.json();
+};
+
 const createResidentialClient = async (
   apiUrl: string,
   data: CreateResidentialClient
@@ -43,6 +63,7 @@ const createResidentialClient = async (
       lastName: data.lastName,
       email: data.email,
       phoneNumber: data.phoneNumber,
+      notes: data.notes,
       address: {
         street: data.address.street,
         unit: data.address.unit,
@@ -61,4 +82,8 @@ const createResidentialClient = async (
   return await response.json();
 };
 
-export { fetchResidentialClients, createResidentialClient };
+export {
+  fetchResidentialClients,
+  createResidentialClient,
+  getResidentialClient,
+};
