@@ -6,6 +6,7 @@ using server.Models.Client;
 using server.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Security.Claims;
 
 namespace server.Controllers;
 
@@ -27,33 +28,34 @@ public class ResidentialClientController : ControllerBase
   [HttpGet]
   public async Task<IActionResult> GetResidentialClients([FromQuery] int page = 1, [FromQuery] int pageSize = 25)
   {
-    var totalCount = await _context.ResidentialClients.CountAsync();
+    var totalCount = await _context.Clients
+      .Where(c => c.Type == ClientType.Residential)
+      .CountAsync();
 
-    var query = _context.ResidentialClients
-        .Include(rc => rc.Client)
-        .OrderBy(rc => rc.LastName)
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(rc => new ResidentialClientResponseDto
+    var results = await _context.Clients
+      .Where(c => c.Type == ClientType.Residential)
+      .Include(c => c.ResidentialClient)
+      .OrderBy(c => c.ResidentialClient!.LastName)
+      .Skip((page - 1) * pageSize)
+      .Take(pageSize)
+      .Select(c => new ResidentialClientResponseDto
+      {
+        Uid = c.Uid,
+        FirstName = c.ResidentialClient!.FirstName,
+        LastName = c.ResidentialClient!.LastName,
+        Email = c.ResidentialClient.Email,
+        PhoneNumber = c.ResidentialClient.PhoneNumber,
+        Notes = c.Notes,
+        CreatedAt = c.CreatedAt,
+        Address = new AddressDto
         {
-          Uid = rc.Client.Uid,
-          FirstName = rc.FirstName,
-          LastName = rc.LastName,
-          Email = rc.Email,
-          PhoneNumber = rc.PhoneNumber,
-          Notes = rc.Client.Notes,
-          CreatedAt = rc.Client.CreatedAt,
-          Address = new AddressDto
-          {
-            Street = rc.Address.Street,
-            Unit = rc.Address.Unit,
-            City = rc.Address.City,
-            State = rc.Address.State,
-            ZipCode = rc.Address.ZipCode
-          }
-        });
-
-    var results = await query.ToListAsync();
+          Street = c.ResidentialClient.Address.Street,
+          Unit = c.ResidentialClient.Address.Unit,
+          City = c.ResidentialClient.Address.City,
+          State = c.ResidentialClient.Address.State,
+          ZipCode = c.ResidentialClient.Address.ZipCode
+        }
+      }).ToListAsync();
 
     var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
@@ -82,12 +84,9 @@ public class ResidentialClientController : ControllerBase
       CreatedAt = DateTime.UtcNow,
     };
 
-    _context.Clients.Add(client);
-    await _context.SaveChangesAsync();
-
     var residential = new ResidentialClient
     {
-      Uid = client.Id,
+      Client = client,
       FirstName = request.FirstName,
       LastName = request.LastName,
       PhoneNumber = request.PhoneNumber,
@@ -123,5 +122,75 @@ public class ResidentialClientController : ControllerBase
         ZipCode = residential.Address.ZipCode
       }
     });
+  }
+
+  [HttpGet("{uid}")]
+  public async Task<IActionResult> SearchClient(Guid uid)
+  {
+    var client = await _context.Clients.Include(c => c.ResidentialClient).FirstOrDefaultAsync(c => c.Uid == uid);
+
+    if (client == null)
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "User not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+
+    return Ok(new ResidentialClientResponseDto
+    {
+      Uid = client.Uid,
+      FirstName = client.ResidentialClient!.FirstName,
+      LastName = client.ResidentialClient.LastName,
+      Email = client.ResidentialClient.Email,
+      PhoneNumber = client.ResidentialClient.PhoneNumber,
+      Notes = client.Notes,
+      CreatedAt = client.CreatedAt,
+      Address = new AddressDto
+      {
+        Street = client.ResidentialClient.Address.Street,
+        Unit = client.ResidentialClient.Address.Unit,
+        City = client.ResidentialClient.Address.City,
+        State = client.ResidentialClient.Address.State,
+        ZipCode = client.ResidentialClient.Address.ZipCode
+      }
+    });
+  }
+
+  [HttpDelete("{uid}")]
+  public async Task<IActionResult> Delete(Guid uid)
+  {
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    if (role != "Admin")
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };
+
+    var client = await _context.Clients.FirstOrDefaultAsync(c => c.Uid == uid);
+
+    if (client == null)
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "User not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+
+    _context.Clients.Remove(client);
+    await _context.SaveChangesAsync();
+
+    return NoContent();
   }
 }

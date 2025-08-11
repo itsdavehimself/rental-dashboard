@@ -23,12 +23,14 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<Client>()
         .HasOne(c => c.ResidentialClient)
         .WithOne(rc => rc.Client)
-        .HasForeignKey<ResidentialClient>(rc => rc.Uid);
+        .HasForeignKey<ResidentialClient>(rc => rc.ClientId)
+        .OnDelete(DeleteBehavior.Cascade);
 
     modelBuilder.Entity<Client>()
         .HasOne(c => c.BusinessClient)
         .WithOne(rc => rc.Client)
-        .HasForeignKey<BusinessClient>(rc => rc.ClientId);
+        .HasForeignKey<BusinessClient>(rc => rc.ClientId)
+        .OnDelete(DeleteBehavior.Cascade);
 
     modelBuilder.Entity<ResidentialClient>()
       .OwnsOne(rc => rc.Address);
@@ -36,6 +38,7 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<BusinessClient>()
       .HasMany(bc => bc.Contacts)
       .WithOne(c => c.BusinessClient)
-      .HasForeignKey(c => c.BusinessClientId);
+      .HasForeignKey(c => c.BusinessClientId)
+      .OnDelete(DeleteBehavior.Cascade);
   }
 }
