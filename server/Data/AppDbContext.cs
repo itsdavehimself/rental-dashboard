@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using server.Models.User;
 using server.Models.Client;
+using server.Models.Inventory;
 public class AppDbContext : DbContext
 {
   public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -12,6 +13,7 @@ public class AppDbContext : DbContext
   public DbSet<Client> Clients => Set<Client>();
   public DbSet<ResidentialClient> ResidentialClients => Set<ResidentialClient>();
   public DbSet<BusinessClient> BusinessClients => Set<BusinessClient>();
+  public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {

@@ -5,7 +5,6 @@ using server.DTOs;
 using server.Models.Client;
 using server.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Security.Claims;
 
 namespace server.Controllers;
@@ -69,7 +68,7 @@ public class ResidentialClientController : ControllerBase
     });
   }
 
-  [HttpPost("create")]
+  [HttpPost]
   public async Task<IActionResult> CreateClient(CreateResidentialClientDto request)
   {
     if (!ModelState.IsValid)
