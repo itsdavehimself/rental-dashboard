@@ -2,9 +2,11 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import StyledInput from "../../../components/common/StyledInput";
 import PhoneInput from "../../../components/common/PhoneInput";
 import SubmitButton from "../../../components/common/SubmitButton";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import TextAreaInput from "../../../components/common/TextAreaInput";
 import { toCamelCasePath } from "../../../helpers/toCamelCastPath";
+import Dropdown from "../../../components/common/Dropdown";
+import { STATES } from "../../../config/STATES";
 
 export type ResidentialClientInputs = {
   firstName: string;
@@ -33,10 +35,16 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
   const {
     handleSubmit,
     register,
+    watch,
+    setValue,
     setError,
     clearErrors,
     formState: { errors: formErrors },
   } = useForm<ResidentialClientInputs>();
+
+  const state = watch("address.state");
+  const ref = useRef<HTMLDivElement>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   useEffect(() => {
     clearErrors();
@@ -56,6 +64,19 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
       });
     }
   }, [errors, setError, clearErrors]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdown && !ref.current?.contains(event.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdown]);
 
   return (
     <form
@@ -96,6 +117,7 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
         placeholder="Suite 7"
         register={register("address.unit")}
         error={formErrors.address?.unit?.message}
+        optional={true}
       />
       <StyledInput
         label="City"
@@ -103,10 +125,17 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
         register={register("address.city")}
         error={formErrors.address?.city?.message}
       />
-      <StyledInput
+      <Dropdown
+        ref={ref}
         label="State"
-        placeholder="IL"
-        register={register("address.state")}
+        value={state}
+        options={STATES}
+        openDropdown={openDropdown}
+        setOpenDropdown={setOpenDropdown}
+        selectedLabel={
+          STATES.find((s) => s.value === state)?.label ?? "Select a state"
+        }
+        onChange={(val) => setValue("address.state", val as string)}
         error={formErrors.address?.state?.message}
       />
       <StyledInput

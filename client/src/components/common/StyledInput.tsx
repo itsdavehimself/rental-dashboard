@@ -6,6 +6,7 @@ interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   placeholder: string;
   type?: string;
   error: string | undefined;
+  optional?: boolean;
 }
 
 const StyledInput: React.FC<StyledInputProps> = ({
@@ -14,12 +15,18 @@ const StyledInput: React.FC<StyledInputProps> = ({
   placeholder,
   type = "text",
   error,
+  optional,
   ...rest
 }) => {
   return (
     <div className="flex flex-col">
       <div className="flex flex-col gap-1">
-        <label className="text-sm font-semibold">{label}</label>
+        <label className="text-sm font-semibold">
+          {label}{" "}
+          {optional && (
+            <span className="font-normal text-gray-400">(optional)</span>
+          )}
+        </label>
         <input
           {...register}
           {...rest}

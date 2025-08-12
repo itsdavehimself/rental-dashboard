@@ -83,7 +83,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         </div>
       </div>
       {openDropdown === label && (
-        <ul className="flex flex-col border-1 bg-white w-full border-gray-300 rounded-lg overflow-hidden absolute mt-0.5 z-100">
+        <ul className="flex flex-col border-1 bg-white w-full border-gray-300 rounded-lg overflow-hidden absolute mt-0.5 z-100 max-h-54 overflow-y-scroll">
           {options.map((opt, i) => (
             <li
               key={opt.value}

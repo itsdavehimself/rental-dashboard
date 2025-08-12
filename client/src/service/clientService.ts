@@ -52,7 +52,7 @@ const createResidentialClient = async (
   apiUrl: string,
   data: CreateResidentialClient
 ): Promise<ResidentialClient> => {
-  const response = await fetch(`${apiUrl}/api/residentialclient/create`, {
+  const response = await fetch(`${apiUrl}/api/residentialclient`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
