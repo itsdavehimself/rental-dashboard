@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250812021249_AddMigration")]
+    partial class AddMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -175,9 +178,6 @@ namespace server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal?>("AveragePurchaseCost")
-                        .HasColumnType("numeric");
-
                     b.Property<int>("Color")
                         .HasColumnType("integer");
 
@@ -212,6 +212,9 @@ namespace server.Migrations
                     b.Property<bool>("PackageOnly")
                         .HasColumnType("boolean");
 
+                    b.Property<decimal?>("PurchaseCost")
+                        .HasColumnType("numeric");
+
                     b.Property<int>("QuantityTotal")
                         .HasColumnType("integer");
 
@@ -240,72 +243,6 @@ namespace server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("InventoryItems");
-                });
-
-            modelBuilder.Entity("server.Models.Inventory.InventoryPurchase", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DatePurchased")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("InventoryItemId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("QuantityPurchased")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("Uid")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("UnitCost")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("VendorName")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InventoryItemId");
-
-                    b.ToTable("InventoryPurchases");
-                });
-
-            modelBuilder.Entity("server.Models.Inventory.InventoryRetirement", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DateRetired")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("InventoryItemId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<int>("QuantityRetired")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Reason")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("Uid")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("InventoryItemId");
-
-                    b.ToTable("InventoryRetirements");
                 });
 
             modelBuilder.Entity("server.Models.User.JobTitle", b =>
@@ -503,28 +440,6 @@ namespace server.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("server.Models.Inventory.InventoryPurchase", b =>
-                {
-                    b.HasOne("server.Models.Inventory.InventoryItem", "InventoryItem")
-                        .WithMany("Purchases")
-                        .HasForeignKey("InventoryItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("InventoryItem");
-                });
-
-            modelBuilder.Entity("server.Models.Inventory.InventoryRetirement", b =>
-                {
-                    b.HasOne("server.Models.Inventory.InventoryItem", "InventoryItem")
-                        .WithMany("Retirements")
-                        .HasForeignKey("InventoryItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("InventoryItem");
-                });
-
             modelBuilder.Entity("server.Models.User.User", b =>
                 {
                     b.HasOne("server.Models.User.JobTitle", "JobTitle")
@@ -552,13 +467,6 @@ namespace server.Migrations
                     b.Navigation("BusinessClient");
 
                     b.Navigation("ResidentialClient");
-                });
-
-            modelBuilder.Entity("server.Models.Inventory.InventoryItem", b =>
-                {
-                    b.Navigation("Purchases");
-
-                    b.Navigation("Retirements");
                 });
 
             modelBuilder.Entity("server.Models.User.JobTitle", b =>

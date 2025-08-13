@@ -51,11 +51,13 @@ public class InventoryItem
   public bool PackageOnly { get; set; } = false;
   public bool IsDeleted { get; set; } = false;
   public decimal? UnitPrice { get; set; }
-  public decimal? PurchaseCost { get; set; }
+  public decimal? AveragePurchaseCost { get; set; }
   public int? Length { get; set; }
   public int? Width { get; set; }
   public int? Height { get; set; }
   public MaterialType? Material { get; set; }
+  public List<InventoryPurchase> Purchases { get; set; } = [];
+  public List<InventoryRetirement> Retirements { get; set; } = [];
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

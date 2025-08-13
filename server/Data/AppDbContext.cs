@@ -14,6 +14,8 @@ public class AppDbContext : DbContext
   public DbSet<ResidentialClient> ResidentialClients => Set<ResidentialClient>();
   public DbSet<BusinessClient> BusinessClients => Set<BusinessClient>();
   public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+  public DbSet<InventoryPurchase> InventoryPurchases => Set<InventoryPurchase>();
+  public DbSet<InventoryRetirement> InventoryRetirements => Set<InventoryRetirement>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -42,5 +44,17 @@ public class AppDbContext : DbContext
       .WithOne(c => c.BusinessClient)
       .HasForeignKey(c => c.BusinessClientId)
       .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<InventoryPurchase>()
+        .HasOne(p => p.InventoryItem)
+        .WithMany(i => i.Purchases)
+        .HasForeignKey(p => p.InventoryItemId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<InventoryRetirement>()
+        .HasOne(r => r.InventoryItem)
+        .WithMany(i => i.Retirements)
+        .HasForeignKey(r => r.InventoryItemId)
+        .OnDelete(DeleteBehavior.Cascade);
   }
 }

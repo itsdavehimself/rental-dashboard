@@ -14,7 +14,6 @@ public class CreateInventoryItemDto
   public InventoryColor Color { get; set; }
   [Required(ErrorMessage = "Item quantity is required")]
   [Range(0, int.MaxValue, ErrorMessage = "Quantity must be zero or more")]
-  public int QuantityTotal { get; set; }
   public string? Notes { get; set; }
   [Range(1, int.MaxValue, ErrorMessage = "Length must be 1 or more")]
   public int? Length { get; set; }
@@ -26,5 +25,4 @@ public class CreateInventoryItemDto
   public decimal? UnitPrice { get; set; }
   [Range(0, double.MaxValue, ErrorMessage = "Purchase cost must be non-negative")]
   public MaterialType? Material { get; set; }
-  public decimal? PurchaseCost { get; set; }
 }

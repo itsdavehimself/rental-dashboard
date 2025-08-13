@@ -32,7 +32,10 @@ public class InventoryController : ControllerBase
   [FromQuery] string? Search = null
   )
   {
-    var query = _context.InventoryItems.AsQueryable();
+    var query = _context.InventoryItems
+      .Include(i => i.Purchases)
+      .Include(i => i.Retirements)
+      .AsQueryable();
 
     if (IsActive.HasValue)
       query = query.Where(i => i.IsActive == IsActive.Value);
@@ -65,17 +68,14 @@ public class InventoryController : ControllerBase
     var items = await query
       .OrderBy(i => i.Description)
       .Skip((page - 1) * pageSize)
-      .Take(pageSize).Select(i => new ListInventoryItemResponseDto
+      .Take(pageSize)
+      .Select(i => new ListInventoryItemResponseDto
       {
         Uid = i.Uid,
         Description = i.Description,
-        Type = i.Type,
-        SubType = i.SubType,
-        Color = i.Color,
-        QuantityTotal = i.QuantityTotal,
         SKU = i.SKU,
-        Material = i.Material,
         UnitPrice = i.UnitPrice,
+        QuantityTotal = i.Purchases.Sum(p => p.QuantityPurchased) - i.Retirements.Sum(r => r.QuantityRetired)
       })
         .ToListAsync();
 
@@ -90,7 +90,7 @@ public class InventoryController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<IActionResult> CreateInventory(CreateInventoryItemDto request)
+  public async Task<IActionResult> CreateInventoryItem(CreateInventoryItemDto request)
   {
     if (!ModelState.IsValid)
     {
@@ -112,11 +112,9 @@ public class InventoryController : ControllerBase
       Type = request.Type,
       SubType = request.SubType,
       Color = request.Color,
-      QuantityTotal = request.QuantityTotal,
       SKU = sku,
       Notes = request.Notes,
       UnitPrice = request.UnitPrice,
-      PurchaseCost = request.PurchaseCost,
       Length = request.Length,
       Width = request.Width,
       Height = request.Height,
@@ -130,16 +128,12 @@ public class InventoryController : ControllerBase
     {
       Uid = item.Uid,
       Description = item.Description,
-      Type = item.Type,
-      SubType = item.SubType,
-      Color = item.Color,
-      QuantityTotal = item.QuantityTotal,
       SKU = item.SKU,
       UnitPrice = item.UnitPrice,
     });
   }
 
-  [HttpGet("enums/inventory")]
+  [HttpGet("enums")]
   public IActionResult GetInventoryEnums()
   {
     var types = Enum.GetValues(typeof(InventoryType))
