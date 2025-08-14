@@ -76,7 +76,6 @@ const Team: React.FC = () => {
           openModal={addModalOpen}
           setOpenModal={setAddModalOpen}
           title="Add Team Member"
-          setIsModalOpen={setAddModalOpen}
           setErrors={setErrors}
         >
           <TeamMemberForm onSubmit={onSubmit} errors={errors} />
@@ -96,6 +95,7 @@ const Team: React.FC = () => {
         tableItems={users}
         tableCardType={MemberCard}
         getKey={(user) => user.uid}
+        gap={4}
       />
     </div>
   );
