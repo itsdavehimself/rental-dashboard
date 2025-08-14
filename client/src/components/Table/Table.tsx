@@ -6,8 +6,10 @@ interface TableProps<T> {
     item: T;
     isLast: boolean;
     columnTemplate: string;
+    gap: number;
   }>;
   getKey: (item: T, index: number) => string | number;
+  gap: number;
 }
 
 const Table = <T,>({
@@ -16,11 +18,12 @@ const Table = <T,>({
   tableItems,
   tableCardType: TableCard,
   getKey,
+  gap,
 }: TableProps<T>) => {
   return (
     <div className="flex flex-col items-center w-full ring-1 rounded-xl ring-gray-200">
       <div
-        className={`grid ${columnTemplate} w-full gap-4 bg-gray-100 rounded-t-xl items-center h-12 px-8 text-sm border-b-1 border-gray-200`}
+        className={`grid ${columnTemplate} w-full gap-${gap} bg-gray-100 rounded-t-xl items-center h-12 px-8 text-sm border-b-1 border-gray-200`}
       >
         {headers.map((header, i) => (
           <p key={i} className="font-semibold hover:cursor-pointer">
@@ -35,6 +38,7 @@ const Table = <T,>({
             item={item}
             isLast={i === tableItems.length - 1}
             columnTemplate={columnTemplate}
+            gap={gap}
           />
         ))}
         {tableItems.length === 0 && (
