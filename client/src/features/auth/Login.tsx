@@ -75,45 +75,49 @@ const Login: React.FC = () => {
   return (
     <div className="flex flex-col h-screen w-screen bg-white justify-center items-center gap-10 px-10">
       <div className="flex flex-col justify-center items-center gap-10 w-full p-10 rounded-xl sm:w-100 ring-1 ring-gray-200">
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col">
           <h1 className="text-4xl font-bold text-text">AD Rentals</h1>
         </div>
         <form
-          className="flex flex-col justify-center items-center w-full gap-4"
+          className="flex flex-col justify-center items-center w-full gap-2"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <ValidatedInput
-            register={register("email", {
-              required: "Please enter your email",
-            })}
-            error={errors.email}
-            placeholder="Email"
-            type="email"
-          />
-          <ValidatedInput
-            register={register("password", {
-              required: "Please enter your password",
-            })}
-            error={errors.password}
-            placeholder="Password"
-            type="password"
-          />
-          <div className="self-start min-h-5 text-error-red text-sm">
-            {error === "Invalid credentials" ? (
-              <p>Invalid credentials. Please try again.</p>
-            ) : error ? (
-              <div className="self-start text-error-red text-sm space-y-1">
-                {error.split(",").map((msg, idx) => (
-                  <p key={idx}>{msg.trim()}</p>
-                ))}
-              </div>
-            ) : errors.email?.message ? (
-              <p>{errors.email.message}</p>
-            ) : errors.password?.message ? (
-              <p>{errors.password.message}</p>
-            ) : null}
+          <div className="flex flex-col gap-4 w-full">
+            <ValidatedInput
+              register={register("email", {
+                required: "Please enter your email",
+              })}
+              error={errors.email}
+              placeholder="Email"
+              type="email"
+            />
+            <ValidatedInput
+              register={register("password", {
+                required: "Please enter your password",
+              })}
+              error={errors.password}
+              placeholder="Password"
+              type="password"
+            />
           </div>
-          <SubmitButton label="Sign in" />
+          <div className="flex flex-col w-full gap-2">
+            <div className="self-start text-red-500 text-sm">
+              {error === "Invalid credentials" ? (
+                <p>Invalid credentials. Please try again.</p>
+              ) : error ? (
+                <div className="self-start text-red-500 text-sm space-y-1">
+                  {error.split(",").map((msg, idx) => (
+                    <p key={idx}>{msg.trim()}</p>
+                  ))}
+                </div>
+              ) : errors.email?.message ? (
+                <p>{errors.email.message}</p>
+              ) : errors.password?.message ? (
+                <p>{errors.password.message}</p>
+              ) : null}
+            </div>
+            <SubmitButton label="Sign in" />
+          </div>
         </form>
       </div>
     </div>
