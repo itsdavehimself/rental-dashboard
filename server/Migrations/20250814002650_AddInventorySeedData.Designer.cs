@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250814002650_AddInventorySeedData")]
+    partial class AddInventorySeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -178,10 +181,6 @@ namespace server.Migrations
                     b.Property<int>("InventorySubTypeId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -197,14 +196,12 @@ namespace server.Migrations
                         {
                             Id = 1,
                             InventorySubTypeId = 5,
-                            Label = "Dolphin",
                             Name = "Dolphin"
                         },
                         new
                         {
                             Id = 2,
                             InventorySubTypeId = 5,
-                            Label = "Spongebob",
                             Name = "Spongebob"
                         });
                 });
@@ -222,10 +219,6 @@ namespace server.Migrations
 
                     b.Property<int?>("InventoryTypeId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -248,7 +241,6 @@ namespace server.Migrations
                         {
                             Id = 1,
                             InventorySubTypeId = 1,
-                            Label = "Black",
                             Name = "Black",
                             SkuCode = "BLK"
                         },
@@ -256,7 +248,6 @@ namespace server.Migrations
                         {
                             Id = 2,
                             InventorySubTypeId = 2,
-                            Label = "Black",
                             Name = "Black",
                             SkuCode = "BLK"
                         },
@@ -264,7 +255,6 @@ namespace server.Migrations
                         {
                             Id = 3,
                             InventorySubTypeId = 1,
-                            Label = "White",
                             Name = "White",
                             SkuCode = "WHT"
                         },
@@ -272,7 +262,6 @@ namespace server.Migrations
                         {
                             Id = 4,
                             InventorySubTypeId = 2,
-                            Label = "White",
                             Name = "White",
                             SkuCode = "WHT"
                         });
@@ -380,10 +369,6 @@ namespace server.Migrations
                     b.Property<int?>("InventoryTypeId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -405,7 +390,6 @@ namespace server.Migrations
                         {
                             Id = 1,
                             InventorySubTypeId = 1,
-                            Label = "Plastic",
                             Name = "Plastic",
                             SkuCode = "PLT"
                         },
@@ -413,7 +397,6 @@ namespace server.Migrations
                         {
                             Id = 2,
                             InventorySubTypeId = 2,
-                            Label = "Plastic",
                             Name = "Plastic",
                             SkuCode = "PLT"
                         },
@@ -421,7 +404,6 @@ namespace server.Migrations
                         {
                             Id = 3,
                             InventorySubTypeId = 1,
-                            Label = "Resin",
                             Name = "Resin",
                             SkuCode = "RSN"
                         },
@@ -429,7 +411,6 @@ namespace server.Migrations
                         {
                             Id = 4,
                             InventorySubTypeId = 1,
-                            Label = "Metal",
                             Name = "Metal",
                             SkuCode = "MTL"
                         },
@@ -437,7 +418,6 @@ namespace server.Migrations
                         {
                             Id = 5,
                             InventorySubTypeId = 3,
-                            Label = "Vinyl",
                             Name = "Vinyl",
                             SkuCode = "VNL"
                         });
@@ -520,10 +500,6 @@ namespace server.Migrations
                     b.Property<int>("InventoryTypeId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -543,7 +519,6 @@ namespace server.Migrations
                         {
                             Id = 1,
                             InventoryTypeId = 1,
-                            Label = "Folding",
                             Name = "Folding",
                             SkuCode = "FLD"
                         },
@@ -551,7 +526,6 @@ namespace server.Migrations
                         {
                             Id = 2,
                             InventoryTypeId = 2,
-                            Label = "Folding",
                             Name = "Folding",
                             SkuCode = "FLD"
                         },
@@ -559,7 +533,6 @@ namespace server.Migrations
                         {
                             Id = 3,
                             InventoryTypeId = 3,
-                            Label = "Canopy",
                             Name = "Canopy",
                             SkuCode = "CNP"
                         },
@@ -567,7 +540,6 @@ namespace server.Migrations
                         {
                             Id = 4,
                             InventoryTypeId = 3,
-                            Label = "Pole Tent",
                             Name = "Pole",
                             SkuCode = "POL"
                         },
@@ -575,7 +547,6 @@ namespace server.Migrations
                         {
                             Id = 5,
                             InventoryTypeId = 5,
-                            Label = "Mechanical Bull",
                             Name = "MechanicalBull",
                             SkuCode = "MBL"
                         },
@@ -583,7 +554,6 @@ namespace server.Migrations
                         {
                             Id = 6,
                             InventoryTypeId = 5,
-                            Label = "Bounce House",
                             Name = "BounceHouse",
                             SkuCode = "BNC"
                         },
@@ -591,7 +561,6 @@ namespace server.Migrations
                         {
                             Id = 7,
                             InventoryTypeId = 4,
-                            Label = "String Lights",
                             Name = "String",
                             SkuCode = "STR"
                         });
@@ -604,10 +573,6 @@ namespace server.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -625,35 +590,30 @@ namespace server.Migrations
                         new
                         {
                             Id = 1,
-                            Label = "Table",
                             Name = "Table",
                             SkuCode = "TAB"
                         },
                         new
                         {
                             Id = 2,
-                            Label = "Chair",
                             Name = "Chair",
                             SkuCode = "CHA"
                         },
                         new
                         {
                             Id = 3,
-                            Label = "Tent",
                             Name = "Tent",
                             SkuCode = "TNT"
                         },
                         new
                         {
                             Id = 4,
-                            Label = "Lighting",
                             Name = "Lighting",
                             SkuCode = "LGT"
                         },
                         new
                         {
                             Id = 5,
-                            Label = "Attraction",
                             Name = "Attraction",
                             SkuCode = "ATR"
                         });

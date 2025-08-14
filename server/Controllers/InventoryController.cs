@@ -160,24 +160,29 @@ public async Task<IActionResult> GetInventory(
     {
       Id = t.Id,
       Name = t.Name,
+      Label = t.Label,
       SubTypes = t.SubTypes.Select(st => new InventorySubTypeDto
       {
         Id = st.Id,
         Name = st.Name,
+        Label = st.Label,
         Colors = st.Colors.Select(c => new InventoryColorDto
         {
           Id = c.Id,
-          Name = c.Name
+          Name = c.Name,
+          Label = c.Label,
         }).ToList(),
         Materials = st.Materials.Select(m => new InventoryMaterialDto
         {
           Id = m.Id,
-          Name = m.Name
+          Name = m.Name,
+          Label = m.Label,
         }).ToList(),
         BounceHouseTypes = st.BounceHouseTypes.Select(b => new BounceHouseTypeDto
         {
           Id = b.Id,
-          Name = b.Name
+          Name = b.Name,
+          Label = b.Label,
         }).ToList()
       }).ToList()
     }).ToList();
