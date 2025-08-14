@@ -45,7 +45,7 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 w-full">
       <label className="text-sm font-semibold">{label}</label>
       <input
         {...rest}

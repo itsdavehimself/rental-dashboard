@@ -19,7 +19,7 @@ const ValidatedInput: React.FC<ValidatedInputProps> = ({
       className={`ring-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-0 text-sm
         ${
           error
-            ? "ring-error-red focus:ring-error-red"
+            ? "ring-red-500 focus:ring-red-500"
             : "ring-gray-200 hover:ring-black focus:ring-primary focus:ring-1"
         } ${rest.className ?? ""}`}
     />

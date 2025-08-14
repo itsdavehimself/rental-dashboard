@@ -6,7 +6,6 @@ interface AddModalProps {
   openModal: boolean;
   setOpenModal: React.Dispatch<React.SetStateAction<boolean>>;
   title: string;
-  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   children: React.ReactNode;
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
 }
@@ -15,7 +14,6 @@ const AddModal: React.FC<AddModalProps> = ({
   openModal,
   setOpenModal,
   title,
-  setIsModalOpen,
   children,
   setErrors,
 }) => {
@@ -42,7 +40,7 @@ const AddModal: React.FC<AddModalProps> = ({
       >
         <div className="flex justify-between items-center pl-6 pr-4">
           <h4 className="text-lg font-semibold">{title}</h4>
-          <XButton setIsModalOpen={setIsModalOpen} setErrors={setErrors} />
+          <XButton setIsModalOpen={setOpenModal} setErrors={setErrors} />
         </div>
         {children}
       </div>

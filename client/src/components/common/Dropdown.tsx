@@ -63,7 +63,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   };
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative w-full">
       <p className="text-sm font-semibold mb-1">{label}</p>
       <div
         className={`hover:ring-primary text-theme-black ring-1 ring-gray-200 rounded-lg p-2 mt-0.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-primary hover:cursor-pointer transition duration-200 ${
@@ -78,7 +78,9 @@ const Dropdown: React.FC<DropdownProps> = ({
         }}
       >
         <div className="flex justify-between items-center">
-          <span>{selectedLabel}</span>
+          <span className={`${!value ? "text-gray-400" : ""}`}>
+            {selectedLabel}
+          </span>
           {openDropdown === label ? <ChevronUp /> : <ChevronDown />}
         </div>
       </div>
