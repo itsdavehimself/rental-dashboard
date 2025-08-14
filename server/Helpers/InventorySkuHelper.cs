@@ -4,97 +4,31 @@ namespace server.Helpers;
 
 public static class InventorySkuHelper
 {
-  public static readonly Dictionary<InventoryType, string> TypeCodes = new()
-  {
-    { InventoryType.Table, "TAB" },
-    { InventoryType.Chair, "CHA" },
-    { InventoryType.Tent, "TNT" },
-    { InventoryType.Lighting, "LGT" },
-    { InventoryType.Attraction, "ATR" }
-  };
-
-  public static readonly Dictionary<InventorySubType, string> SubTypeCodes = new()
-  {
-    { InventorySubType.Folding, "FLD" },
-    { InventorySubType.Canopy, "CNP" },
-    { InventorySubType.Pole, "POL" },
-    { InventorySubType.MechanicalBull, "MBL" },
-    { InventorySubType.BounceHouse, "BNC" }
-  };
-
-  public static readonly Dictionary<InventoryColor, string> ColorCodes = new()
-  {
-    { InventoryColor.Black, "BLK" },
-    { InventoryColor.White, "WHT" }
-  };
-
-  public static readonly Dictionary<MaterialType, string> MaterialCodes = new()
-  {
-    { MaterialType.Plastic, "PLT" },
-    { MaterialType.Resin,  "RSN" },
-    { MaterialType.Metal,  "MTL" },
-    { MaterialType.Vinyl,  "VNL" }
-  };
-
-  private static readonly Dictionary<InventoryType, HashSet<InventorySubType>> AllowedSubtypes = new()
-  {
-    { InventoryType.Table, new HashSet<InventorySubType> { InventorySubType.Folding } },
-    { InventoryType.Chair, new HashSet<InventorySubType> { InventorySubType.Folding } },
-    { InventoryType.Tent,  new HashSet<InventorySubType> { InventorySubType.Canopy, InventorySubType.Pole } },
-    { InventoryType.Lighting, new HashSet<InventorySubType>() },
-    { InventoryType.Attraction, new HashSet<InventorySubType> { InventorySubType.MechanicalBull, InventorySubType.BounceHouse } },
-  };
-
-  private static readonly Dictionary<InventoryType, HashSet<MaterialType>> AllowedMaterials = new()
-  {
-    { InventoryType.Table, new HashSet<MaterialType> { MaterialType.Plastic, MaterialType.Resin, MaterialType.Metal } },
-    { InventoryType.Chair, new HashSet<MaterialType> { MaterialType.Plastic, MaterialType.Resin, MaterialType.Metal } },
-    { InventoryType.Tent,  new HashSet<MaterialType> { MaterialType.Vinyl } },
-    { InventoryType.Lighting, new HashSet<MaterialType>() },
-    { InventoryType.Attraction, new HashSet<MaterialType>() },
-  };
-
   public static string GenerateSku(InventoryItem i, string? suffix = null)
-    => GenerateSku(i.Type, i.SubType, i.Color, i.Material, i.Length, i.Width, suffix);
-
-  public static string GenerateSku(
-    InventoryType type,
-    InventorySubType subType,
-    InventoryColor color,
-    MaterialType? material = null,
-    int? length = null,
-    int? width  = null,
-    string? suffix = null
-  )
   {
-    if (!AllowedSubtypes.TryGetValue(type, out var set) || (set.Count > 0 && !set.Contains(subType)))
-      throw new ArgumentOutOfRangeException(nameof(subType), $"Subtype {subType} not allowed for {type}");
+    if (string.IsNullOrWhiteSpace(i.Type?.SkuCode)) throw new ArgumentException("Missing Type SKU Code");
+    if (string.IsNullOrWhiteSpace(i.SubType?.SkuCode)) throw new ArgumentException("Missing SubType SKU Code");
+    if (string.IsNullOrWhiteSpace(i.Color?.SkuCode)) throw new ArgumentException("Missing Color SKU Code");
 
-    if (material.HasValue && AllowedMaterials.TryGetValue(type, out var mats) && mats.Count > 0 && !mats.Contains(material.Value))
-      throw new ArgumentOutOfRangeException(nameof(material), $"Material {material} not allowed for {type}");
-
-    var parts = new List<string>(6)
+    var parts = new List<string>
     {
-      CodeOrThrow(TypeCodes, type, nameof(type)),
-      CodeOrThrow(SubTypeCodes, subType, nameof(subType)),
-      CodeOrThrow(ColorCodes, color, nameof(color))
+      i.Type.SkuCode,
+      i.SubType.SkuCode,
+      i.Color.SkuCode
     };
 
-    var size = FormatSize(length, width);
+    var size = FormatSize(i.Length, i.Width);
     if (size is not null) parts.Add(size);
 
-    if (material.HasValue)
-      parts.Add(CodeOrThrow(MaterialCodes, material.Value, nameof(material)));
+    if (!string.IsNullOrWhiteSpace(i.Material?.SkuCode))
+      parts.Add(i.Material.SkuCode);
 
     if (!string.IsNullOrWhiteSpace(suffix))
       parts.Add(SanitizeSuffix(suffix));
 
     return string.Join("-", parts);
   }
-
-  private static string CodeOrThrow<T>(Dictionary<T, string> map, T key, string paramName) where T : notnull
-    => map.TryGetValue(key, out var code) ? code : throw new ArgumentOutOfRangeException(paramName, $"Missing code for {key}");
-
+  
   private static string? FormatSize(int? length, int? width)
   {
     if (!length.HasValue || !width.HasValue) return null;

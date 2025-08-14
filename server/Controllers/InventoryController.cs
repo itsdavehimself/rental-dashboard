@@ -20,21 +20,28 @@ public class InventoryController : ControllerBase
     _config = config;
   }
 
-  [HttpGet]
-  public async Task<IActionResult> GetInventory(
+[HttpGet]
+public async Task<IActionResult> GetInventory(
   [FromQuery] int page = 1,
   [FromQuery] int pageSize = 25,
   [FromQuery] bool? IsActive = null,
   [FromQuery] bool? IsDeleted = false,
-  [FromQuery] InventoryType? Type = null,
-  [FromQuery] InventorySubType? SubType = null,
-  [FromQuery] InventoryColor? Color = null,
+  [FromQuery] int? TypeId = null,
+  [FromQuery] int? SubTypeId = null,
+  [FromQuery] int? ColorId = null,
+  [FromQuery] int? MaterialId = null,
+  [FromQuery] int? BounceHouseTypeId = null,
   [FromQuery] string? Search = null
-  )
+)
   {
     var query = _context.InventoryItems
       .Include(i => i.Purchases)
       .Include(i => i.Retirements)
+      .Include(i => i.Type)
+      .Include(i => i.SubType)
+      .Include(i => i.Color)
+      .Include(i => i.Material)
+      .Include(i => i.BounceHouseType)
       .AsQueryable();
 
     if (IsActive.HasValue)
@@ -43,14 +50,20 @@ public class InventoryController : ControllerBase
     if (IsDeleted.HasValue)
       query = query.Where(i => i.IsDeleted == IsDeleted.Value);
 
-    if (Type.HasValue)
-      query = query.Where(i => i.Type == Type.Value);
+    if (TypeId.HasValue)
+      query = query.Where(i => i.InventoryTypeId == TypeId.Value);
 
-    if (SubType.HasValue)
-      query = query.Where(i => i.SubType == SubType.Value);
+    if (SubTypeId.HasValue)
+      query = query.Where(i => i.InventorySubTypeId == SubTypeId.Value);
 
-    if (Color.HasValue)
-      query = query.Where(i => i.Color == Color.Value);
+    if (ColorId.HasValue)
+      query = query.Where(i => i.InventoryColorId == ColorId.Value);
+
+    if (MaterialId.HasValue)
+      query = query.Where(i => i.InventoryMaterialId == MaterialId.Value);
+
+    if (BounceHouseTypeId.HasValue)
+      query = query.Where(i => i.BounceHouseTypeId == BounceHouseTypeId.Value);
 
     if (!string.IsNullOrWhiteSpace(Search))
     {
@@ -65,19 +78,25 @@ public class InventoryController : ControllerBase
     var totalCount = await query.CountAsync();
     var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-    var items = await query
+    var pageData = await query
       .OrderBy(i => i.Description)
       .Skip((page - 1) * pageSize)
       .Take(pageSize)
-      .Select(i => new ListInventoryItemResponseDto
-      {
-        Uid = i.Uid,
-        Description = i.Description,
-        SKU = i.SKU,
-        UnitPrice = i.UnitPrice,
-        QuantityTotal = i.Purchases.Sum(p => p.QuantityPurchased) - i.Retirements.Sum(r => r.QuantityRetired)
-      })
-        .ToListAsync();
+      .ToListAsync();
+
+    var items = pageData.Select(i => new ListInventoryItemResponseDto
+    {
+      Uid = i.Uid,
+      Description = i.Description,
+      SKU = i.SKU,
+      UnitPrice = i.UnitPrice,
+      QuantityTotal = i.Purchases.Sum(p => p.QuantityPurchased) - i.Retirements.Sum(r => r.QuantityRetired),
+      Type = i.Type?.Name ?? "",
+      SubType = i.SubType?.Name ?? "",
+      Material = i.Material?.Name,
+      Color = i.Color?.Name,
+      BounceHouseType = i.BounceHouseType?.Name
+    }).ToList();
 
     return Ok(new PaginatedResponse<ListInventoryItemResponseDto>
     {
@@ -97,22 +116,12 @@ public class InventoryController : ControllerBase
       return BadRequest(ModelState);
     };
 
-    var sku = InventorySkuHelper.GenerateSku(
-      request.Type,
-      request.SubType,
-      request.Color,
-      request.Material,        
-      request.Length,
-      request.Width
-    );
-
     var item = new InventoryItem
     {
       Description = request.Description,
       Type = request.Type,
       SubType = request.SubType,
       Color = request.Color,
-      SKU = sku,
       Notes = request.Notes,
       UnitPrice = request.UnitPrice,
       Length = request.Length,
@@ -120,6 +129,8 @@ public class InventoryController : ControllerBase
       Height = request.Height,
       Material = request.Material
     };
+
+      item.SKU = InventorySkuHelper.GenerateSku(item);
 
     _context.InventoryItems.Add(item);
     await _context.SaveChangesAsync();
@@ -133,31 +144,44 @@ public class InventoryController : ControllerBase
     });
   }
 
-  [HttpGet("enums")]
-  public IActionResult GetInventoryEnums()
+  [HttpGet("config")]
+  public async Task<IActionResult> GetInventoryConfig()
   {
-    var types = Enum.GetValues(typeof(InventoryType))
-        .Cast<InventoryType>()
-        .Select(t => new { Value = (int)t, Label = t.ToString() });
+    var types = await _context.InventoryTypes
+      .Include(t => t.SubTypes)
+        .ThenInclude(st => st.Colors)
+      .Include(t => t.SubTypes)
+        .ThenInclude(st => st.Materials)
+      .Include(t => t.SubTypes)
+        .ThenInclude(st => st.BounceHouseTypes)
+      .ToListAsync();
 
-    var subTypes = Enum.GetValues(typeof(InventorySubType))
-        .Cast<InventorySubType>()
-        .Select(t => new { Value = (int)t, Label = t.ToString() });
-
-    var colors = Enum.GetValues(typeof(InventoryColor))
-        .Cast<InventoryColor>()
-        .Select(c => new { Value = (int)c, Label = c.ToString() });
-
-    var materials = Enum.GetValues(typeof(MaterialType))
-        .Cast<MaterialType>()
-        .Select(m => new { Value = (int)m, Label = m.ToString() });
-
-    return Ok(new
+    var result = types.Select(t => new InventoryTypeDto
     {
-      Types = types,
-      SubTypes = subTypes,
-      Colors = colors,
-      Materials = materials
-    });
+      Id = t.Id,
+      Name = t.Name,
+      SubTypes = t.SubTypes.Select(st => new InventorySubTypeDto
+      {
+        Id = st.Id,
+        Name = st.Name,
+        Colors = st.Colors.Select(c => new InventoryColorDto
+        {
+          Id = c.Id,
+          Name = c.Name
+        }).ToList(),
+        Materials = st.Materials.Select(m => new InventoryMaterialDto
+        {
+          Id = m.Id,
+          Name = m.Name
+        }).ToList(),
+        BounceHouseTypes = st.BounceHouseTypes.Select(b => new BounceHouseTypeDto
+        {
+          Id = b.Id,
+          Name = b.Name
+        }).ToList()
+      }).ToList()
+    }).ToList();
+
+    return Ok(new { types = result });
   }
 }

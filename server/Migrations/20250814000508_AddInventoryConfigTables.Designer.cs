@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250814000508_AddInventoryConfigTables")]
+    partial class AddInventoryConfigTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,20 +190,6 @@ namespace server.Migrations
                     b.HasIndex("InventorySubTypeId");
 
                     b.ToTable("BounceHouseTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            InventorySubTypeId = 5,
-                            Name = "Dolphin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            InventorySubTypeId = 5,
-                            Name = "Spongebob"
-                        });
                 });
 
             modelBuilder.Entity("server.Models.Inventory.InventoryColor", b =>
@@ -232,29 +221,6 @@ namespace server.Migrations
                     b.HasIndex("InventoryTypeId");
 
                     b.ToTable("InventoryColors");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            InventorySubTypeId = 1,
-                            Name = "Black",
-                            SkuCode = "BLK"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            InventorySubTypeId = 1,
-                            Name = "White",
-                            SkuCode = "WHT"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            InventorySubTypeId = 2,
-                            Name = "White",
-                            SkuCode = "WHT"
-                        });
                 });
 
             modelBuilder.Entity("server.Models.Inventory.InventoryItem", b =>
@@ -374,36 +340,6 @@ namespace server.Migrations
                     b.HasIndex("InventoryTypeId");
 
                     b.ToTable("InventoryMaterials");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            InventorySubTypeId = 1,
-                            Name = "Plastic",
-                            SkuCode = "PLT"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            InventorySubTypeId = 1,
-                            Name = "Resin",
-                            SkuCode = "RSN"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            InventorySubTypeId = 1,
-                            Name = "Metal",
-                            SkuCode = "MTL"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            InventorySubTypeId = 3,
-                            Name = "Vinyl",
-                            SkuCode = "VNL"
-                        });
                 });
 
             modelBuilder.Entity("server.Models.Inventory.InventoryPurchase", b =>
@@ -496,43 +432,6 @@ namespace server.Migrations
                     b.HasIndex("InventoryTypeId");
 
                     b.ToTable("InventorySubTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            InventoryTypeId = 1,
-                            Name = "Folding",
-                            SkuCode = "FLD"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            InventoryTypeId = 3,
-                            Name = "Canopy",
-                            SkuCode = "CNP"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            InventoryTypeId = 3,
-                            Name = "Pole",
-                            SkuCode = "POL"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            InventoryTypeId = 5,
-                            Name = "MechanicalBull",
-                            SkuCode = "MBL"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            InventoryTypeId = 5,
-                            Name = "BounceHouse",
-                            SkuCode = "BNC"
-                        });
                 });
 
             modelBuilder.Entity("server.Models.Inventory.InventoryType", b =>
@@ -554,38 +453,6 @@ namespace server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("InventoryTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Table",
-                            SkuCode = "TAB"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Chair",
-                            SkuCode = "CHA"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Tent",
-                            SkuCode = "TNT"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Lighting",
-                            SkuCode = "LGT"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Attraction",
-                            SkuCode = "ATR"
-                        });
                 });
 
             modelBuilder.Entity("server.Models.User.JobTitle", b =>
