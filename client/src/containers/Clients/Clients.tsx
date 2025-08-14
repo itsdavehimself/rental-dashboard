@@ -80,7 +80,6 @@ const Clients: React.FC = () => {
           openModal={addModalOpen}
           setOpenModal={setAddModalOpen}
           title="Add Client"
-          setIsModalOpen={setAddModalOpen}
           setErrors={setErrors}
         >
           <ResidentialClientForm onSubmit={onSubmit} errors={errors} />
@@ -96,6 +95,7 @@ const Clients: React.FC = () => {
         tableItems={clients}
         tableCardType={ResidentialClientCard}
         getKey={(client) => client.uid}
+        gap={4}
       />
     </div>
   );

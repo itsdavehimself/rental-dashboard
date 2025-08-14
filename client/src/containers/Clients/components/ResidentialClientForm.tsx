@@ -119,31 +119,33 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
         error={formErrors.address?.unit?.message}
         optional={true}
       />
-      <StyledInput
-        label="City"
-        placeholder="Canopyside"
-        register={register("address.city")}
-        error={formErrors.address?.city?.message}
-      />
-      <Dropdown
-        ref={ref}
-        label="State"
-        value={state}
-        options={STATES}
-        openDropdown={openDropdown}
-        setOpenDropdown={setOpenDropdown}
-        selectedLabel={
-          STATES.find((s) => s.value === state)?.label ?? "Select a state"
-        }
-        onChange={(val) => setValue("address.state", val as string)}
-        error={formErrors.address?.state?.message}
-      />
-      <StyledInput
-        label="Zip Code"
-        placeholder="60089"
-        register={register("address.zipCode")}
-        error={formErrors.address?.zipCode?.message}
-      />
+      <div className="grid grid-cols-[1fr_5rem_.5fr] gap-4">
+        <StyledInput
+          label="City"
+          placeholder="Canopyside"
+          register={register("address.city")}
+          error={formErrors.address?.city?.message}
+        />
+        <Dropdown
+          ref={ref}
+          label="State"
+          value={state}
+          options={STATES}
+          openDropdown={openDropdown}
+          setOpenDropdown={setOpenDropdown}
+          selectedLabel={
+            STATES.find((s) => s.value === state)?.label ?? "State"
+          }
+          onChange={(val) => setValue("address.state", val as string)}
+          error={formErrors.address?.state?.message}
+        />
+        <StyledInput
+          label="Zip Code"
+          placeholder="60089"
+          register={register("address.zipCode")}
+          error={formErrors.address?.zipCode?.message}
+        />
+      </div>
       <TextAreaInput
         label="Notes"
         register={register("notes")}

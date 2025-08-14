@@ -22,7 +22,7 @@ const fetchResidentialClients = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new CustomError("Registration failed.", errorData);
+    throw new CustomError("Getting clients failed.", errorData);
   }
 
   return await response.json();
