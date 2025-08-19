@@ -12,6 +12,8 @@ import Clients from "./containers/Clients/Clients";
 import Team from "./containers/Team/Team";
 import ToastProvider from "./context/ToastProvider";
 import ResidentialClient from "./containers/Clients/ResidentialClient";
+import Library from "./containers/Library/Library";
+import Vendors from "./containers/Vendors/Vendors";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -40,6 +42,8 @@ function App() {
           </Route>
 
           <Route path="/team" element={<Team />} />
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/library" element={<Library />} />
         </Route>
       </Routes>
     </ToastProvider>

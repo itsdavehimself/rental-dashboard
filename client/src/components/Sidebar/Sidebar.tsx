@@ -1,4 +1,12 @@
-import { Home, Boxes, PartyPopper, Handshake, Users } from "lucide-react";
+import {
+  Home,
+  Boxes,
+  PartyPopper,
+  Handshake,
+  Users,
+  LibraryBig,
+  Store,
+} from "lucide-react";
 import NavBtn from "./NavBtn";
 
 const Sidebar: React.FC = () => {
@@ -16,6 +24,8 @@ const Sidebar: React.FC = () => {
         <NavBtn icon={PartyPopper} label="Events" path="/events" />
         <NavBtn icon={Handshake} label="Clients" path="/clients" />
         <NavBtn icon={Users} label="Team" path="/team" />
+        <NavBtn icon={Store} label="Vendors" path="/vendors" />
+        <NavBtn icon={LibraryBig} label="Library" path="/library" />
       </div>
     </div>
   );
