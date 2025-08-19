@@ -17,6 +17,8 @@ import ResidentialClientForm, {
 } from "./components/ResidentialClientForm";
 import type { SubmitHandler } from "react-hook-form";
 
+export type ClientModalType = null | "addClient";
+
 const Clients: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
@@ -24,7 +26,7 @@ const Clients: React.FC = () => {
   const [clients, setClients] = useState<ResidentialClient[]>([]);
   const [errors, setErrors] = useState<ErrorsState>(null);
   const [page, setPage] = useState<number>(1);
-  const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<ClientModalType>(null);
 
   const handleClientFetch = async (): Promise<void> => {
     try {
@@ -59,7 +61,7 @@ const Clients: React.FC = () => {
       });
 
       setClients(updatedUsers);
-      setAddModalOpen(false);
+      setOpenModal(null);
       addToast(
         "Success",
         `${newClient.firstName} ${newClient.lastName} successfully added as a client.`
@@ -75,19 +77,25 @@ const Clients: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {addModalOpen && (
-        <AddModal
-          openModal={addModalOpen}
-          setOpenModal={setAddModalOpen}
+      {openModal === "addClient" && (
+        <AddModal<ClientModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
           title="Add Client"
           setErrors={setErrors}
+          modalKey="addClient"
         >
           <ResidentialClientForm onSubmit={onSubmit} errors={errors} />
         </AddModal>
       )}
       <div className="flex justify-between w-full">
         <SearchBar placeholder="Search" />
-        <AddButton Icon={Plus} label="Client" addModalOpen={setAddModalOpen} />
+        <AddButton<ClientModalType>
+          Icon={Plus}
+          label="Client"
+          addModalOpen={setOpenModal}
+          modalKey="addClient"
+        />
       </div>
       <Table
         columnTemplate={columnTemplate}
@@ -96,6 +104,7 @@ const Clients: React.FC = () => {
         tableCardType={ResidentialClientCard}
         getKey={(client) => client.uid}
         gap={4}
+        setOpenModal={setOpenModal}
       />
     </div>
   );

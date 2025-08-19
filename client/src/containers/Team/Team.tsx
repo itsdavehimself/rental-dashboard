@@ -15,6 +15,8 @@ import { handleError } from "../../helpers/handleError";
 import type { ErrorsState } from "../../helpers/handleError";
 import { useToast } from "../../hooks/useToast";
 
+export type TeamModalType = null | "addTeamMember";
+
 const Team: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
@@ -22,8 +24,7 @@ const Team: React.FC = () => {
   const [filter, setFilter] = useState<"active" | "inactive" | "all">("active");
   const [errors, setErrors] = useState<ErrorsState>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
-
+  const [openModal, setOpenModal] = useState<TeamModalType>(null);
   const handleUserFetch = async (url: string): Promise<void> => {
     try {
       const userList = await fetchUsers(apiUrl, url);
@@ -46,7 +47,7 @@ const Team: React.FC = () => {
       const newUser = await registerUser(apiUrl, data);
       const updatedUsers = [...users, newUser];
       setUsers(updatedUsers);
-      setAddModalOpen(false);
+      setOpenModal(false);
       addToast(
         "Success",
         `${newUser.firstName} ${newUser.lastName} successfully added to the team.`
@@ -71,22 +72,24 @@ const Team: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {addModalOpen && (
-        <AddModal
-          openModal={addModalOpen}
-          setOpenModal={setAddModalOpen}
+      {openModal === "addTeamMember" && (
+        <AddModal<TeamModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
           title="Add Team Member"
           setErrors={setErrors}
+          modalKey="addTeamMember"
         >
           <TeamMemberForm onSubmit={onSubmit} errors={errors} />
         </AddModal>
       )}
       <div className="flex justify-between w-full">
         <SearchBar placeholder="Search" />
-        <AddButton
+        <AddButton<TeamModalType>
           Icon={Plus}
           label="Team Member"
-          addModalOpen={setAddModalOpen}
+          addModalOpen={setOpenModal}
+          modalKey="addTeamMember"
         />
       </div>
       <Table
@@ -96,6 +99,7 @@ const Team: React.FC = () => {
         tableCardType={MemberCard}
         getKey={(user) => user.uid}
         gap={4}
+        setOpenModal={setOpenModal}
       />
     </div>
   );

@@ -2,35 +2,38 @@ import XButton from "./XButton";
 import type { ErrorsState } from "../../helpers/handleError";
 import { useEffect, useRef } from "react";
 
-interface AddModalProps {
-  openModal: boolean;
-  setOpenModal: React.Dispatch<React.SetStateAction<boolean>>;
+interface AddModalProps<T extends string | null> {
+  openModal: string | null;
+  setOpenModal: React.Dispatch<React.SetStateAction<T>>;
   title: string;
   children: React.ReactNode;
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
+  modalKey: T;
 }
 
-const AddModal: React.FC<AddModalProps> = ({
+const AddModal = <T extends string | null>({
   openModal,
   setOpenModal,
   title,
   children,
   setErrors,
-}) => {
+  modalKey,
+}: AddModalProps<T>) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (openModal && !ref.current?.contains(event.target as Node)) {
-        setOpenModal(false);
+      if (
+        openModal === modalKey &&
+        !ref.current?.contains(event.target as Node)
+      ) {
+        setOpenModal(null as T);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [openModal]);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openModal, modalKey, setOpenModal]);
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 h-full w-full z-5">

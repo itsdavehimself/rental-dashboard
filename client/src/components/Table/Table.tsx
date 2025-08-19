@@ -1,4 +1,6 @@
-interface TableProps<T> {
+import type React from "react";
+
+interface TableProps<T, M extends string | null> {
   columnTemplate: string;
   headers: string[];
   tableItems: T[];
@@ -7,19 +9,22 @@ interface TableProps<T> {
     isLast: boolean;
     columnTemplate: string;
     gap: number;
+    setOpenModal: React.Dispatch<React.SetStateAction<M>>;
   }>;
   getKey: (item: T, index: number) => string | number;
   gap: number;
+  setOpenModal: React.Dispatch<React.SetStateAction<M>>;
 }
 
-const Table = <T,>({
+const Table = <T, M extends string | null>({
   columnTemplate,
   headers,
   tableItems,
   tableCardType: TableCard,
   getKey,
   gap,
-}: TableProps<T>) => {
+  setOpenModal,
+}: TableProps<T, M>) => {
   return (
     <div className="flex flex-col items-center w-full ring-1 rounded-xl ring-gray-200">
       <div
@@ -39,6 +44,7 @@ const Table = <T,>({
             isLast={i === tableItems.length - 1}
             columnTemplate={columnTemplate}
             gap={gap}
+            setOpenModal={setOpenModal}
           />
         ))}
         {tableItems.length === 0 && (

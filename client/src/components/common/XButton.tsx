@@ -1,16 +1,19 @@
 import { X } from "lucide-react";
 import type { ErrorsState } from "../../helpers/handleError";
 
-interface XButtonProps {
-  setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+interface XButtonProps<T extends string | null> {
+  setIsModalOpen: React.Dispatch<React.SetStateAction<T>>;
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
 }
 
-const XButton: React.FC<XButtonProps> = ({ setIsModalOpen, setErrors }) => {
+const XButton = <T extends string | null>({
+  setIsModalOpen,
+  setErrors,
+}: XButtonProps<T>) => {
   return (
     <button
       onClick={() => {
-        setIsModalOpen(false);
+        setIsModalOpen(null as T);
         setErrors(null);
       }}
       className="text-gray-400 hover:text-primary hover:cursor-pointer transition-all duration-200 p-2"
