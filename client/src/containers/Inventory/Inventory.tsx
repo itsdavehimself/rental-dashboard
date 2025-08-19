@@ -153,7 +153,6 @@ const Inventory: React.FC = () => {
           <InventoryPurchaseForm
             onSubmit={onSubmitPurchase}
             errors={errors}
-            types={types}
             item={selectedItem}
           />
         </AddModal>

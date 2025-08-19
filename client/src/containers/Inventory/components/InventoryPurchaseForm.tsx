@@ -1,8 +1,9 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
-import type { InventoryType } from "../../../types/InventoryConfigResponse";
 import StyledInput from "../../../components/common/StyledInput";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import SubmitButton from "../../../components/common/SubmitButton";
+import { useEffect } from "react";
+import { toCamelCasePath } from "../../../helpers/toCamelCastPath";
 
 export type InventoryPurchaseInput = {
   quantity: number;
@@ -13,14 +14,12 @@ export type InventoryPurchaseInput = {
 interface InventoryPurchaseFormProps {
   onSubmit: SubmitHandler<InventoryPurchaseInput>;
   errors: object | null;
-  types: InventoryType[];
   item: { uid: string; name: string } | null;
 }
 
 const InventoryPurchaseForm: React.FC<InventoryPurchaseFormProps> = ({
   onSubmit,
   errors,
-  types,
   item,
 }) => {
   const {
@@ -34,6 +33,25 @@ const InventoryPurchaseForm: React.FC<InventoryPurchaseFormProps> = ({
   } = useForm<InventoryPurchaseInput>();
 
   const unitCost = watch("unitCost");
+
+  useEffect(() => {
+    if (errors && typeof errors === "object" && !Array.isArray(errors)) {
+      clearErrors();
+
+      Object.entries(errors).forEach(([fieldName, errorMessages]) => {
+        const fieldKey = toCamelCasePath(
+          fieldName
+        ) as keyof InventoryPurchaseInput;
+
+        if (Array.isArray(errorMessages) && errorMessages.length > 0) {
+          setError(fieldKey, {
+            type: "server",
+            message: errorMessages[0],
+          });
+        }
+      });
+    }
+  }, [errors, setError, clearErrors]);
 
   return (
     <form

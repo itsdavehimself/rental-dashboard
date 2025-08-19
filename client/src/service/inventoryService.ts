@@ -93,7 +93,7 @@ const createInventoryPurchase = async (
     credentials: "include",
     body: JSON.stringify({
       quantityPurchased: data.quantity,
-      unitCost: data.unitCost / 100,
+      unitCost: data.unitCost === 0 ? 0 : data.unitCost / 100,
       vendorName: data.vendorName,
     }),
   });
