@@ -23,9 +23,10 @@ public class InventoryItem
   public bool IsDeleted { get; set; } = false;
   public decimal? UnitPrice { get; set; }
   public decimal? AveragePurchaseCost { get; set; }
-  public int? Length { get; set; }
-  public int? Width { get; set; }
-  public int? Height { get; set; }
+  public decimal? Length { get; set; }
+  public decimal? Width { get; set; }
+  public decimal? Height { get; set; }
+  public string? Variant { get; set; } = string.Empty;
   public List<InventoryPurchase> Purchases { get; set; } = [];
   public List<InventoryRetirement> Retirements { get; set; } = [];
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

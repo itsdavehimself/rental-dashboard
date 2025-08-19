@@ -108,7 +108,7 @@ public async Task<IActionResult> GetInventory(
     });
   }
 
-  [HttpPost]
+  [HttpPost("item")]
   public async Task<IActionResult> CreateInventoryItem(CreateInventoryItemDto request)
   {
     if (!ModelState.IsValid)
@@ -116,21 +116,31 @@ public async Task<IActionResult> GetInventory(
       return BadRequest(ModelState);
     };
 
+    var type = await _context.InventoryTypes.FirstOrDefaultAsync(t => t.Id == request.Type);
+    var subtype = await _context.InventorySubTypes.FirstOrDefaultAsync(st => st.Id == request.SubType);
+    var color = await _context.InventoryColors.FirstOrDefaultAsync(c => c.Id == request.Color);
+    var material = await _context.InventoryMaterials.FirstOrDefaultAsync(m => m.Id == request.Material);
+
     var item = new InventoryItem
     {
       Description = request.Description,
-      Type = request.Type,
-      SubType = request.SubType,
-      Color = request.Color,
+      InventoryTypeId = request.Type,
+      InventorySubTypeId = request.SubType,
+      InventoryColorId = request.Color,
+      InventoryMaterialId = request.Material,
       Notes = request.Notes,
       UnitPrice = request.UnitPrice,
       Length = request.Length,
       Width = request.Width,
       Height = request.Height,
-      Material = request.Material
+      Type = type,
+      SubType = subtype,
+      Color = color,
+      Material = material,
+      Variant = request.Variant
     };
 
-      item.SKU = InventorySkuHelper.GenerateSku(item);
+    item.SKU = InventorySkuHelper.GenerateSku(item, request.Variant);
 
     _context.InventoryItems.Add(item);
     await _context.SaveChangesAsync();
