@@ -11,7 +11,7 @@ const PopOver: React.FC<PopOverProps> = ({ buttons }) => {
         <button
           key={i}
           onClick={b.onClick}
-          className="grid grid-cols-[1rem_1fr] items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 w-full text-left hover:cursor-pointer whitespace-nowrap"
+          className="grid grid-cols-[1.2rem_1fr] items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 w-full text-left hover:cursor-pointer whitespace-nowrap hover:text-primary transition-all duration-200"
         >
           <b.icon className="h-4 w-4" />
           {b.label}

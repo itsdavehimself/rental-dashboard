@@ -5,8 +5,10 @@ interface StyledInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   placeholder: string;
   type?: string;
-  error: string | undefined;
+  error?: string | undefined;
   optional?: boolean;
+  disabled?: boolean;
+  defaultText?: string;
 }
 
 const StyledInput: React.FC<StyledInputProps> = ({
@@ -16,6 +18,8 @@ const StyledInput: React.FC<StyledInputProps> = ({
   type = "text",
   error,
   optional,
+  disabled,
+  defaultText,
   ...rest
 }) => {
   return (
@@ -32,9 +36,13 @@ const StyledInput: React.FC<StyledInputProps> = ({
           {...rest}
           type={type}
           placeholder={placeholder}
-          className={`text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 hover:outline-black focus:outline-primary focus:outline-1 ${
+          disabled={disabled}
+          defaultValue={defaultText}
+          className={`text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 ${
             error
               ? "outline-red-500 hover:outline-red-500 focus:outline-red-500"
+              : !disabled
+              ? "hover:outline-black focus:outline-primary focus:outline-1"
               : ""
           }`}
         />

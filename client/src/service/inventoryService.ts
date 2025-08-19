@@ -3,6 +3,7 @@ import type { InventoryListItem } from "../types/InventoryItem";
 import { CustomError } from "../types/CustomError";
 import type { InventoryConfigResponse } from "../types/InventoryConfigResponse";
 import type { InventoryItemInput } from "../containers/Inventory/components/InventoryItemForm";
+import type { InventoryPurchaseInput } from "../containers/Inventory/components/InventoryPurchaseForm";
 
 const fetchInventoryItems = async (
   apiUrl: string,
@@ -79,4 +80,35 @@ const createInventoryItem = async (
   return await response.json();
 };
 
-export { fetchInventoryItems, fetchInventoryConfig, createInventoryItem };
+const createInventoryPurchase = async (
+  apiUrl: string,
+  data: InventoryPurchaseInput,
+  uid: string
+): Promise<{ uid: string; quantityTotal: number }> => {
+  const response = await fetch(`${apiUrl}/api/inventory/stock/${uid}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      quantityPurchased: data.quantity,
+      unitCost: data.unitCost / 100,
+      vendorName: data.vendorName,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Creating purchase failed.", errorData);
+  }
+
+  return await response.json();
+};
+
+export {
+  fetchInventoryItems,
+  fetchInventoryConfig,
+  createInventoryItem,
+  createInventoryPurchase,
+};

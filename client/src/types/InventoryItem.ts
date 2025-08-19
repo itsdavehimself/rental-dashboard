@@ -1,7 +1,7 @@
 export type InventoryListItem = {
   uid: string;
   description: string;
-  quantityTotal: string;
+  quantityTotal: number;
   sku: string;
   unitPrice?: number;
 };
@@ -12,7 +12,7 @@ export type InventoryItemDetails = {
   type: string;
   subType: string;
   color: string;
-  quantityTotal: string;
+  quantityTotal: number;
   sku: string;
   notes?: string;
   imageUrl?: string;

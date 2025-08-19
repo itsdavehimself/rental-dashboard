@@ -10,10 +10,22 @@ interface TableProps<T, M extends string | null> {
     columnTemplate: string;
     gap: number;
     setOpenModal: React.Dispatch<React.SetStateAction<M>>;
+    setSelectedItem: React.Dispatch<
+      React.SetStateAction<{
+        uid: string;
+        name: string;
+      } | null>
+    >;
   }>;
   getKey: (item: T, index: number) => string | number;
   gap: number;
   setOpenModal: React.Dispatch<React.SetStateAction<M>>;
+  setSelectedItem: React.Dispatch<
+    React.SetStateAction<{
+      uid: string;
+      name: string;
+    } | null>
+  >;
 }
 
 const Table = <T, M extends string | null>({
@@ -24,6 +36,7 @@ const Table = <T, M extends string | null>({
   getKey,
   gap,
   setOpenModal,
+  setSelectedItem,
 }: TableProps<T, M>) => {
   return (
     <div className="flex flex-col items-center w-full ring-1 rounded-xl ring-gray-200">
@@ -45,6 +58,7 @@ const Table = <T, M extends string | null>({
             columnTemplate={columnTemplate}
             gap={gap}
             setOpenModal={setOpenModal}
+            setSelectedItem={setSelectedItem}
           />
         ))}
         {tableItems.length === 0 && (

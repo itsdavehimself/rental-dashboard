@@ -4,6 +4,7 @@ import type { InventoryListItem } from "../../types/InventoryItem";
 import InventoryCard from "./components/InventoryCard";
 import {
   createInventoryItem,
+  createInventoryPurchase,
   fetchInventoryConfig,
   fetchInventoryItems,
 } from "../../service/inventoryService";
@@ -19,6 +20,11 @@ import InventoryItemForm, {
 } from "./components/InventoryItemForm";
 import type { SubmitHandler } from "react-hook-form";
 import { type InventoryType } from "../../types/InventoryConfigResponse";
+import InventoryPurchaseForm, {
+  type InventoryPurchaseInput,
+} from "./components/InventoryPurchaseForm";
+
+export type InventoryModalType = null | "addItem" | "addStock" | "editItem";
 
 const Inventory: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -26,8 +32,12 @@ const Inventory: React.FC = () => {
   const [items, setItems] = useState<InventoryListItem[]>([]);
   const [page, setPage] = useState<number>(1);
   const [errors, setErrors] = useState<ErrorsState>(null);
-  const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<InventoryModalType>(null);
   const [types, setTypes] = useState<InventoryType[]>([]);
+  const [selectedItem, setSelectedItem] = useState<{
+    uid: string;
+    name: string;
+  } | null>(null);
 
   const headers = ["SKU", "Item", "Total Qty", "Unit Price", ""];
   const columnTemplate = "[grid-template-columns:1fr_1fr_3.8rem_4rem_3rem]";
@@ -68,8 +78,37 @@ const Inventory: React.FC = () => {
       });
 
       setItems(updatedItems);
-      setAddModalOpen(false);
+      setOpenModal(null);
       addToast("Success", `${newItem.sku} successfully added.`);
+    } catch (err) {
+      handleError(err, setErrors);
+    }
+  };
+
+  const onSubmitPurchase: SubmitHandler<InventoryPurchaseInput> = async (
+    data
+  ) => {
+    try {
+      setErrors(null);
+      if (selectedItem?.uid) {
+        const newPurchase = await createInventoryPurchase(
+          apiUrl,
+          data,
+          selectedItem?.uid
+        );
+
+        const updatedItems = items.map((i) =>
+          i.uid === newPurchase.uid
+            ? { ...i, quantityTotal: newPurchase.quantityTotal }
+            : i
+        );
+        setItems(updatedItems);
+        setOpenModal(null);
+        addToast(
+          "Success",
+          `${data.quantity} units of ${selectedItem.name} added to stock.`
+        );
+      }
     } catch (err) {
       handleError(err, setErrors);
     }
@@ -80,14 +119,21 @@ const Inventory: React.FC = () => {
     handleInventoryConfigFetch();
   }, [page]);
 
+  useEffect(() => {
+    if (openModal === null) {
+      setSelectedItem(null);
+    }
+  }, [openModal]);
+
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {addModalOpen && (
-        <AddModal
-          openModal={addModalOpen}
-          setOpenModal={setAddModalOpen}
-          title="Add SKU"
+      {openModal === "addItem" && (
+        <AddModal<InventoryModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          title="Add Item"
           setErrors={setErrors}
+          modalKey="addItem"
         >
           <InventoryItemForm
             onSubmit={onSubmit}
@@ -96,9 +142,41 @@ const Inventory: React.FC = () => {
           />
         </AddModal>
       )}
+      {openModal === "addStock" && (
+        <AddModal<InventoryModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          title="Add Stock"
+          setErrors={setErrors}
+          modalKey="addStock"
+        >
+          <InventoryPurchaseForm
+            onSubmit={onSubmitPurchase}
+            errors={errors}
+            types={types}
+            item={selectedItem}
+          />
+        </AddModal>
+      )}
+      {openModal === "editItem" && (
+        <AddModal<InventoryModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          title="Edit Item"
+          setErrors={setErrors}
+          modalKey="editItem"
+        >
+          <div>Hi</div>
+        </AddModal>
+      )}
       <div className="flex justify-between w-full">
         <SearchBar placeholder="Search" />
-        <AddButton Icon={Plus} label="SKU" addModalOpen={setAddModalOpen} />
+        <AddButton<InventoryModalType>
+          Icon={Plus}
+          label="Item"
+          addModalOpen={setOpenModal}
+          modalKey="addItem"
+        />
       </div>
       <Table
         columnTemplate={columnTemplate}
@@ -107,6 +185,8 @@ const Inventory: React.FC = () => {
         tableCardType={InventoryCard}
         getKey={(item) => item.sku}
         gap={10}
+        setOpenModal={setOpenModal}
+        setSelectedItem={setSelectedItem}
       />
     </div>
   );
