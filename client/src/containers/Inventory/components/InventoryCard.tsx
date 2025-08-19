@@ -1,9 +1,9 @@
 import { Ellipsis } from "lucide-react";
 import { useNavigate } from "react-router";
-import type { ListInventoryItem } from "../../../types/InventoryItem";
+import type { InventoryListItem } from "../../../types/InventoryItem";
 
 interface InventoryCardProps {
-  item: ListInventoryItem;
+  item: InventoryListItem;
   isLast: boolean;
   columnTemplate: string;
   gap: number;
