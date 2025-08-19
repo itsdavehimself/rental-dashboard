@@ -1,8 +1,9 @@
 import Table from "../../components/Table/Table";
 import { useEffect, useState } from "react";
-import type { ListInventoryItem } from "../../types/InventoryItem";
+import type { InventoryListItem } from "../../types/InventoryItem";
 import InventoryCard from "./components/InventoryCard";
 import {
+  createInventoryItem,
   fetchInventoryConfig,
   fetchInventoryItems,
 } from "../../service/inventoryService";
@@ -13,16 +14,16 @@ import AddButton from "../../components/common/AddButton";
 import SearchBar from "../../components/common/SearchBar";
 import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
-import InventorySkuForm, {
-  type InventorySkuInput,
-} from "./components/InventorySkuForm";
+import InventoryItemForm, {
+  type InventoryItemInput,
+} from "./components/InventoryItemForm";
 import type { SubmitHandler } from "react-hook-form";
 import { type InventoryType } from "../../types/InventoryConfigResponse";
 
 const Inventory: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
-  const [items, setItems] = useState<ListInventoryItem[]>([]);
+  const [items, setItems] = useState<InventoryListItem[]>([]);
   const [page, setPage] = useState<number>(1);
   const [errors, setErrors] = useState<ErrorsState>(null);
   const [addModalOpen, setAddModalOpen] = useState<boolean>(false);
@@ -57,26 +58,21 @@ const Inventory: React.FC = () => {
     }
   };
 
-  const onSubmit: SubmitHandler<InventorySkuInput> = async (data) => {
-    console.log(data);
-    // try {
-    //   setErrors(null);
-    //   const newClient = await createResidentialClient(apiUrl, data);
+  const onSubmit: SubmitHandler<InventoryItemInput> = async (data) => {
+    try {
+      setErrors(null);
+      const newItem = await createInventoryItem(apiUrl, data);
 
-    //   const updatedUsers = [...clients, newClient].sort((a, b) => {
-    //     const last = a.lastName.localeCompare(b.lastName);
-    //     return last !== 0 ? last : a.firstName.localeCompare(b.firstName);
-    //   });
+      const updatedItems = [...items, newItem].sort((a, b) => {
+        return a.sku.localeCompare(b.sku);
+      });
 
-    //   setClients(updatedUsers);
-    //   setAddModalOpen(false);
-    //   addToast(
-    //     "Success",
-    //     `${newClient.firstName} ${newClient.lastName} successfully added as a client.`
-    //   );
-    // } catch (err) {
-    //   handleError(err, setErrors);
-    // }
+      setItems(updatedItems);
+      setAddModalOpen(false);
+      addToast("Success", `${newItem.sku} successfully added.`);
+    } catch (err) {
+      handleError(err, setErrors);
+    }
   };
 
   useEffect(() => {
@@ -93,7 +89,11 @@ const Inventory: React.FC = () => {
           title="Add SKU"
           setErrors={setErrors}
         >
-          <InventorySkuForm onSubmit={onSubmit} errors={errors} types={types} />
+          <InventoryItemForm
+            onSubmit={onSubmit}
+            errors={errors}
+            types={types}
+          />
         </AddModal>
       )}
       <div className="flex justify-between w-full">

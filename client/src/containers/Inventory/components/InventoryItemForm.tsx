@@ -8,8 +8,8 @@ import Dropdown from "../../../components/common/Dropdown";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import type { InventoryType } from "../../../types/InventoryConfigResponse";
 
-export type InventorySkuInput = {
-  item: string;
+export type InventoryItemInput = {
+  description: string;
   type: number;
   subType: number;
   color: number;
@@ -19,15 +19,16 @@ export type InventorySkuInput = {
   height: number;
   unitPrice: number;
   material: number;
+  variant: string;
 };
 
-interface InventorySkuFormProps {
-  onSubmit: SubmitHandler<InventorySkuInput>;
+interface InventoryItemFormProps {
+  onSubmit: SubmitHandler<InventoryItemInput>;
   errors: object | null;
   types: InventoryType[];
 }
 
-const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
+const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   onSubmit,
   errors,
   types,
@@ -40,9 +41,7 @@ const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
     setError,
     clearErrors,
     formState: { errors: formErrors },
-  } = useForm<InventorySkuInput>();
-  const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
+  } = useForm<InventoryItemInput>();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const unitPrice = watch("unitPrice");
@@ -62,15 +61,11 @@ const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
   const colorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log(types);
-  }, []);
-
-  useEffect(() => {
-    clearErrors();
-
     if (errors && typeof errors === "object" && !Array.isArray(errors)) {
+      clearErrors();
+
       Object.entries(errors).forEach(([fieldName, errorMessages]) => {
-        const fieldKey = toCamelCasePath(fieldName) as keyof InventorySkuInput;
+        const fieldKey = toCamelCasePath(fieldName) as keyof InventoryItemInput;
 
         if (Array.isArray(errorMessages) && errorMessages.length > 0) {
           setError(fieldKey, {
@@ -82,6 +77,36 @@ const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
     }
   }, [errors, setError, clearErrors]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        openDropdown &&
+        !typeRef.current?.contains(event.target as Node) &&
+        !subTypeRef.current?.contains(event.target as Node) &&
+        !colorRef.current?.contains(event.target as Node) &&
+        !materialRef.current?.contains(event.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdown]);
+
+  useEffect(() => {
+    if (formErrors.type || formErrors.subType) {
+      if (type && formErrors.type) {
+        clearErrors("type");
+      }
+      if (subType && formErrors.subType) {
+        clearErrors("subType");
+      }
+    }
+  }, [type, subType, clearErrors, formErrors.type, formErrors.subType]);
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -90,28 +115,28 @@ const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
       <StyledInput
         label="Item"
         placeholder="6ft White Resin Folding Table"
-        register={register("item")}
-        error={formErrors.item?.message}
+        register={register("description")}
+        error={formErrors.description?.message}
       />
       <div className="flex gap-4">
         <StyledInput
           label="Length"
           placeholder="72"
-          register={register("length")}
+          register={register("length", { valueAsNumber: true })}
           error={formErrors.length?.message}
           optional={true}
         />
         <StyledInput
           label="Width"
           placeholder="30"
-          register={register("width")}
+          register={register("width", { valueAsNumber: true })}
           error={formErrors.width?.message}
           optional={true}
         />
         <StyledInput
           label="Height"
           placeholder="36"
-          register={register("height")}
+          register={register("height", { valueAsNumber: true })}
           error={formErrors.height?.message}
           optional={true}
         />
@@ -146,24 +171,6 @@ const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
           error={formErrors.subType?.message}
         />
       )}
-      {selectedSubType && selectedSubType.colors.length > 0 && (
-        <Dropdown
-          ref={colorRef}
-          label="Color"
-          value={color}
-          options={selectedSubType.colors.map((c) => ({
-            value: c.id,
-            label: c.label,
-          }))}
-          openDropdown={openDropdown}
-          setOpenDropdown={setOpenDropdown}
-          selectedLabel={
-            selectedSubType.colors.find((c) => c.id === color)?.label ?? "Color"
-          }
-          onChange={(val) => setValue("color", val as number)}
-          error={formErrors.color?.message}
-        />
-      )}
       {selectedSubType && selectedSubType.materials.length > 0 && (
         <Dropdown
           ref={materialRef}
@@ -183,10 +190,35 @@ const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
           error={formErrors.material?.message}
         />
       )}
+      {selectedSubType && selectedSubType.colors.length > 0 && (
+        <Dropdown
+          ref={colorRef}
+          label="Color"
+          value={color}
+          options={selectedSubType.colors.map((c) => ({
+            value: c.id,
+            label: c.label,
+          }))}
+          openDropdown={openDropdown}
+          setOpenDropdown={setOpenDropdown}
+          selectedLabel={
+            selectedSubType.colors.find((c) => c.id === color)?.label ?? "Color"
+          }
+          onChange={(val) => setValue("color", val as number)}
+          error={formErrors.color?.message}
+        />
+      )}
       <CurrencyInput
         label="Unit Price"
         value={unitPrice}
         onValueChange={(val) => setValue("unitPrice", val)}
+      />
+      <StyledInput
+        label="Variant Label"
+        placeholder="Round, Heavy Duty, Indoor, Outdoor, V1, etc."
+        register={register("variant")}
+        error={formErrors.variant?.message}
+        optional={true}
       />
       <TextAreaInput
         label="Notes"
@@ -200,4 +232,4 @@ const InventorySkuForm: React.FC<InventorySkuFormProps> = ({
   );
 };
 
-export default InventorySkuForm;
+export default InventoryItemForm;

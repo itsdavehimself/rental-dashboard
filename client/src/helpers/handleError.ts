@@ -11,7 +11,6 @@ export const handleError = (
   if (error instanceof CustomError) {
     const errorData = error.data;
     console.log(errorData);
-
     if (
       typeof errorData === "object" &&
       errorData !== null &&

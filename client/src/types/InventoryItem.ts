@@ -1,4 +1,4 @@
-export type ListInventoryItem = {
+export type InventoryListItem = {
   uid: string;
   description: string;
   quantityTotal: string;

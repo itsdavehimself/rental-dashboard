@@ -1,12 +1,13 @@
 import type { PaginatedResponse } from "../types/PaginatedResponse";
-import type { ListInventoryItem } from "../types/InventoryItem";
+import type { InventoryListItem } from "../types/InventoryItem";
 import { CustomError } from "../types/CustomError";
 import type { InventoryConfigResponse } from "../types/InventoryConfigResponse";
+import type { InventoryItemInput } from "../containers/Inventory/components/InventoryItemForm";
 
 const fetchInventoryItems = async (
   apiUrl: string,
   page: number
-): Promise<PaginatedResponse<ListInventoryItem>> => {
+): Promise<PaginatedResponse<InventoryListItem>> => {
   const response = await fetch(
     `${apiUrl}/api/inventory?page=${page}&pageSize=25&isActive=true`,
     {
@@ -45,4 +46,37 @@ const fetchInventoryConfig = async (
   return await response.json();
 };
 
-export { fetchInventoryItems, fetchInventoryConfig };
+const createInventoryItem = async (
+  apiUrl: string,
+  data: InventoryItemInput
+): Promise<InventoryListItem> => {
+  const response = await fetch(`${apiUrl}/api/inventory/item`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      description: data.description,
+      type: data.type,
+      subType: data.subType,
+      color: data.color,
+      notes: data.notes,
+      length: data.length,
+      width: data.width,
+      height: data.height,
+      unitPrice: data.unitPrice / 100,
+      material: data.material,
+      variant: data.variant,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Creating sku failed.", errorData);
+  }
+
+  return await response.json();
+};
+
+export { fetchInventoryItems, fetchInventoryConfig, createInventoryItem };
