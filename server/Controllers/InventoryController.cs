@@ -3,6 +3,7 @@ using server.DTOs.Inventory;
 using server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using server.Helpers;
+using System.Security.Claims;
 
 namespace server.Controllers;
 
@@ -111,10 +112,23 @@ public async Task<IActionResult> GetInventory(
   [HttpPost("item")]
   public async Task<IActionResult> CreateInventoryItem(CreateInventoryItemDto request)
   {
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    if (role != "Admin")
+    return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };  
+
     if (!ModelState.IsValid)
     {
       return BadRequest(ModelState);
-    };
+    }
+    ;
 
     var type = await _context.InventoryTypes.FirstOrDefaultAsync(t => t.Id == request.Type);
     var subtype = await _context.InventorySubTypes.FirstOrDefaultAsync(st => st.Id == request.SubType);
@@ -153,6 +167,69 @@ public async Task<IActionResult> GetInventory(
       UnitPrice = item.UnitPrice,
     });
   }
+
+  [HttpPost("stock/{uid}")]
+  public async Task<IActionResult> CreateInventoryPurchase(Guid uid, [FromBody] CreateInventoryPurchaseDto request)
+  {
+    var role = User.FindFirst(ClaimTypes.Role)?.Value;
+    if (role != "Admin")
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Forbidden",
+        Detail = "You do not have permission to perform this action.",
+        Status = StatusCodes.Status403Forbidden
+      })
+      {
+        StatusCode = StatusCodes.Status403Forbidden
+      };
+
+    var item = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == uid);
+    if (item == null)
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Item not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+
+    var purchase = new InventoryPurchase
+    {
+      InventoryItemId = item.Id,
+      QuantityPurchased = request.QuantityPurchased,
+      UnitCost = request.UnitCost,
+      VendorName = request.VendorName
+    };
+
+    _context.InventoryPurchases.Add(purchase);
+    await _context.SaveChangesAsync();
+
+    var updatedItem = await _context.InventoryItems
+      .Include(i => i.Purchases)
+      .Include(i => i.Retirements)
+      .FirstOrDefaultAsync(i => i.Id == item.Id);
+      
+    if (updatedItem == null)
+      {
+        return new ObjectResult(new ProblemDetails
+        {
+          Title = "Not Found",
+          Detail = "Item not found.",
+          Status = StatusCodes.Status404NotFound
+        })
+        {
+          StatusCode = StatusCodes.Status404NotFound
+        };
+      }
+
+    return Ok(new
+      {
+        updatedItem.Uid,
+        QuantityTotal = updatedItem.Purchases.Sum(p => p.QuantityPurchased) - updatedItem.Retirements.Sum(r => r.QuantityRetired)
+      });
+    }
 
   [HttpGet("config")]
   public async Task<IActionResult> GetInventoryConfig()
