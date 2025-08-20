@@ -24,7 +24,7 @@ import InventoryPurchaseForm, {
   type InventoryPurchaseInput,
 } from "./components/InventoryPurchaseForm";
 
-export type InventoryModalType = null | "addItem" | "addStock" | "editItem";
+export type InventoryModalType = null | "addItem" | "addStock";
 
 const Inventory: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -155,17 +155,6 @@ const Inventory: React.FC = () => {
             errors={errors}
             item={selectedItem}
           />
-        </AddModal>
-      )}
-      {openModal === "editItem" && (
-        <AddModal<InventoryModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
-          title="Edit Item"
-          setErrors={setErrors}
-          modalKey="editItem"
-        >
-          <div>Hi</div>
         </AddModal>
       )}
       <div className="flex justify-between w-full">

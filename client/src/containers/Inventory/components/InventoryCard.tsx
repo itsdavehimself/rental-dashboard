@@ -1,4 +1,4 @@
-import { Ellipsis, PackagePlus, SquarePen } from "lucide-react";
+import { Ellipsis, PackagePlus, SquareArrowOutUpRight } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { InventoryListItem } from "../../../types/InventoryItem";
 import React, { useState, useEffect } from "react";
@@ -87,12 +87,12 @@ const InventoryCard = <T extends string | null>({
                     },
                   },
                   {
-                    icon: SquarePen,
-                    label: "Edit Item",
+                    icon: SquareArrowOutUpRight,
+                    label: "View Item",
                     onClick: (e) => {
                       e.stopPropagation();
                       setPopoverOpen(false);
-                      setOpenModal("editItem" as T);
+                      navigate(`/inventory/${item.uid}`);
                     },
                   },
                 ]}
