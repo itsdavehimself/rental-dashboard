@@ -78,6 +78,14 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
     };
   }, [openDropdown]);
 
+  useEffect(() => {
+    if (formErrors.address?.state) {
+      if (state && formErrors.address.state) {
+        clearErrors("address.state");
+      }
+    }
+  }, [state, formErrors.address?.state, clearErrors]);
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
