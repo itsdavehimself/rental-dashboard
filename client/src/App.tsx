@@ -7,7 +7,7 @@ import { useAppDispatch } from "./app/hooks";
 import { fetchUser } from "./app/slices/userSlice";
 import WithSidebar from "./layouts/WithSidebar";
 import Inventory from "./containers/Inventory/Inventory";
-import Events from "./containers/Events";
+import Events from "./containers/Events/Events";
 import Clients from "./containers/Clients/Clients";
 import Team from "./containers/Team/Team";
 import ToastProvider from "./context/ToastProvider";
