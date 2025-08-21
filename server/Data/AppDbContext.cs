@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using server.Models.User;
-using server.Models.Client;
+using server.Models.Clients;
 using server.Models.Inventory;
+using server.Models.Event;
 using server.Data.Seed;
+using server.Models;
+
 public class AppDbContext : DbContext
 {
   public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -22,6 +25,13 @@ public class AppDbContext : DbContext
   public DbSet<InventoryMaterial> InventoryMaterials => Set<InventoryMaterial>();
   public DbSet<InventoryColor> InventoryColors => Set<InventoryColor>();
   public DbSet<BounceHouseType> BounceHouseTypes => Set<BounceHouseType>();
+  public DbSet<Event> Events => Set<Event>();
+  public DbSet<EventItem> EventItems => Set<EventItem>();
+  public DbSet<LogisticsTask> LogisticsTasks => Set<LogisticsTask>();
+  public DbSet<Package> Packages => Set<Package>();
+  public DbSet<PackageItem> PackageItems => Set<PackageItem>();
+  public DbSet<Address> Addresses => Set<Address>();
+  public DbSet<ClientAddress> ClientAddresses => Set<ClientAddress>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -40,18 +50,33 @@ public class AppDbContext : DbContext
 
     modelBuilder.Entity<Client>()
       .HasOne(c => c.BusinessClient)
-      .WithOne(rc => rc.Client)
-      .HasForeignKey<BusinessClient>(rc => rc.ClientId)
+      .WithOne(bc => bc.Client)
+      .HasForeignKey<BusinessClient>(bc => bc.ClientId)
       .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<ResidentialClient>()
-      .OwnsOne(rc => rc.Address);
 
     modelBuilder.Entity<BusinessClient>()
       .HasMany(bc => bc.Contacts)
-      .WithOne(c => c.BusinessClient)
-      .HasForeignKey(c => c.BusinessClientId)
+      .WithOne(cp => cp.BusinessClient)
+      .HasForeignKey(cp => cp.BusinessClientId)
       .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<ClientAddress>()
+      .HasOne(ca => ca.Client)
+      .WithMany(c => c.Addresses)
+      .HasForeignKey(ca => ca.ClientId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<ClientAddress>()
+      .HasOne(ca => ca.Address)
+      .WithMany()
+      .HasForeignKey(ca => ca.AddressId)
+      .OnDelete(DeleteBehavior.Cascade);
+      
+    modelBuilder.Entity<Address>()
+      .HasMany(a => a.ClientAddresses)
+      .WithOne(ca => ca.Address)
+      .HasForeignKey(ca => ca.AddressId)
+      .OnDelete(DeleteBehavior.Cascade);      
 
     modelBuilder.Entity<InventoryPurchase>()
       .HasOne(p => p.InventoryItem)
@@ -88,6 +113,34 @@ public class AppDbContext : DbContext
       .WithMany(st => st.BounceHouseTypes)
       .HasForeignKey(b => b.InventorySubTypeId)
       .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<Event>()
+      .HasMany(e => e.Items)
+      .WithOne(i => i.Event)
+      .HasForeignKey(i => i.EventId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<Event>()
+      .HasMany(e => e.LogisticsTasks)
+      .WithOne(t => t.Event)
+      .HasForeignKey(t => t.EventId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<PackageItem>()
+      .HasOne(pi => pi.Package)
+      .WithMany(p => p.Items)
+      .HasForeignKey(pi => pi.PackageId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<PackageItem>()
+      .HasOne(pi => pi.InventoryItem)
+      .WithMany()
+      .HasForeignKey(pi => pi.InventoryItemId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+    modelBuilder.Entity<PackageItem>()
+      .HasIndex(pi => new { pi.PackageId, pi.InventoryItemId })
+      .IsUnique();
 
     InventoryConfigSeeder.Seed(modelBuilder);
   }

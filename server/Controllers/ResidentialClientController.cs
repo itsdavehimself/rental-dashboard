@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using server.DTOs.ResidentialClient;
 using server.DTOs;
-using server.Models.Client;
+using server.Models.Clients;
 using server.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -34,6 +34,8 @@ public class ResidentialClientController : ControllerBase
     var results = await _context.Clients
       .Where(c => c.Type == ClientType.Residential)
       .Include(c => c.ResidentialClient)
+      .Include(c => c.Addresses)
+        .ThenInclude(ca => ca.Address)
       .OrderBy(c => c.ResidentialClient!.LastName)
       .Skip((page - 1) * pageSize)
       .Take(pageSize)
@@ -41,19 +43,22 @@ public class ResidentialClientController : ControllerBase
       {
         Uid = c.Uid,
         FirstName = c.ResidentialClient!.FirstName,
-        LastName = c.ResidentialClient!.LastName,
+        LastName = c.ResidentialClient.LastName,
         Email = c.ResidentialClient.Email,
         PhoneNumber = c.ResidentialClient.PhoneNumber,
         Notes = c.Notes,
         CreatedAt = c.CreatedAt,
-        Address = new AddressDto
-        {
-          Street = c.ResidentialClient.Address.Street,
-          Unit = c.ResidentialClient.Address.Unit,
-          City = c.ResidentialClient.Address.City,
-          State = c.ResidentialClient.Address.State,
-          ZipCode = c.ResidentialClient.Address.ZipCode
-        }
+        Address = c.Addresses
+          .Where(a => a.Type.HasFlag(AddressType.Billing) || a.Type.HasFlag(AddressType.Both))
+          .Select(a => new AddressDto
+          {
+            Street = a.Address.Street,
+            Unit = a.Address.Unit,
+            City = a.Address.City,
+            State = a.Address.State,
+            ZipCode = a.Address.ZipCode
+          })
+          .FirstOrDefault()
       }).ToListAsync();
 
     var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -81,6 +86,21 @@ public class ResidentialClientController : ControllerBase
       Type = ClientType.Residential,
       Notes = request.Notes,
       CreatedAt = DateTime.UtcNow,
+      Addresses = new List<ClientAddress>
+      {
+        new ClientAddress
+        {
+          Address = new Address
+          {
+            Street = request.Address.Street,
+            Unit = request.Address.Unit,
+            City = request.Address.City,
+            State = request.Address.State,
+            ZipCode = request.Address.ZipCode
+          },
+          Type = AddressType.Both,
+        }
+      }
     };
 
     var residential = new ResidentialClient
@@ -89,19 +109,26 @@ public class ResidentialClientController : ControllerBase
       FirstName = request.FirstName,
       LastName = request.LastName,
       PhoneNumber = request.PhoneNumber,
-      Email = request.Email,
-      Address = new Address
-      {
-        Street = request.Address.Street,
-        Unit = request.Address.Unit,
-        City = request.Address.City,
-        State = request.Address.State,
-        ZipCode = request.Address.ZipCode
-      }
+      Email = request.Email
     };
 
     _context.ResidentialClients.Add(residential);
     await _context.SaveChangesAsync();
+
+    var billingAddress = client.Addresses
+      .Where(a => a.Type.HasFlag(AddressType.Billing) || a.Type.HasFlag(AddressType.Both))
+      .Select(a => a.Address)
+      .FirstOrDefault();
+
+    if (billingAddress == null)
+    {
+      return BadRequest(new ProblemDetails
+      {
+        Title = "Missing Address",
+        Detail = "Client is missing a billing address.",
+        Status = StatusCodes.Status400BadRequest
+      });
+    }
 
     return Ok(new ResidentialClientResponseDto
     {
@@ -114,11 +141,11 @@ public class ResidentialClientController : ControllerBase
       CreatedAt = client.CreatedAt,
       Address = new AddressDto
       {
-        Street = residential.Address.Street,
-        Unit = residential.Address.Unit,
-        City = residential.Address.City,
-        State = residential.Address.State,
-        ZipCode = residential.Address.ZipCode
+        Street = billingAddress.Street,
+        Unit = billingAddress.Unit,
+        City = billingAddress.City,
+        State = billingAddress.State,
+        ZipCode = billingAddress.ZipCode
       }
     });
   }
@@ -126,7 +153,11 @@ public class ResidentialClientController : ControllerBase
   [HttpGet("{uid}")]
   public async Task<IActionResult> SearchClient(Guid uid)
   {
-    var client = await _context.Clients.Include(c => c.ResidentialClient).FirstOrDefaultAsync(c => c.Uid == uid);
+    var client = await _context.Clients
+        .Include(c => c.ResidentialClient)
+        .Include(c => c.Addresses)
+        .ThenInclude(ca => ca.Address)
+        .FirstOrDefaultAsync(c => c.Uid == uid);
 
     if (client == null)
       return new ObjectResult(new ProblemDetails
@@ -139,6 +170,21 @@ public class ResidentialClientController : ControllerBase
         StatusCode = StatusCodes.Status404NotFound
       };
 
+    var billingAddress = client.Addresses
+      .Where(a => a.Type.HasFlag(AddressType.Billing) || a.Type.HasFlag(AddressType.Both))
+      .Select(a => a.Address)
+      .FirstOrDefault();
+
+    if (billingAddress == null)
+    {
+      return BadRequest(new ProblemDetails
+      {
+        Title = "Missing Address",
+        Detail = "Client is missing a billing address.",
+        Status = StatusCodes.Status400BadRequest
+      });
+    }
+    
     return Ok(new ResidentialClientResponseDto
     {
       Uid = client.Uid,
@@ -150,11 +196,11 @@ public class ResidentialClientController : ControllerBase
       CreatedAt = client.CreatedAt,
       Address = new AddressDto
       {
-        Street = client.ResidentialClient.Address.Street,
-        Unit = client.ResidentialClient.Address.Unit,
-        City = client.ResidentialClient.Address.City,
-        State = client.ResidentialClient.Address.State,
-        ZipCode = client.ResidentialClient.Address.ZipCode
+        Street = billingAddress.Street,
+        Unit = billingAddress.Unit,
+        City = billingAddress.City,
+        State = billingAddress.State,
+        ZipCode = billingAddress.ZipCode
       }
     });
   }

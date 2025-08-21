@@ -1,4 +1,5 @@
-namespace server.Models.Client;
+namespace server.Models.Clients;
+
 public enum ClientType
 {
   Residential,
@@ -12,5 +13,7 @@ public class Client
   public string? Notes { get; set; }
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public ResidentialClient? ResidentialClient { get; set; }
-  public BusinessClient? BusinessClient{ get; set; }
+  public BusinessClient? BusinessClient { get; set; }
+  public List<ClientAddress> Addresses { get; set; } = [];
+
 }

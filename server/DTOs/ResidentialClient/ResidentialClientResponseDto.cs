@@ -16,5 +16,5 @@ public class ResidentialClientResponseDto
 
   public DateTime CreatedAt { get; set; }
 
-  public AddressDto Address { get; set; } = new();
+  public AddressDto? Address { get; set; } = new();
 }

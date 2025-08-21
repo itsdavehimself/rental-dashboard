@@ -1,4 +1,4 @@
-namespace server.Models.Client;
+using server.Models.Clients;
 
 public class ResidentialClient
 {
@@ -9,5 +9,4 @@ public class ResidentialClient
   public string LastName { get; set; } = string.Empty;
   public string Email { get; set; } = string.Empty;
   public string PhoneNumber { get; set; } = string.Empty;
-  public Address Address { get; set; } = new Address();
 }

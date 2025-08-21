@@ -1,4 +1,4 @@
-namespace server.Models.Client;
+namespace server.Models.Clients;
 
 public class ContactPerson
 {

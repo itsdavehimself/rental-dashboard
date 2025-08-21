@@ -1,4 +1,4 @@
-namespace server.Models.Client;
+namespace server.Models.Clients;
 
 public class BusinessClient
 {
@@ -7,6 +7,5 @@ public class BusinessClient
   public Client Client { get; set; } = null!;
   public string BusinessName { get; set; } = string.Empty;
   public List<ContactPerson> Contacts { get; set; } = [];
-  public string BillingAddress { get; set; } = string.Empty;
   public bool IsTaxExempt { get; set; }
 }
