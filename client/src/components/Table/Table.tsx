@@ -10,7 +10,7 @@ interface TableProps<T, M extends string | null> {
     columnTemplate: string;
     gap: number;
     setOpenModal: React.Dispatch<React.SetStateAction<M>>;
-    setSelectedItem: React.Dispatch<
+    setSelectedItem?: React.Dispatch<
       React.SetStateAction<{
         uid: string;
         name: string;
@@ -20,7 +20,7 @@ interface TableProps<T, M extends string | null> {
   getKey: (item: T, index: number) => string | number;
   gap: number;
   setOpenModal: React.Dispatch<React.SetStateAction<M>>;
-  setSelectedItem: React.Dispatch<
+  setSelectedItem?: React.Dispatch<
     React.SetStateAction<{
       uid: string;
       name: string;

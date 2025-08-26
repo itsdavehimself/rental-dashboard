@@ -83,24 +83,26 @@ const Team: React.FC = () => {
           <TeamMemberForm onSubmit={onSubmit} errors={errors} />
         </AddModal>
       )}
-      <div className="flex justify-between w-full">
-        <SearchBar placeholder="Search" />
-        <AddButton<TeamModalType>
-          Icon={Plus}
-          label="Team Member"
-          addModalOpen={setOpenModal}
-          modalKey="addTeamMember"
+      <div className="flex flex-col gap-4 w-full xl:w-2/3">
+        <div className="flex justify-between w-full">
+          <SearchBar placeholder="Search" />
+          <AddButton<TeamModalType>
+            Icon={Plus}
+            label="Team Member"
+            addModalOpen={setOpenModal}
+            modalKey="addTeamMember"
+          />
+        </div>
+        <Table
+          columnTemplate={columnTemplate}
+          headers={headers}
+          tableItems={users}
+          tableCardType={MemberCard}
+          getKey={(user) => user.uid}
+          gap={4}
+          setOpenModal={setOpenModal}
         />
       </div>
-      <Table
-        columnTemplate={columnTemplate}
-        headers={headers}
-        tableItems={users}
-        tableCardType={MemberCard}
-        getKey={(user) => user.uid}
-        gap={4}
-        setOpenModal={setOpenModal}
-      />
     </div>
   );
 };

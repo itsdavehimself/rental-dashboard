@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router";
-import Login from "./features/auth/Login";
+import Login from "./containers/auth/Login";
 import Dashboard from "./containers/Dashboard";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import { useEffect } from "react";
@@ -14,6 +14,7 @@ import ToastProvider from "./context/ToastProvider";
 import ResidentialClient from "./containers/Clients/ResidentialClient";
 import Library from "./containers/Library/Library";
 import Vendors from "./containers/Vendors/Vendors";
+import CreateEvent from "./containers/Events/CreateEvent";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -35,7 +36,10 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
-          <Route path="/events" element={<Events />} />
+          <Route path="/events">
+            <Route index element={<Events />} />
+            <Route path="/events/create" element={<CreateEvent />} />
+          </Route>
           <Route path="/clients">
             <Route index element={<Clients />} />
             <Route path=":uid" element={<ResidentialClient />} />

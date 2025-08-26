@@ -157,25 +157,27 @@ const Inventory: React.FC = () => {
           />
         </AddModal>
       )}
-      <div className="flex justify-between w-full">
-        <SearchBar placeholder="Search" />
-        <AddButton<InventoryModalType>
-          Icon={Plus}
-          label="Item"
-          addModalOpen={setOpenModal}
-          modalKey="addItem"
+      <div className="flex flex-col gap-4 w-full xl:w-2/3">
+        <div className="flex justify-between w-full">
+          <SearchBar placeholder="Search" />
+          <AddButton<InventoryModalType>
+            Icon={Plus}
+            label="Item"
+            addModalOpen={setOpenModal}
+            modalKey="addItem"
+          />
+        </div>
+        <Table
+          columnTemplate={columnTemplate}
+          headers={headers}
+          tableItems={items}
+          tableCardType={InventoryCard}
+          getKey={(item) => item.sku}
+          gap={10}
+          setOpenModal={setOpenModal}
+          setSelectedItem={setSelectedItem}
         />
       </div>
-      <Table
-        columnTemplate={columnTemplate}
-        headers={headers}
-        tableItems={items}
-        tableCardType={InventoryCard}
-        getKey={(item) => item.sku}
-        gap={10}
-        setOpenModal={setOpenModal}
-        setSelectedItem={setSelectedItem}
-      />
     </div>
   );
 };

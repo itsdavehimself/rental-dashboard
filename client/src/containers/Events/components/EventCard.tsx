@@ -4,7 +4,7 @@ import type { InventoryListItem } from "../../../types/InventoryItem";
 import React, { useState, useEffect } from "react";
 import PopOver from "../../../components/common/PopOver";
 
-interface InventoryCardProps<T extends string | null> {
+interface EventCardProps<T extends string | null> {
   item: InventoryListItem;
   isLast: boolean;
   columnTemplate: string;
@@ -18,14 +18,14 @@ interface InventoryCardProps<T extends string | null> {
   >;
 }
 
-const InventoryCard = <T extends string | null>({
+const EventCard = <T extends string | null>({
   item,
   isLast,
   columnTemplate,
   gap,
   setOpenModal,
   setSelectedItem,
-}: InventoryCardProps<T>) => {
+}: EventCardProps<T>) => {
   const navigate = useNavigate();
   const formatPrice = (price: number): string => {
     const formattedPrice = price.toFixed(2);
@@ -105,4 +105,4 @@ const InventoryCard = <T extends string | null>({
   );
 };
 
-export default InventoryCard;
+export default EventCard;

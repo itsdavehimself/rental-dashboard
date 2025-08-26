@@ -88,24 +88,26 @@ const Clients: React.FC = () => {
           <ResidentialClientForm onSubmit={onSubmit} errors={errors} />
         </AddModal>
       )}
-      <div className="flex justify-between w-full">
-        <SearchBar placeholder="Search" />
-        <AddButton<ClientModalType>
-          Icon={Plus}
-          label="Client"
-          addModalOpen={setOpenModal}
-          modalKey="addClient"
+      <div className="flex flex-col gap-4 w-full xl:w-2/3">
+        <div className="flex justify-between w-full">
+          <SearchBar placeholder="Search" />
+          <AddButton<ClientModalType>
+            Icon={Plus}
+            label="Client"
+            addModalOpen={setOpenModal}
+            modalKey="addClient"
+          />
+        </div>
+        <Table
+          columnTemplate={columnTemplate}
+          headers={headers}
+          tableItems={clients}
+          tableCardType={ResidentialClientCard}
+          getKey={(client) => client.uid}
+          gap={4}
+          setOpenModal={setOpenModal}
         />
       </div>
-      <Table
-        columnTemplate={columnTemplate}
-        headers={headers}
-        tableItems={clients}
-        tableCardType={ResidentialClientCard}
-        getKey={(client) => client.uid}
-        gap={4}
-        setOpenModal={setOpenModal}
-      />
     </div>
   );
 };
