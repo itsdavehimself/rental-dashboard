@@ -16,4 +16,5 @@ public class AddressDto
   [Required(ErrorMessage = "Zip code is required")]
   [RegularExpression(@"^\d{5}(-\d{4})?$", ErrorMessage = "Invalid ZIP code")]
   public string ZipCode { get; set; } = string.Empty;
+  public bool IsPrimary { get; set; }
 }

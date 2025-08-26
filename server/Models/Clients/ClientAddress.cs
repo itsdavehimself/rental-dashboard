@@ -9,13 +9,11 @@ public class ClientAddress
   public Address Address { get; set; } = null!;
   public AddressType Type { get; set; }
   public string? Label { get; set; }
+  public bool IsPrimary { get; set; }
 }
 
-[Flags]
 public enum AddressType
 {
-  None = 0,
-  Delivery = 1,
-  Billing = 2,
-  Both = Delivery | Billing 
+  Delivery,
+  Billing
 }

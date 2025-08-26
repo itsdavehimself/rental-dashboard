@@ -32,6 +32,7 @@ public class AppDbContext : DbContext
   public DbSet<PackageItem> PackageItems => Set<PackageItem>();
   public DbSet<Address> Addresses => Set<Address>();
   public DbSet<ClientAddress> ClientAddresses => Set<ClientAddress>();
+  public DbSet<Person> People => Set<Person>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -71,12 +72,12 @@ public class AppDbContext : DbContext
       .WithMany()
       .HasForeignKey(ca => ca.AddressId)
       .OnDelete(DeleteBehavior.Cascade);
-      
+
     modelBuilder.Entity<Address>()
       .HasMany(a => a.ClientAddresses)
       .WithOne(ca => ca.Address)
       .HasForeignKey(ca => ca.AddressId)
-      .OnDelete(DeleteBehavior.Cascade);      
+      .OnDelete(DeleteBehavior.Cascade);
 
     modelBuilder.Entity<InventoryPurchase>()
       .HasOne(p => p.InventoryItem)
@@ -141,6 +142,16 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<PackageItem>()
       .HasIndex(pi => new { pi.PackageId, pi.InventoryItemId })
       .IsUnique();
+
+    modelBuilder.Entity<ResidentialClient>()
+      .HasOne(rc => rc.Person)
+      .WithMany()
+      .HasForeignKey(rc => rc.PersonId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<ClientAddress>()
+      .Property(ca => ca.Type)
+      .HasConversion<string>();
 
     InventoryConfigSeeder.Seed(modelBuilder);
   }

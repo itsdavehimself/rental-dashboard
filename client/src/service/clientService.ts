@@ -3,14 +3,14 @@ import type { PaginatedResponse } from "../types/PaginatedResponse";
 import type {
   CreateResidentialClient,
   ResidentialClient,
-} from "../types/ResidentialClient";
+} from "../types/Client";
 
 const fetchResidentialClients = async (
   apiUrl: string,
   page: number
 ): Promise<PaginatedResponse<ResidentialClient>> => {
   const response = await fetch(
-    `${apiUrl}/api/residentialclient?page=${page}&pageSize=25`,
+    `${apiUrl}/api/client/residential?page=${page}&pageSize=25`,
     {
       method: "GET",
       headers: {
@@ -32,7 +32,7 @@ const getResidentialClient = async (
   apiUrl: string,
   uid: string
 ): Promise<ResidentialClient> => {
-  const response = await fetch(`${apiUrl}/api/residentialclient/${uid}`, {
+  const response = await fetch(`${apiUrl}/api/client/${uid}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -52,7 +52,7 @@ const createResidentialClient = async (
   apiUrl: string,
   data: CreateResidentialClient
 ): Promise<ResidentialClient> => {
-  const response = await fetch(`${apiUrl}/api/residentialclient`, {
+  const response = await fetch(`${apiUrl}/api/client/create-residential`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

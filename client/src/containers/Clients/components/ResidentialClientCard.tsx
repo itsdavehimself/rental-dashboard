@@ -1,4 +1,4 @@
-import type { ResidentialClient } from "../../../types/ResidentialClient";
+import type { ResidentialClient } from "../../../types/Client";
 import { Ellipsis } from "lucide-react";
 import { formatDate } from "date-fns";
 import { useNavigate } from "react-router";

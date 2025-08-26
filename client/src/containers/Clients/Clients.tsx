@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Table from "../../components/Table/Table";
-import type { ResidentialClient } from "../../types/ResidentialClient";
+import type { ResidentialClient } from "../../types/Client";
 import ResidentialClientCard from "./components/ResidentialClientCard";
 import { useToast } from "../../hooks/useToast";
 import { type ErrorsState, handleError } from "../../helpers/handleError";

@@ -2,7 +2,7 @@ import { useParams } from "react-router";
 import { getResidentialClient } from "../../service/clientService";
 import { useToast } from "../../hooks/useToast";
 import { useState, useEffect } from "react";
-import type { ResidentialClient } from "../../types/ResidentialClient";
+import type { ResidentialClient } from "../../types/Client";
 import type { ErrorsState } from "../../helpers/handleError";
 import { handleError } from "../../helpers/handleError";
 

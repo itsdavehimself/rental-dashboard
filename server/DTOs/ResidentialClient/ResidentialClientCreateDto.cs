@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace server.DTOs.ResidentialClient;
 
-public class CreateResidentialClientDto
+public class ResidentialClientCreateDto
 {
   [Required(ErrorMessage = "First name is required")]
   [MinLength(2, ErrorMessage = "First name must be at least 2 characters")]

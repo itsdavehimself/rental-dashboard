@@ -4,7 +4,7 @@ using server.Models.Event;
 
 public class CreateEventDto
 {
-  public string ClientUid { get; set; } = string.Empty;
+  public Guid ClientUid { get; set; }
   public string? EventName { get; set; }
   public DateTime EventStart { get; set; }
   public DateTime EventEnd { get; set; }
