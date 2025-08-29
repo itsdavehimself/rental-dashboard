@@ -77,22 +77,44 @@ public class ClientController : ControllerBase
       });
     }
 
-  [HttpGet("search")]
-  public async Task<IActionResult> SearchClients([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 25)
+  [HttpGet("fuzzy-search")]
+  public async Task<IActionResult> FuzzySearchClients(
+    [FromQuery] string? query,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 25)
   {
-    query = query.ToLower().Trim();
+    query = query?.ToLower().Trim();
 
-    var residentialResults = await _context.ResidentialClients
-      .Include(rc => rc.Person)
-      .Include(rc => rc.Client)
-        .ThenInclude(c => c.Addresses)
-          .ThenInclude(ca => ca.Address)
-      .Where(rc =>
+    if (string.IsNullOrWhiteSpace(query))
+    {
+        return Ok(new PaginatedResponse<ClientSearchResultDto>
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = 0,
+            TotalPages = 0,
+            Data = new List<ClientSearchResultDto>()
+        });
+    }
+
+    var residentialQuery = _context.ResidentialClients
+    .Include(rc => rc.Person)
+    .Include(rc => rc.Client)
+      .ThenInclude(c => c.Addresses)
+        .ThenInclude(ca => ca.Address)
+    .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(query))
+    {
+      residentialQuery = residentialQuery.Where(rc =>
         rc.Person.FirstName.ToLower().Contains(query) ||
         rc.Person.LastName.ToLower().Contains(query) ||
         rc.Person.Email.ToLower().Contains(query) ||
-        rc.Person.PhoneNumber.ToLower().Contains(query))
-      .ToListAsync();
+        rc.Person.PhoneNumber.ToLower().Contains(query)
+      );
+    }
+
+    var residentialResults = await residentialQuery.ToListAsync();
 
     var mappedResidential = residentialResults.Select(rc => new ClientSearchResultDto
     {
@@ -118,20 +140,148 @@ public class ClientController : ControllerBase
         .FirstOrDefault() ?? new AddressDto()
     });
 
-    var businessResults = await _context.BusinessClients
+    var businessQuery = _context.BusinessClients
       .Include(bc => bc.Contacts)
         .ThenInclude(c => c.Person)
       .Include(bc => bc.Client)
         .ThenInclude(c => c.Addresses)
           .ThenInclude(ca => ca.Address)
-      .Where(bc =>
+      .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(query))
+    {
+      businessQuery = businessQuery.Where(bc =>
         bc.BusinessName.ToLower().Contains(query) ||
         bc.Contacts.Any(c =>
           c.Person.FirstName.ToLower().Contains(query) ||
           c.Person.LastName.ToLower().Contains(query) ||
           c.Person.Email.ToLower().Contains(query) ||
-          c.Person.PhoneNumber.ToLower().Contains(query)))
-      .ToListAsync();
+          c.Person.PhoneNumber.ToLower().Contains(query)
+        )
+      );
+    }
+
+    var businessResults = await businessQuery.ToListAsync();
+
+    var mappedBusiness = businessResults.Select(bc => new ClientSearchResultDto
+    {
+      Uid = bc.Client.Uid,
+      Type = ClientType.Business,
+      BusinessName = bc.BusinessName,
+      FirstName = bc.Contacts.Where(c => c.IsPrimary).Select(c => c.Person.FirstName).FirstOrDefault(),
+      LastName = bc.Contacts.Where(c => c.IsPrimary).Select(c => c.Person.LastName).FirstOrDefault(),
+      Email = bc.Contacts.Where(c => c.IsPrimary).Select(c => c.Person.Email).FirstOrDefault(),
+      PhoneNumber = bc.Contacts.Where(c => c.IsPrimary).Select(c => c.Person.PhoneNumber).FirstOrDefault(),
+      Notes = bc.Client.Notes,
+      CreatedAt = bc.Client.CreatedAt,
+      BillingAddress = bc.Client.Addresses!
+        .Where(a => a.Type == AddressType.Billing && a.IsPrimary)
+        .Select(a => new AddressDto
+        {
+          Street = a.Address.Street,
+          Unit = a.Address.Unit,
+          City = a.Address.City,
+          State = a.Address.State,
+          ZipCode = a.Address.ZipCode,
+          IsPrimary = a.IsPrimary
+        })
+        .FirstOrDefault() ?? new AddressDto()
+    });
+
+    var combinedResults = mappedResidential.Concat(mappedBusiness)
+      .OrderBy(c => c.CreatedAt)
+      .ToList();
+
+    var totalCount = combinedResults.Count;
+    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+    var pagedResults = combinedResults
+      .Skip((page - 1) * pageSize)
+      .Take(pageSize)
+      .ToList();
+
+    return Ok(new PaginatedResponse<ClientSearchResultDto>
+    {
+      Page = page,
+      PageSize = pageSize,
+      TotalCount = totalCount,
+      TotalPages = totalPages,
+      Data = pagedResults
+    });    
+  }
+
+  [HttpGet("search")]
+  public async Task<IActionResult> SearchClients(
+    [FromQuery] string? firstName,
+    [FromQuery] string? lastName,
+    [FromQuery] string? email,
+    [FromQuery] string? phone,
+    [FromQuery] string? businessName,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 25)
+  {
+    var residentialQuery = _context.ResidentialClients
+      .Include(rc => rc.Person)
+      .Include(rc => rc.Client)
+        .ThenInclude(c => c.Addresses)
+          .ThenInclude(ca => ca.Address)
+      .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(firstName))
+      residentialQuery = residentialQuery.Where(rc => rc.Person.FirstName.ToLower().Contains(firstName.ToLower()));
+    if (!string.IsNullOrWhiteSpace(lastName))
+      residentialQuery = residentialQuery.Where(rc => rc.Person.LastName.ToLower().Contains(lastName.ToLower()));
+    if (!string.IsNullOrWhiteSpace(email))
+      residentialQuery = residentialQuery.Where(rc => rc.Person.Email.ToLower().Contains(email.ToLower()));
+    if (!string.IsNullOrWhiteSpace(phone))
+      residentialQuery = residentialQuery.Where(rc => rc.Person.PhoneNumber.ToLower().Contains(phone.ToLower()));
+
+    var residentialResults = await residentialQuery.ToListAsync();
+
+    var mappedResidential = residentialResults.Select(rc => new ClientSearchResultDto
+    {
+      Uid = rc.Client.Uid,
+      Type = ClientType.Residential,
+      FirstName = rc.Person.FirstName,
+      LastName = rc.Person.LastName,
+      Email = rc.Person.Email,
+      PhoneNumber = rc.Person.PhoneNumber,
+      Notes = rc.Client.Notes,
+      CreatedAt = rc.Client.CreatedAt,
+      BillingAddress = rc.Client.Addresses!
+        .Where(a => a.Type == AddressType.Billing && a.IsPrimary)
+        .Select(a => new AddressDto
+        {
+          Street = a.Address.Street,
+          Unit = a.Address.Unit,
+          City = a.Address.City,
+          State = a.Address.State,
+          ZipCode = a.Address.ZipCode,
+          IsPrimary = a.IsPrimary
+        })
+        .FirstOrDefault() ?? new AddressDto()
+    });
+
+    var businessQuery = _context.BusinessClients
+      .Include(bc => bc.Contacts)
+        .ThenInclude(c => c.Person)
+      .Include(bc => bc.Client)
+        .ThenInclude(c => c.Addresses)
+          .ThenInclude(ca => ca.Address)
+      .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(firstName))
+      businessQuery = businessQuery.Where(bc => bc.Contacts.Any(c => c.Person.FirstName.ToLower().Contains(firstName.ToLower())));
+    if (!string.IsNullOrWhiteSpace(lastName))
+      businessQuery = businessQuery.Where(bc => bc.Contacts.Any(c => c.Person.LastName.ToLower().Contains(lastName.ToLower())));
+    if (!string.IsNullOrWhiteSpace(email))
+      businessQuery = businessQuery.Where(bc => bc.Contacts.Any(c => c.Person.Email.ToLower().Contains(email.ToLower())));
+    if (!string.IsNullOrWhiteSpace(phone))
+      businessQuery = businessQuery.Where(bc => bc.Contacts.Any(c => c.Person.PhoneNumber.ToLower().Contains(phone.ToLower())));
+    if (!string.IsNullOrWhiteSpace(businessName))
+      businessQuery = businessQuery.Where(bc => bc.BusinessName.ToLower().Contains(businessName.ToLower()));
+
+    var businessResults = await businessQuery.ToListAsync();
 
     var mappedBusiness = businessResults.Select(bc => new ClientSearchResultDto
     {

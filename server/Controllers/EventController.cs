@@ -43,6 +43,6 @@ public class EventsController : ControllerBase
       };
     }
 
-    return Ok();
+    return Ok(client);
   }
 }
