@@ -1,5 +1,5 @@
 import { useParams } from "react-router";
-import { getResidentialClient } from "../../service/clientService";
+import { getClientDetails } from "../../service/clientService";
 import { useToast } from "../../hooks/useToast";
 import { useState, useEffect } from "react";
 import type { ResidentialClient } from "../../types/Client";
@@ -17,7 +17,7 @@ const ResidentialClientDetails: React.FC = () => {
   const handleClientFetch = async (): Promise<void> => {
     try {
       if (uid) {
-        const clientData = await getResidentialClient(apiUrl, uid);
+        const clientData = await getClientDetails(apiUrl, uid);
         setClient(clientData);
       }
     } catch (err) {

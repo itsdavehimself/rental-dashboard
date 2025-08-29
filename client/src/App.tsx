@@ -7,14 +7,14 @@ import { useAppDispatch } from "./app/hooks";
 import { fetchUser } from "./app/slices/userSlice";
 import WithSidebar from "./layouts/WithSidebar";
 import Inventory from "./containers/Inventory/Inventory";
-import Events from "./containers/Events/Events";
+import Events from "./containers/Events/EventsDashboard/Events";
 import Clients from "./containers/Clients/Clients";
 import Team from "./containers/Team/Team";
 import ToastProvider from "./context/ToastProvider";
 import ResidentialClient from "./containers/Clients/ResidentialClient";
 import Library from "./containers/Library/Library";
 import Vendors from "./containers/Vendors/Vendors";
-import CreateEvent from "./containers/Events/CreateEvent";
+import CreateEvent from "./containers/Events/CreateEvent/CreateEvent";
 
 function App() {
   const dispatch = useAppDispatch();

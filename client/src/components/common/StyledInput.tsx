@@ -23,7 +23,7 @@ const StyledInput: React.FC<StyledInputProps> = ({
   ...rest
 }) => {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       <div className="flex flex-col gap-1">
         <label className="text-sm font-semibold">
           {label}{" "}

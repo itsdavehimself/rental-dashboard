@@ -7,6 +7,11 @@ import { toCamelCasePath } from "../../../helpers/toCamelCastPath";
 import Dropdown from "../../../components/common/Dropdown";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import type { InventoryType } from "../../../types/InventoryConfigResponse";
+import { createInventoryItem } from "../../../service/inventoryService";
+import { useToast } from "../../../hooks/useToast";
+import { handleError, type ErrorsState } from "../../../helpers/handleError";
+import { type InventoryListItem } from "../../../types/InventoryItem";
+import { type InventoryModalType } from "../Inventory";
 
 export type InventoryItemInput = {
   description: string;
@@ -23,15 +28,21 @@ export type InventoryItemInput = {
 };
 
 interface InventoryItemFormProps {
-  onSubmit: SubmitHandler<InventoryItemInput>;
   errors: object | null;
   types: InventoryType[];
+  setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
+  setItems: React.Dispatch<React.SetStateAction<InventoryListItem[]>>;
+  items: InventoryListItem[];
+  setOpenModal: React.Dispatch<React.SetStateAction<InventoryModalType>>;
 }
 
 const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
-  onSubmit,
   errors,
   types,
+  setErrors,
+  setItems,
+  items,
+  setOpenModal,
 }) => {
   const {
     handleSubmit,
@@ -42,6 +53,9 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
     clearErrors,
     formState: { errors: formErrors },
   } = useForm<InventoryItemInput>();
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  const { addToast } = useToast();
+
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const unitPrice = watch("unitPrice");
@@ -59,6 +73,23 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   const subTypeRef = useRef<HTMLDivElement>(null);
   const materialRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLDivElement>(null);
+
+  const onSubmit: SubmitHandler<InventoryItemInput> = async (data) => {
+    try {
+      setErrors(null);
+      const newItem = await createInventoryItem(apiUrl, data);
+
+      const updatedItems = [...items, newItem].sort((a, b) => {
+        return a.sku.localeCompare(b.sku);
+      });
+
+      setItems(updatedItems);
+      setOpenModal(null);
+      addToast("Success", `${newItem.sku} successfully added.`);
+    } catch (err) {
+      handleError(err, setErrors);
+    }
+  };
 
   useEffect(() => {
     if (errors && typeof errors === "object" && !Array.isArray(errors)) {

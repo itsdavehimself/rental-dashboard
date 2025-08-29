@@ -1,43 +1,27 @@
 import type React from "react";
 
-interface TableProps<T, M extends string | null> {
+interface TableProps<T> {
   columnTemplate: string;
   headers: string[];
   tableItems: T[];
-  tableCardType: React.ComponentType<{
+  tableRowType: React.ComponentType<{
     item: T;
     isLast: boolean;
     columnTemplate: string;
     gap: number;
-    setOpenModal: React.Dispatch<React.SetStateAction<M>>;
-    setSelectedItem?: React.Dispatch<
-      React.SetStateAction<{
-        uid: string;
-        name: string;
-      } | null>
-    >;
   }>;
   getKey: (item: T, index: number) => string | number;
   gap: number;
-  setOpenModal: React.Dispatch<React.SetStateAction<M>>;
-  setSelectedItem?: React.Dispatch<
-    React.SetStateAction<{
-      uid: string;
-      name: string;
-    } | null>
-  >;
 }
 
-const Table = <T, M extends string | null>({
+const Table = <T,>({
   columnTemplate,
   headers,
   tableItems,
-  tableCardType: TableCard,
+  tableRowType: TableRow,
   getKey,
   gap,
-  setOpenModal,
-  setSelectedItem,
-}: TableProps<T, M>) => {
+}: TableProps<T>) => {
   return (
     <div className="flex flex-col items-center w-full ring-1 rounded-xl ring-gray-200">
       <div
@@ -51,14 +35,12 @@ const Table = <T, M extends string | null>({
       </div>
       <div className="flex flex-col w-full">
         {tableItems.map((item, i) => (
-          <TableCard
+          <TableRow
             key={getKey(item, i)}
             item={item}
             isLast={i === tableItems.length - 1}
             columnTemplate={columnTemplate}
             gap={gap}
-            setOpenModal={setOpenModal}
-            setSelectedItem={setSelectedItem}
           />
         ))}
         {tableItems.length === 0 && (

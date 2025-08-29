@@ -8,6 +8,11 @@ import { fetchJobTitles } from "../../../service/jobTitleService";
 import { fetchRoles } from "../../../service/roleService";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import DatePicker from "../../../components/common/DatePicker";
+import { registerUser } from "../../../service/authService";
+import { type TeamModalType } from "../Team";
+import { handleError, type ErrorsState } from "../../../helpers/handleError";
+import type { User } from "../../../types/User";
+import { useToast } from "../../../hooks/useToast";
 
 export type TeamMemberInputs = {
   firstName: string;
@@ -21,13 +26,19 @@ export type TeamMemberInputs = {
 };
 
 interface TeamMemberFormProps {
-  onSubmit: SubmitHandler<TeamMemberInputs>;
   errors: object | null;
+  setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  users: User[];
+  setOpenModal: React.Dispatch<React.SetStateAction<TeamModalType>>;
 }
 
 const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
-  onSubmit,
   errors,
+  setErrors,
+  users,
+  setUsers,
+  setOpenModal,
 }) => {
   const {
     handleSubmit,
@@ -41,6 +52,8 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
 
   type Option = { value: number | string; label: string };
 
+  const { addToast } = useToast();
+
   const [jobTitles, setJobTitles] = useState<Option[]>([]);
   const [roles, setRoles] = useState<Option[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -53,6 +66,22 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
   const roleId = watch("roleId");
   const payRate = watch("payRate");
   const startDate = watch("startDate");
+
+  const onSubmit: SubmitHandler<TeamMemberInputs> = async (data) => {
+    try {
+      setErrors(null);
+      const newUser = await registerUser(apiUrl, data);
+      const updatedUsers = [...users, newUser];
+      setUsers(updatedUsers);
+      setOpenModal(null);
+      addToast(
+        "Success",
+        `${newUser.firstName} ${newUser.lastName} successfully added to the team.`
+      );
+    } catch (err) {
+      handleError(err, setErrors);
+    }
+  };
 
   useEffect(() => {
     clearErrors();

@@ -1,15 +1,16 @@
 import { formatDistanceToNowStrict } from "date-fns";
 import type { User } from "../../../types/User";
 import { Ellipsis } from "lucide-react";
+import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
 
-interface MemberCardProps {
+interface MemberRowProps {
   item: User;
   isLast: boolean;
   columnTemplate: string;
   gap: number;
 }
 
-const MemberCard: React.FC<MemberCardProps> = ({
+const MemberRow: React.FC<MemberRowProps> = ({
   item,
   isLast,
   columnTemplate,
@@ -25,13 +26,10 @@ const MemberCard: React.FC<MemberCardProps> = ({
         {item.firstName} {item.lastName}
       </p>
       <p>{item.jobTitle}</p>
-      <p>{item.phoneNumber}</p>
+      <p>{formatPhoneNumber(item.phoneNumber)}</p>
       <p>{formatDistanceToNowStrict(item.startDate)} ago</p>
-      <button className="flex justify-center text-gray-400 items-center w-full hover:cursor-pointer hover:text-primary transition-all duration-200">
-        <Ellipsis className="h-5 w-5" />
-      </button>
     </div>
   );
 };
 
-export default MemberCard;
+export default MemberRow;

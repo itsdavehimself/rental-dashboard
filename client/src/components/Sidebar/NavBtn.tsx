@@ -10,12 +10,12 @@ interface NavBtnProps {
 
 const NavBtn: React.FC<NavBtnProps> = ({ label, icon: Icon, path }) => {
   const location = useLocation();
-  const currentPath = path === location.pathname;
+  const currentPath = path === `/${location.pathname.split("/")[1]}`;
 
   return (
     <Link
       to={path}
-      className={`grid grid-cols-[2.5rem_2fr] items-center text-sm hover:bg-white hover:shadow-sm hover:cursor-pointer transition-all duration-200 px-4 py-3 rounded-xl font-semibold ${
+      className={`bg-gray-50 grid grid-cols-[2.5rem_2fr] items-center text-sm hover:bg-white hover:shadow-sm hover:cursor-pointer transition-all duration-200 px-4 py-3 rounded-xl font-semibold ${
         currentPath ? "text-black bg-white shadow-sm" : "text-gray-500"
       }`}
     >

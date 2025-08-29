@@ -15,7 +15,7 @@ const registerUser = async (
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
-      phoneNumber: data.phoneNumber,
+      phoneNumber: data.phoneNumber.replaceAll("-", ""),
       startDate: data.startDate,
       jobTitleId: data.jobTitleId,
       roleId: data.roleId,

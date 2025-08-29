@@ -2,11 +2,16 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import StyledInput from "../../../components/common/StyledInput";
 import PhoneInput from "../../../components/common/PhoneInput";
 import SubmitButton from "../../../components/common/SubmitButton";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import TextAreaInput from "../../../components/common/TextAreaInput";
 import { toCamelCasePath } from "../../../helpers/toCamelCastPath";
 import Dropdown from "../../../components/common/Dropdown";
 import { STATES } from "../../../config/STATES";
+import { createResidentialClient } from "../../../service/clientService";
+import { useToast } from "../../../hooks/useToast";
+import { handleError, type ErrorsState } from "../../../helpers/handleError";
+import type { ResidentialClient } from "../../../types/Client";
+import type { ClientModalType } from "../Clients";
 
 export type ResidentialClientInputs = {
   firstName: string;
@@ -24,13 +29,21 @@ export type ResidentialClientInputs = {
 };
 
 interface ResidentialClientFormProps {
-  onSubmit: SubmitHandler<ResidentialClientInputs>;
   errors: object | null;
+  setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
+  residentialClients: ResidentialClient[];
+  setResidentialClients: React.Dispatch<
+    React.SetStateAction<ResidentialClient[]>
+  >;
+  setOpenModal: React.Dispatch<React.SetStateAction<ClientModalType>>;
 }
 
 const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
-  onSubmit,
   errors,
+  setErrors,
+  residentialClients,
+  setResidentialClients,
+  setOpenModal,
 }) => {
   const {
     handleSubmit,
@@ -41,10 +54,33 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
     clearErrors,
     formState: { errors: formErrors },
   } = useForm<ResidentialClientInputs>();
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  const { addToast } = useToast();
 
   const state = watch("address.state");
   const ref = useRef<HTMLDivElement>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const onSubmit: SubmitHandler<ResidentialClientInputs> = async (data) => {
+    try {
+      setErrors(null);
+      const newClient = await createResidentialClient(apiUrl, data);
+
+      const updatedUsers = [...residentialClients, newClient].sort((a, b) => {
+        const last = a.lastName.localeCompare(b.lastName);
+        return last !== 0 ? last : a.firstName.localeCompare(b.firstName);
+      });
+
+      setResidentialClients(updatedUsers);
+      setOpenModal(null);
+      addToast(
+        "Success",
+        `${newClient.firstName} ${newClient.lastName} successfully added as a client.`
+      );
+    } catch (err) {
+      handleError(err, setErrors);
+    }
+  };
 
   useEffect(() => {
     clearErrors();

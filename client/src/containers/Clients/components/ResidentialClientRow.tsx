@@ -1,16 +1,15 @@
 import type { ResidentialClient } from "../../../types/Client";
-import { Ellipsis } from "lucide-react";
-import { formatDate } from "date-fns";
 import { useNavigate } from "react-router";
+import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
 
-interface ResidentialClientCardProps {
+interface ResidentialClientRowProps {
   item: ResidentialClient;
   isLast: boolean;
   columnTemplate: string;
   gap: number;
 }
 
-const ResidentialClientCard: React.FC<ResidentialClientCardProps> = ({
+const ResidentialClientRow: React.FC<ResidentialClientRowProps> = ({
   item,
   isLast,
   columnTemplate,
@@ -26,13 +25,14 @@ const ResidentialClientCard: React.FC<ResidentialClientCardProps> = ({
     >
       <p>{item.lastName}</p>
       <p>{item.firstName} </p>
-      <p>{item.phoneNumber}</p>
-      <p>{formatDate(item.createdAt, "MMMM yyyy")} </p>
-      <button className="flex justify-center text-gray-400 items-center w-full hover:cursor-pointer hover:text-primary transition-all duration-200">
-        <Ellipsis className="h-5 w-5" />
-      </button>
+      <p>{formatPhoneNumber(item.phoneNumber)}</p>
+      <p>
+        {item.billingAddress.street} {item.billingAddress.unit}
+        {item.billingAddress.city}, {item.billingAddress.state}{" "}
+        {item.billingAddress.zipCode}
+      </p>
     </div>
   );
 };
 
-export default ResidentialClientCard;
+export default ResidentialClientRow;

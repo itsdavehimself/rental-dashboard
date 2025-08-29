@@ -1,74 +1,23 @@
-import { useState, useEffect } from "react";
-import { fetchUsers } from "../../service/userService";
+import { useState } from "react";
 import type { User } from "../../types/User";
-import MemberCard from "./components/MemberCard";
+import MemberRow from "./components/MemberRow";
 import Table from "../../components/Table/Table";
-import SearchBar from "../../components/common/SearchBar";
+import SearchBar from "../../components/common/DebouncedSearchBar";
 import AddButton from "../../components/common/AddButton";
 import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
-import type { SubmitHandler } from "react-hook-form";
 import TeamMemberForm from "./components/TeamMemberForm";
-import { registerUser } from "../../service/authService";
-import type { TeamMemberInputs } from "./components/TeamMemberForm";
-import { handleError } from "../../helpers/handleError";
-import type { ErrorsState } from "../../helpers/handleError";
-import { useToast } from "../../hooks/useToast";
+import { useUsers } from "../../hooks/useUsers";
 
 export type TeamModalType = null | "addTeamMember";
 
 const Team: React.FC = () => {
-  const apiUrl = import.meta.env.VITE_API_BASE_URL;
-  const { addToast } = useToast();
-
   const [filter, setFilter] = useState<"active" | "inactive" | "all">("active");
-  const [errors, setErrors] = useState<ErrorsState>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [openModal, setOpenModal] = useState<TeamModalType>(null);
-  const handleUserFetch = async (url: string): Promise<void> => {
-    try {
-      const userList = await fetchUsers(apiUrl, url);
-      setUsers(userList);
-    } catch (err) {
-      handleError(err, setErrors);
-      addToast(
-        "Error",
-        "There was a problem fetching team members. Please try again."
-      );
-    }
-  };
+  const { users, setUsers, errors, setErrors } = useUsers(filter);
 
-  const headers = ["Name", "Position", "Phone Number", "Started", ""];
-  const columnTemplate = "[grid-template-columns:1fr_1fr_1fr_1fr_3rem]";
-
-  const onSubmit: SubmitHandler<TeamMemberInputs> = async (data) => {
-    try {
-      setErrors(null);
-      const newUser = await registerUser(apiUrl, data);
-      const updatedUsers = [...users, newUser];
-      setUsers(updatedUsers);
-      setOpenModal(false);
-      addToast(
-        "Success",
-        `${newUser.firstName} ${newUser.lastName} successfully added to the team.`
-      );
-    } catch (err) {
-      handleError(err, setErrors);
-    }
-  };
-
-  useEffect(() => {
-    let url = "api/users";
-    if (filter === "active") url += "?isActive=true";
-    else if (filter === "inactive") url += "?isActive=false";
-    handleUserFetch(url);
-  }, [filter]);
-
-  useEffect(() => {
-    if (errors && "general" in errors) {
-      addToast("Error", errors?.general as string);
-    }
-  }, [errors, addToast]);
+  const headers = ["Name", "Position", "Phone Number", "Started"];
+  const columnTemplate = "[grid-template-columns:1fr_1fr_1fr_1fr]";
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
@@ -80,10 +29,17 @@ const Team: React.FC = () => {
           setErrors={setErrors}
           modalKey="addTeamMember"
         >
-          <TeamMemberForm onSubmit={onSubmit} errors={errors} />
+          <TeamMemberForm
+            errors={errors}
+            setErrors={setErrors}
+            setUsers={setUsers}
+            users={users}
+            setOpenModal={setOpenModal}
+          />
         </AddModal>
       )}
-      <div className="flex flex-col gap-4 w-full xl:w-2/3">
+      <h2 className="self-start text-2xl font-semibold">Team</h2>
+      <div className="flex flex-col gap-4 w-full">
         <div className="flex justify-between w-full">
           <SearchBar placeholder="Search" />
           <AddButton<TeamModalType>
@@ -93,14 +49,13 @@ const Team: React.FC = () => {
             modalKey="addTeamMember"
           />
         </div>
-        <Table
+        <Table<User>
           columnTemplate={columnTemplate}
           headers={headers}
           tableItems={users}
-          tableCardType={MemberCard}
+          tableRowType={MemberRow}
           getKey={(user) => user.uid}
           gap={4}
-          setOpenModal={setOpenModal}
         />
       </div>
     </div>
