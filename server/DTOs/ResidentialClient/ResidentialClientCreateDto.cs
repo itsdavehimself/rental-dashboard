@@ -16,7 +16,6 @@ public class ResidentialClientCreateDto
   [EmailAddress(ErrorMessage = "Email is not in a valid format")]
   public string Email { get; set; } = string.Empty;
   [Required(ErrorMessage = "Phone number is required")]
-  [RegularExpression(@"^\d{3}-\d{3}-\d{4}$", ErrorMessage = "Phone number must be in XXX-XXX-XXXX format")]
   public string PhoneNumber { get; set; } = string.Empty;
   public AddressDto Address { get; set; } = new();
   public string? Notes { get; set; }

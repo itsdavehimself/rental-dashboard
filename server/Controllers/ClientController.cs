@@ -107,11 +107,12 @@ public class ClientController : ControllerBase
     if (!string.IsNullOrWhiteSpace(query))
     {
       residentialQuery = residentialQuery.Where(rc =>
+        (rc.Person.FirstName + " " + rc.Person.LastName).ToLower().Contains(query) ||
         rc.Person.FirstName.ToLower().Contains(query) ||
         rc.Person.LastName.ToLower().Contains(query) ||
         rc.Person.Email.ToLower().Contains(query) ||
         rc.Person.PhoneNumber.ToLower().Contains(query)
-      );
+    );
     }
 
     var residentialResults = await residentialQuery.ToListAsync();
@@ -153,6 +154,7 @@ public class ClientController : ControllerBase
       businessQuery = businessQuery.Where(bc =>
         bc.BusinessName.ToLower().Contains(query) ||
         bc.Contacts.Any(c =>
+          (c.Person.FirstName + " " + c.Person.LastName).ToLower().Contains(query) ||
           c.Person.FirstName.ToLower().Contains(query) ||
           c.Person.LastName.ToLower().Contains(query) ||
           c.Person.Email.ToLower().Contains(query) ||
