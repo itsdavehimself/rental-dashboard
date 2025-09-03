@@ -9,6 +9,8 @@ import type { ClientSearchResult } from "../../../types/Client";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { searchClients } from "../../../service/clientService";
 import { useToast } from "../../../hooks/useToast";
+import ClientSearchResultRow from "./ClientSearchResultRow";
+import ClientInputChip from "../../../components/common/ClientInputChip";
 
 interface SearchClientsProps {
   openModal: string | null;
@@ -28,18 +30,26 @@ const SearchClients: React.FC<SearchClientsProps> = ({
   const [clients, setClients] = useState<ClientSearchResult[]>([]);
   const [page, setPage] = useState<number>(1);
   const [query, setQuery] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedClient, setSelectedClient] = useState<{
+    uid: string;
+    name: string;
+  } | null>(null);
 
   const handleSearch = async () => {
     try {
+      setIsLoading(true);
       const clientList = await searchClients(apiUrl, page, query);
       setClients(clientList.data);
+      setIsLoading(false);
     } catch (err) {
       handleError(err, setErrors);
       addToast("Error", "There was a problem fetching the client list.");
+      setIsLoading(false);
     }
   };
 
-  const debouncedSearch = useDebounce(handleSearch, 1250);
+  const debouncedSearch = useDebounce(handleSearch, 750);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -72,21 +82,42 @@ const SearchClients: React.FC<SearchClientsProps> = ({
           <XButton setIsModalOpen={setOpenModal} setErrors={setErrors} />
         </div>
         <div className="flex flex-col justify-center items-center px-12">
-          <div className="grid grid-cols-[1fr_3rem] w-full gap-4">
-            <DebouncedSearchBar
-              placeholder="Search"
-              setResults={setClients}
-              search={query}
-              setSearch={setQuery}
-              debouncedSearch={debouncedSearch}
-            />
+          <div className="relative grid grid-cols-[1fr_3rem] w-full gap-4 h-fit max-h-72">
+            {!selectedClient ? (
+              <DebouncedSearchBar<ClientSearchResult>
+                placeholder="Search"
+                results={clients}
+                setResults={setClients}
+                search={query}
+                setSearch={setQuery}
+                debouncedSearch={debouncedSearch}
+                isLoading={isLoading}
+                setIsLoading={setIsLoading}
+                renderResult={(client) => (
+                  <ClientSearchResultRow
+                    key={client.uid}
+                    client={client}
+                    setSelectedClient={setSelectedClient}
+                    setQuery={setQuery}
+                  />
+                )}
+              />
+            ) : (
+              <ClientInputChip
+                name={selectedClient.name}
+                setSelectedClient={setSelectedClient}
+              />
+            )}
             <button className="flex justify-center items-center hover:cursor-pointer text-gray-400 hover:text-primary transition-all duration-200">
               <UserRoundPlus />
             </button>
           </div>
         </div>
         <div className="flex justify-end w-full px-6">
-          <LinkButton label="Select Client" />
+          <LinkButton
+            to={`/events/create?clientId=${selectedClient?.uid}`}
+            label="Select Client"
+          />
         </div>
       </div>
     </div>

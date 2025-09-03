@@ -1,6 +1,7 @@
 import type { ResidentialClient } from "../../../types/Client";
 import { useNavigate } from "react-router";
 import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
+import { formatAddress } from "../../../helpers/formatAddress";
 
 interface ResidentialClientRowProps {
   item: ResidentialClient;
@@ -26,11 +27,7 @@ const ResidentialClientRow: React.FC<ResidentialClientRowProps> = ({
       <p>{item.lastName}</p>
       <p>{item.firstName} </p>
       <p>{formatPhoneNumber(item.phoneNumber)}</p>
-      <p>
-        {item.billingAddress.street} {item.billingAddress.unit}
-        {item.billingAddress.city}, {item.billingAddress.state}{" "}
-        {item.billingAddress.zipCode}
-      </p>
+      <p>{formatAddress(item.billingAddress)}</p>
     </div>
   );
 };
