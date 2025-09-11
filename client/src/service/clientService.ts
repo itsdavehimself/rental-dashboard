@@ -1,6 +1,7 @@
 import { CustomError } from "../types/CustomError";
 import type { PaginatedResponse } from "../types/PaginatedResponse";
 import type {
+  ClientDetail,
   ClientSearchResult,
   CreateResidentialClient,
   ResidentialClient,
@@ -56,7 +57,7 @@ const searchClients = async (
 const getClientDetails = async (
   apiUrl: string,
   uid: string
-): Promise<ResidentialClient> => {
+): Promise<ClientDetail> => {
   const response = await fetch(`${apiUrl}/api/client/${uid}`, {
     method: "GET",
     headers: {
