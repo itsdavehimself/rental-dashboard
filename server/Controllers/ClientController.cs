@@ -343,7 +343,7 @@ public class ClientController : ControllerBase
           .ThenInclude(c => c.Person)
       .Include(c => c.Addresses)
         .ThenInclude(ca => ca.Address)
-      .FirstOrDefaultAsync();
+      .FirstOrDefaultAsync(c => c.Uid == uid);
 
     if (client == null)
     {
