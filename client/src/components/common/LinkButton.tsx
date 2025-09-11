@@ -5,13 +5,23 @@ interface LinkButtonProps {
   label: string;
   Icon?: LucideIcon;
   to: string;
+  disabled?: boolean;
 }
 
-const LinkButton: React.FC<LinkButtonProps> = ({ Icon, label, to }) => {
+const LinkButton: React.FC<LinkButtonProps> = ({
+  Icon,
+  label,
+  to,
+  disabled,
+}) => {
   return (
     <Link
-      to={to}
-      className="flex justify-center items-center bg-primary text-sm text-white ring-1 ring-primary w-fit rounded-lg h-10 font-semibold hover:cursor-pointer hover:bg-primary-hover transition-all duration-200"
+      to={disabled ? "#" : to}
+      className={`${
+        disabled
+          ? "bg-gray-400 text-white ring-gray-400 hover:cursor-default"
+          : "bg-primary text-white ring-primary hover:cursor-pointer hover:bg-primary-hover"
+      } flex justify-center items-center text-sm ring-1 w-fit rounded-lg h-10 font-semibold transition-all duration-200`}
     >
       <div className="flex gap-2 justify-center items-center px-4">
         {Icon && <Icon className="w-4 h-4" />}
