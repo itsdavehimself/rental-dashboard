@@ -13,6 +13,7 @@ import EventTotals from "./components/EventTotals";
 import ActionButton from "../../../components/common/ActionButton";
 import { Save } from "lucide-react";
 import { CalendarCheck } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const CreateEvent: React.FC = () => {
   const location = useLocation();
@@ -22,6 +23,7 @@ const CreateEvent: React.FC = () => {
   const [errors, setErrors] = useState<ErrorsState>(null);
   const { addToast } = useToast();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  const navigate = useNavigate();
 
   const fetchClient = async () => {
     try {
@@ -32,12 +34,19 @@ const CreateEvent: React.FC = () => {
     } catch (err) {
       handleError(err, setErrors);
       addToast("Error", "There was a problem fetching client data.");
+      navigate("/dashboard");
     }
   };
   console.log(client);
 
   useEffect(() => {
     fetchClient();
+  }, []);
+
+  useEffect(() => {
+    if (clientId === "") {
+      navigate("/dashboard");
+    }
   }, []);
 
   return (
