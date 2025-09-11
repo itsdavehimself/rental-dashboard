@@ -117,6 +117,7 @@ const SearchClients: React.FC<SearchClientsProps> = ({
           <LinkButton
             to={`/events/create?clientId=${selectedClient?.uid}`}
             label="Select Client"
+            disabled={!selectedClient}
           />
         </div>
       </div>
