@@ -7,4 +7,11 @@ type Address = {
   isPrimary?: boolean;
 };
 
-export type { Address };
+type AddressResult = {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+};
+
+export type { Address, AddressResult };

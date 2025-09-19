@@ -12,6 +12,11 @@ import { useToast } from "../../../hooks/useToast";
 import { handleError, type ErrorsState } from "../../../helpers/handleError";
 import type { ResidentialClient } from "../../../types/Client";
 import type { ClientModalType } from "../Clients";
+import SearchInput from "../../../components/common/SearchInput";
+import { type AddressResult } from "../../../types/Address";
+import { useDebounce } from "../../../hooks/useDebounce";
+import { searchAddress } from "../../../service/addressService";
+import AddressSearchResultRow from "../../../components/Address/AddressSearchResultRow";
 
 export type ResidentialClientInputs = {
   firstName: string;
@@ -52,6 +57,7 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
     setValue,
     setError,
     clearErrors,
+    getValues,
     formState: { errors: formErrors },
   } = useForm<ResidentialClientInputs>();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -60,6 +66,8 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
   const state = watch("address.state");
   const ref = useRef<HTMLDivElement>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
 
   const onSubmit: SubmitHandler<ResidentialClientInputs> = async (data) => {
     try {
@@ -81,6 +89,22 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
       handleError(err, setErrors);
     }
   };
+
+  const handleSearch = async () => {
+    try {
+      setIsLoading(true);
+      const query = getValues("address.street");
+      const clientList = await searchAddress(apiUrl, query);
+      setAddressResults(clientList.data);
+      setIsLoading(false);
+    } catch (err) {
+      handleError(err, setErrors);
+      addToast("Error", "There was a problem fetching the address list.");
+      setIsLoading(false);
+    }
+  };
+
+  const debouncedSearch = useDebounce(handleSearch, 750);
 
   useEffect(() => {
     clearErrors();
@@ -150,12 +174,30 @@ const ResidentialClientForm: React.FC<ResidentialClientFormProps> = ({
         register={register("phoneNumber")}
         error={formErrors.phoneNumber?.message}
       />
-      <StyledInput
+      <SearchInput
         label="Address Line 1"
         placeholder="123 Bouncehouse Ln"
         register={register("address.street")}
         error={formErrors.address?.street?.message}
+        debouncedSearch={debouncedSearch}
+        results={addressResults}
+        setResults={setAddressResults}
+        renderResult={(address) => (
+          <AddressSearchResultRow
+            address={address}
+            setValue={setValue}
+            setResults={setAddressResults}
+          />
+        )}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
       />
+      {/* <StyledInput
+        label="Address Line 1"
+        placeholder="123 Bouncehouse Ln"
+        register={register("address.street")}
+        error={formErrors.address?.street?.message}
+      /> */}
       <StyledInput
         label="Address Line 2"
         placeholder="Suite 7"
