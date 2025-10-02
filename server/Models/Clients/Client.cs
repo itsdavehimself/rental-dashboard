@@ -14,6 +14,5 @@ public class Client
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public ResidentialClient? ResidentialClient { get; set; }
   public BusinessClient? BusinessClient { get; set; }
-  public List<ClientAddress> Addresses { get; set; } = [];
-
+  public List<ClientAddressBookEntry> AddressBookEntries { get; set; } = [];
 }

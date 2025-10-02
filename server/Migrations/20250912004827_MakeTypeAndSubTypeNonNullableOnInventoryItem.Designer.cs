@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250912004827_MakeTypeAndSubTypeNonNullableOnInventoryItem")]
+    partial class MakeTypeAndSubTypeNonNullableOnInventoryItem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,14 +182,6 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("NormalizedCity")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("NormalizedStreet")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("State")
                         .IsRequired()
                         .HasColumnType("text");
@@ -258,7 +253,7 @@ namespace server.Migrations
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("server.Models.Clients.ClientAddressBookEntry", b =>
+            modelBuilder.Entity("server.Models.Clients.ClientAddress", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -278,9 +273,6 @@ namespace server.Migrations
                     b.Property<string>("Label")
                         .HasColumnType("text");
 
-                    b.Property<int>("PersonId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
@@ -291,9 +283,7 @@ namespace server.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("PersonId");
-
-                    b.ToTable("ClientAddressBookEntries");
+                    b.ToTable("ClientAddresses");
                 });
 
             modelBuilder.Entity("server.Models.Clients.ContactPerson", b =>
@@ -921,56 +911,6 @@ namespace server.Migrations
                         });
                 });
 
-            modelBuilder.Entity("server.Models.TaxJurisdiction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("District")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("HighRate")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("LocCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("LowRate")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ZipCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ZipCodePlus4")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocCode");
-
-                    b.HasIndex("ZipCode", "City", "Address");
-
-                    b.ToTable("TaxJurisdictions");
-                });
-
             modelBuilder.Entity("server.Models.User.JobTitle", b =>
                 {
                     b.Property<int>("Id")
@@ -1168,31 +1108,23 @@ namespace server.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("server.Models.Clients.ClientAddressBookEntry", b =>
+            modelBuilder.Entity("server.Models.Clients.ClientAddress", b =>
                 {
                     b.HasOne("server.Models.Address", "Address")
-                        .WithMany("AddressBookEntries")
+                        .WithMany("ClientAddresses")
                         .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("server.Models.Clients.Client", "Client")
-                        .WithMany("AddressBookEntries")
+                        .WithMany("Addresses")
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("server.Models.Clients.Person", "Person")
-                        .WithMany("AddressBookEntries")
-                        .HasForeignKey("PersonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Address");
 
                     b.Navigation("Client");
-
-                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("server.Models.Clients.ContactPerson", b =>
@@ -1387,7 +1319,7 @@ namespace server.Migrations
 
             modelBuilder.Entity("server.Models.Address", b =>
                 {
-                    b.Navigation("AddressBookEntries");
+                    b.Navigation("ClientAddresses");
                 });
 
             modelBuilder.Entity("server.Models.Clients.BusinessClient", b =>
@@ -1397,16 +1329,11 @@ namespace server.Migrations
 
             modelBuilder.Entity("server.Models.Clients.Client", b =>
                 {
-                    b.Navigation("AddressBookEntries");
+                    b.Navigation("Addresses");
 
                     b.Navigation("BusinessClient");
 
                     b.Navigation("ResidentialClient");
-                });
-
-            modelBuilder.Entity("server.Models.Clients.Person", b =>
-                {
-                    b.Navigation("AddressBookEntries");
                 });
 
             modelBuilder.Entity("server.Models.Event.Event", b =>

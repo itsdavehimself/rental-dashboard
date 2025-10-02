@@ -31,8 +31,9 @@ public class AppDbContext : DbContext
   public DbSet<Package> Packages => Set<Package>();
   public DbSet<PackageItem> PackageItems => Set<PackageItem>();
   public DbSet<Address> Addresses => Set<Address>();
-  public DbSet<ClientAddress> ClientAddresses => Set<ClientAddress>();
+  public DbSet<ClientAddressBookEntry> ClientAddressBookEntries => Set<ClientAddressBookEntry>();
   public DbSet<Person> People => Set<Person>();
+  public DbSet<TaxJurisdiction> TaxJurisdictions => Set<TaxJurisdiction>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -61,23 +62,27 @@ public class AppDbContext : DbContext
       .HasForeignKey(cp => cp.BusinessClientId)
       .OnDelete(DeleteBehavior.Cascade);
 
-    modelBuilder.Entity<ClientAddress>()
-      .HasOne(ca => ca.Client)
-      .WithMany(c => c.Addresses)
-      .HasForeignKey(ca => ca.ClientId)
-      .OnDelete(DeleteBehavior.Cascade);
+    modelBuilder.Entity<ClientAddressBookEntry>()
+        .HasOne(e => e.Client)
+        .WithMany(c => c.AddressBookEntries)
+        .HasForeignKey(e => e.ClientId)
+        .OnDelete(DeleteBehavior.Cascade);
 
-    modelBuilder.Entity<ClientAddress>()
-      .HasOne(ca => ca.Address)
-      .WithMany()
-      .HasForeignKey(ca => ca.AddressId)
-      .OnDelete(DeleteBehavior.Cascade);
+    modelBuilder.Entity<ClientAddressBookEntry>()
+        .HasOne(e => e.Person)
+        .WithMany(p => p.AddressBookEntries)
+        .HasForeignKey(e => e.PersonId)
+        .OnDelete(DeleteBehavior.Cascade);
 
-    modelBuilder.Entity<Address>()
-      .HasMany(a => a.ClientAddresses)
-      .WithOne(ca => ca.Address)
-      .HasForeignKey(ca => ca.AddressId)
-      .OnDelete(DeleteBehavior.Cascade);
+    modelBuilder.Entity<ClientAddressBookEntry>()
+        .HasOne(e => e.Address)
+        .WithMany(a => a.AddressBookEntries)
+        .HasForeignKey(e => e.AddressId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<ClientAddressBookEntry>()
+        .Property(e => e.Type)
+        .HasConversion<string>();
 
     modelBuilder.Entity<InventoryPurchase>()
       .HasOne(p => p.InventoryItem)
@@ -149,9 +154,15 @@ public class AppDbContext : DbContext
       .HasForeignKey(rc => rc.PersonId)
       .OnDelete(DeleteBehavior.Cascade);
 
-    modelBuilder.Entity<ClientAddress>()
-      .Property(ca => ca.Type)
-      .HasConversion<string>();
+    modelBuilder.Entity<TaxJurisdiction>()
+      .HasIndex(t => new { t.ZipCode, t.City, t.Address });
+
+    modelBuilder.Entity<TaxJurisdiction>()
+      .HasIndex(t => t.LocCode);
+
+    modelBuilder.Entity<TaxJurisdiction>()
+      .Property(t => t.HighRate)
+      .IsRequired();
 
     InventoryConfigSeeder.Seed(modelBuilder);
   }

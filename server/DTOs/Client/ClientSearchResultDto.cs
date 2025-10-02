@@ -1,4 +1,4 @@
-using server.DTOs;
+using server.DTOs.Address;
 using server.Models.Clients;
 public class ClientSearchResultDto
 {

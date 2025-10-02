@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using server.Dtos.Clients;
-using server.DTOs;
+using server.DTOs.Address;
 using server.DTOs.ResidentialClient;
+using server.Helpers;
 using server.Models;
 using server.Models.Clients;
 using System.Security.Claims;
@@ -34,8 +35,11 @@ public class ClientController : ControllerBase
       var results = await _context.ResidentialClients
         .Include(rc => rc.Person)
         .Include(rc => rc.Client)
-          .ThenInclude(c => c.Addresses)
-            .ThenInclude(ca => ca.Address)
+          .ThenInclude(c => c.AddressBookEntries)
+            .ThenInclude(abe => abe.Address)
+        .Include(rc => rc.Client)
+          .ThenInclude(c => c.AddressBookEntries)
+            .ThenInclude(abe => abe.Person)
         .OrderBy(rc => rc.Person.LastName)
         .ThenBy(rc => rc.Person.FirstName)
         .Skip((page - 1) * pageSize)
@@ -50,7 +54,7 @@ public class ClientController : ControllerBase
           PhoneNumber = rc.Person.PhoneNumber,
           Notes = rc.Client.Notes,
           CreatedAt = rc.Client.CreatedAt,
-          BillingAddress = rc.Client.Addresses!
+          BillingAddress = rc.Client.AddressBookEntries!
             .Where(a => a.Type == AddressType.Billing && a.IsPrimary)
             .Select(a => new AddressDto
             {
@@ -100,8 +104,11 @@ public class ClientController : ControllerBase
     var residentialQuery = _context.ResidentialClients
     .Include(rc => rc.Person)
     .Include(rc => rc.Client)
-      .ThenInclude(c => c.Addresses)
-        .ThenInclude(ca => ca.Address)
+      .ThenInclude(c => c.AddressBookEntries)
+        .ThenInclude(abe => abe.Address)
+    .Include(rc => rc.Client)
+      .ThenInclude(c => c.AddressBookEntries)
+        .ThenInclude(abe => abe.Person)
     .AsQueryable();
 
     if (!string.IsNullOrWhiteSpace(query))
@@ -127,7 +134,7 @@ public class ClientController : ControllerBase
       PhoneNumber = rc.Person.PhoneNumber,
       Notes = rc.Client.Notes,
       CreatedAt = rc.Client.CreatedAt,
-      BillingAddress = rc.Client.Addresses!
+      BillingAddress = rc.Client.AddressBookEntries!
         .Where(a => a.Type == AddressType.Billing && a.IsPrimary)
         .Select(a => new AddressDto
         {
@@ -145,8 +152,11 @@ public class ClientController : ControllerBase
       .Include(bc => bc.Contacts)
         .ThenInclude(c => c.Person)
       .Include(bc => bc.Client)
-        .ThenInclude(c => c.Addresses)
-          .ThenInclude(ca => ca.Address)
+        .ThenInclude(c => c.AddressBookEntries)
+          .ThenInclude(abe => abe.Address)
+      .Include(bc => bc.Client)
+        .ThenInclude(c => c.AddressBookEntries)
+          .ThenInclude(abe => abe.Person)
       .AsQueryable();
 
     if (!string.IsNullOrWhiteSpace(query))
@@ -176,7 +186,7 @@ public class ClientController : ControllerBase
       PhoneNumber = bc.Contacts.Where(c => c.IsPrimary).Select(c => c.Person.PhoneNumber).FirstOrDefault(),
       Notes = bc.Client.Notes,
       CreatedAt = bc.Client.CreatedAt,
-      BillingAddress = bc.Client.Addresses!
+      BillingAddress = bc.Client.AddressBookEntries!
         .Where(a => a.Type == AddressType.Billing && a.IsPrimary)
         .Select(a => new AddressDto
         {
@@ -225,8 +235,11 @@ public class ClientController : ControllerBase
     var residentialQuery = _context.ResidentialClients
       .Include(rc => rc.Person)
       .Include(rc => rc.Client)
-        .ThenInclude(c => c.Addresses)
-          .ThenInclude(ca => ca.Address)
+        .ThenInclude(c => c.AddressBookEntries)
+          .ThenInclude(abe => abe.Address)
+      .Include(rc => rc.Client)
+        .ThenInclude(c => c.AddressBookEntries)
+          .ThenInclude(abe => abe.Person)
       .AsQueryable();
 
     if (!string.IsNullOrWhiteSpace(firstName))
@@ -250,7 +263,7 @@ public class ClientController : ControllerBase
       PhoneNumber = rc.Person.PhoneNumber,
       Notes = rc.Client.Notes,
       CreatedAt = rc.Client.CreatedAt,
-      BillingAddress = rc.Client.Addresses!
+      BillingAddress = rc.Client.AddressBookEntries!
         .Where(a => a.Type == AddressType.Billing && a.IsPrimary)
         .Select(a => new AddressDto
         {
@@ -268,8 +281,11 @@ public class ClientController : ControllerBase
       .Include(bc => bc.Contacts)
         .ThenInclude(c => c.Person)
       .Include(bc => bc.Client)
-        .ThenInclude(c => c.Addresses)
-          .ThenInclude(ca => ca.Address)
+        .ThenInclude(c => c.AddressBookEntries)
+          .ThenInclude(abe => abe.Address)
+      .Include(bc => bc.Client)
+        .ThenInclude(c => c.AddressBookEntries)
+          .ThenInclude(abe => abe.Person)
       .AsQueryable();
 
     if (!string.IsNullOrWhiteSpace(firstName))
@@ -296,7 +312,7 @@ public class ClientController : ControllerBase
       PhoneNumber = bc.Contacts.Where(c => c.IsPrimary).Select(c => c.Person.PhoneNumber).FirstOrDefault(),
       Notes = bc.Client.Notes,
       CreatedAt = bc.Client.CreatedAt,
-      BillingAddress = bc.Client.Addresses!
+      BillingAddress = bc.Client.AddressBookEntries!
         .Where(a => a.Type == AddressType.Billing && a.IsPrimary)
         .Select(a => new AddressDto
         {
@@ -341,8 +357,10 @@ public class ClientController : ControllerBase
       .Include(c => c.BusinessClient!)
         .ThenInclude(bc => bc.Contacts)
           .ThenInclude(c => c.Person)
-      .Include(c => c.Addresses)
-        .ThenInclude(ca => ca.Address)
+      .Include(c => c.AddressBookEntries)
+        .ThenInclude(abe => abe.Address)
+      .Include(c => c.AddressBookEntries)
+        .ThenInclude(abe => abe.Person)
       .FirstOrDefaultAsync(c => c.Uid == uid);
 
     if (client == null)
@@ -371,11 +389,13 @@ public class ClientController : ControllerBase
         LastName = rc.Person.LastName,
         Email = rc.Person.Email,
         PhoneNumber = rc.Person.PhoneNumber,
-        BillingAddresses = client.Addresses
+        BillingAddresses = client.AddressBookEntries
           .Where(a => a.Type == AddressType.Billing)
           .OrderByDescending(a => a.IsPrimary)
-          .Select(a => new AddressDto
+          .Select(a => new AddressBookEntryDto
           {
+            FullName = a.Person.FirstName + " " + a.Person.LastName,
+            PhoneNumber = a.Person.PhoneNumber,
             Street = a.Address.Street,
             Unit = a.Address.Unit,
             City = a.Address.City,
@@ -383,11 +403,13 @@ public class ClientController : ControllerBase
             ZipCode = a.Address.ZipCode,
             IsPrimary = a.IsPrimary
           }).ToList(),
-        DeliveryAddresses = client.Addresses
+        DeliveryAddresses = client.AddressBookEntries
           .Where(a => a.Type == AddressType.Delivery)
           .OrderByDescending(a => a.IsPrimary)
-          .Select(a => new AddressDto
+          .Select(a => new AddressBookEntryDto
           {
+            FullName = a.Person.FirstName + " " + a.Person.LastName,
+            PhoneNumber = a.Person.PhoneNumber,
             Street = a.Address.Street,
             Unit = a.Address.Unit,
             City = a.Address.City,
@@ -418,11 +440,13 @@ public class ClientController : ControllerBase
           Role = contact.Role,
           IsPrimary = contact.IsPrimary
         }).ToList(),
-        BillingAddresses = client.Addresses
+        BillingAddresses = client.AddressBookEntries
           .Where(a => a.Type == AddressType.Billing)
           .OrderByDescending(a => a.IsPrimary)
-          .Select(a => new AddressDto
+          .Select(a => new AddressBookEntryDto
           {
+            FullName = a.Person.FirstName + " " + a.Person.LastName,
+            PhoneNumber = a.Person.PhoneNumber,
             Street = a.Address.Street,
             Unit = a.Address.Unit,
             City = a.Address.City,
@@ -430,11 +454,13 @@ public class ClientController : ControllerBase
             ZipCode = a.Address.ZipCode,
             IsPrimary = a.IsPrimary
           }).ToList(),
-        DeliveryAddresses = client.Addresses
+        DeliveryAddresses = client.AddressBookEntries
           .Where(a => a.Type == AddressType.Delivery)
           .OrderByDescending(a => a.IsPrimary)
-          .Select(a => new AddressDto
+          .Select(a => new AddressBookEntryDto
           {
+            FullName = a.Person.FirstName + " " + a.Person.LastName,
+            PhoneNumber = a.Person.PhoneNumber,
             Street = a.Address.Street,
             Unit = a.Address.Unit,
             City = a.Address.City,
@@ -470,7 +496,9 @@ public class ClientController : ControllerBase
       Unit = request.Address.Unit,
       City = request.Address.City,
       State = request.Address.State,
-      ZipCode = request.Address.ZipCode
+      ZipCode = request.Address.ZipCode,
+      NormalizedCity = CityNormalizer.NormalizeCity(request.Address.City),
+      NormalizedStreet = AddressNormalizer.Normalize(request.Address.Street)
     };
 
     var client = new Client
@@ -478,17 +506,31 @@ public class ClientController : ControllerBase
       Type = ClientType.Residential,
       Notes = request.Notes,
       CreatedAt = DateTime.UtcNow,
-      Addresses = new List<ClientAddress>
+      AddressBookEntries = new List<ClientAddressBookEntry>
       {
-        new ClientAddress
+        new ClientAddressBookEntry
         {
           Address = address,
+          Person = new Person
+          {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PhoneNumber = request.PhoneNumber,
+            Email = request.Email
+          },
           Type = AddressType.Billing,
           IsPrimary = true,
         },
-        new ClientAddress
+        new ClientAddressBookEntry
         {
           Address = address,
+          Person = new Person
+          {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            PhoneNumber = request.PhoneNumber,
+            Email = request.Email
+          },
           Type = AddressType.Delivery,
           IsPrimary = true,
         }
@@ -520,7 +562,7 @@ public class ClientController : ControllerBase
       Notes = client.Notes,
       CreatedAt = client.CreatedAt,
       BillingAddress = residentialClient
-        .Client.Addresses
+        .Client.AddressBookEntries
         .Where(ca => ca.Type == AddressType.Billing && ca.IsPrimary)
         .Select(ca => new AddressDto
         {
@@ -532,7 +574,7 @@ public class ClientController : ControllerBase
         })
         .FirstOrDefault(),
       DeliveryAddress = residentialClient
-        .Client.Addresses
+        .Client.AddressBookEntries
         .Where(ca => ca.Type == AddressType.Delivery && ca.IsPrimary)
         .Select(ca => new AddressDto
         {
@@ -546,6 +588,61 @@ public class ClientController : ControllerBase
     });
   }
 
+  [HttpPatch("residential/{uid}")]
+  public async Task<IActionResult> Update(Guid uid, [FromBody] UpdateResidentialClientDto body)
+  {
+      var residentialClient = await _context.ResidentialClients
+          .Include(rc => rc.Person)
+          .Include(rc => rc.Client)
+              .ThenInclude(c => c.AddressBookEntries)
+                  .ThenInclude(abe => abe.Address)
+          .Include(rc => rc.Client)
+              .ThenInclude(c => c.AddressBookEntries)
+                  .ThenInclude(abe => abe.Person)        
+          .FirstOrDefaultAsync(rc => rc.Client.Uid == uid);
+
+      if (residentialClient == null)
+          return NotFound(new { message = "User not found." });
+
+      residentialClient.Client.Notes = body.Notes;
+      await _context.SaveChangesAsync();
+
+      var response = new ResidentialClientResponseDto
+      {
+          Uid = residentialClient.Client.Uid,
+          FirstName = residentialClient.Person.FirstName,
+          LastName = residentialClient.Person.LastName,
+          Email = residentialClient.Person.Email,
+          PhoneNumber = residentialClient.Person.PhoneNumber,
+          Notes = residentialClient.Client.Notes,
+          CreatedAt = residentialClient.Client.CreatedAt,
+          BillingAddress = residentialClient.Client.AddressBookEntries
+              .Where(ca => ca.Type == AddressType.Billing && ca.IsPrimary)
+              .Select(ca => new AddressDto
+              {
+                  Street = ca.Address.Street,
+                  Unit = ca.Address.Unit,
+                  City = ca.Address.City,
+                  State = ca.Address.State,
+                  ZipCode = ca.Address.ZipCode
+              })
+              .FirstOrDefault(),
+          DeliveryAddress = residentialClient.Client.AddressBookEntries
+              .Where(ca => ca.Type == AddressType.Delivery && ca.IsPrimary)
+              .Select(ca => new AddressDto
+              {
+                  Street = ca.Address.Street,
+                  Unit = ca.Address.Unit,
+                  City = ca.Address.City,
+                  State = ca.Address.State,
+                  ZipCode = ca.Address.ZipCode
+              })
+              .FirstOrDefault()
+      };
+
+      return Ok(response);
+  }
+  
   [HttpDelete("{uid}")]
   public async Task<IActionResult> Delete(Guid uid)
   {

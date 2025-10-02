@@ -1,5 +1,7 @@
 namespace server.DTOs.ResidentialClient;
 
+using server.DTOs.Address;
+
 public class ResidentialClientResponseDto
 {
   public Guid Uid { get; set; }

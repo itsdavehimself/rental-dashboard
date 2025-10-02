@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using server.DTOs.Address;
 
 namespace server.DTOs.ResidentialClient;
+
+
 
 public class ResidentialClientCreateDto
 {

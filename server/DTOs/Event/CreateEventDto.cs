@@ -1,6 +1,6 @@
 namespace server.DTOs.Event;
 
-using server.Models.Event;
+using server.DTOs.Address;
 
 public class CreateEventDto
 {

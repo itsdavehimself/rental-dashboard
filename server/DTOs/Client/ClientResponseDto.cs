@@ -1,5 +1,5 @@
 using server.Models.Clients;
-using server.DTOs;
+using server.DTOs.Address;
 
 namespace server.Dtos.Clients;
 
@@ -22,6 +22,6 @@ public class ClientResponseDto
   public string? Notes { get; set; }
   public DateTime CreatedAt { get; set; }
 
-  public List<AddressDto>? BillingAddresses { get; set; }
-  public List<AddressDto>? DeliveryAddresses { get; set; }
+  public List<AddressBookEntryDto>? BillingAddresses { get; set; }
+  public List<AddressBookEntryDto>? DeliveryAddresses { get; set; }
 }

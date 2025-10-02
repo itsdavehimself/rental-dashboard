@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using server.Validators;
 
-namespace server.DTOs;
+namespace server.DTOs.Address;
 
 public class AddressDto
 {

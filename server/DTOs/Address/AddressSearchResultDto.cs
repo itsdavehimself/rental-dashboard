@@ -1,5 +1,4 @@
-
-namespace server.DTOs;
+namespace server.DTOs.Address;
 
 public class AddressSearchResultDto
 {

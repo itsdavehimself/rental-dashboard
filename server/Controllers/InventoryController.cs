@@ -131,7 +131,31 @@ public async Task<IActionResult> GetInventory(
     ;
 
     var type = await _context.InventoryTypes.FirstOrDefaultAsync(t => t.Id == request.Type);
+    if (type is null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Bad Request",
+        Detail = "The inventory item type ID is invalid.",
+        Status = StatusCodes.Status400BadRequest
+      })
+      {
+        StatusCode = StatusCodes.Status400BadRequest
+      };
+    }
     var subtype = await _context.InventorySubTypes.FirstOrDefaultAsync(st => st.Id == request.SubType);
+    if (subtype is null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Bad Request",
+        Detail = "The inventory item subtype ID is invalid.",
+        Status = StatusCodes.Status400BadRequest
+      })
+      {
+        StatusCode = StatusCodes.Status400BadRequest
+      };
+    }
     var color = await _context.InventoryColors.FirstOrDefaultAsync(c => c.Id == request.Color);
     var material = await _context.InventoryMaterials.FirstOrDefaultAsync(m => m.Id == request.Material);
 
@@ -165,6 +189,87 @@ public async Task<IActionResult> GetInventory(
       Description = item.Description,
       SKU = item.SKU,
       UnitPrice = item.UnitPrice,
+    });
+  }
+
+  [HttpGet("fuzzy-search")]
+  public async Task<IActionResult> FuzzySearchInventory(
+    [FromQuery] string? query,
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 25)
+  {
+    query = query?.ToLower().Trim();
+
+    if (string.IsNullOrWhiteSpace(query))
+    {
+      return Ok(new PaginatedResponse<InventorySearchResultDto>
+      {
+        Page = page,
+        PageSize = pageSize,
+        TotalCount = 0,
+        TotalPages = 0,
+        Data = new List<InventorySearchResultDto>()
+      });
+    }
+
+    var inventoryQuery = _context.InventoryItems
+      .Include(i => i.Type)
+      .Include(i => i.SubType)
+      .Include(i => i.Material)
+      .Include(i => i.Color)
+      .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(query))
+    {
+        var tokens = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var token in tokens)
+        {
+            var t = token.ToLower();
+            inventoryQuery = inventoryQuery.Where(i =>
+                i.Description.ToLower().Contains(t) ||
+                i.SKU.ToLower().Contains(t) ||
+                i.Type.Name.ToLower().Contains(t) ||
+                i.SubType.Name.ToLower().Contains(t) ||
+                (i.Material != null && i.Material.Name.ToLower().Contains(t)) ||
+                (i.Color != null && i.Color.Name.ToLower().Contains(t))
+            );
+        }
+    }
+
+    var inventoryItems = await inventoryQuery.ToListAsync();
+
+    var mappedInventoryItems = inventoryItems.Select(i => new InventorySearchResultDto
+    {
+      Uid = i.Uid,
+      Description = i.Description,
+      QuantityTotal = i.QuantityTotal,
+      SKU = i.SKU,
+      UnitPrice = i.UnitPrice,
+      Type = i.Type.Name,
+      SubType = i.SubType.Name,
+      Material = i.Material?.Name,
+      Color = i.Color?.Name,
+      BounceHouseType = i.BounceHouseType?.Name
+    });
+
+    var items = mappedInventoryItems.ToList();
+
+    var totalCount = items.Count;
+    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+    var pagedResults = items
+      .Skip((page - 1) * pageSize)
+      .Take(pageSize)
+      .ToList();
+
+    return Ok(new PaginatedResponse<InventorySearchResultDto>
+    {
+      Page = page,
+      PageSize = pageSize,
+      TotalCount = totalCount,
+      TotalPages = totalPages,
+      Data = pagedResults
     });
   }
 

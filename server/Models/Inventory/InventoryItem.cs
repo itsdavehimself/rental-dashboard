@@ -5,9 +5,9 @@ public class InventoryItem
   public Guid Uid { get; set; } = Guid.NewGuid();
   public string Description { get; set; } = string.Empty;
   public int InventoryTypeId { get; set; }
-  public InventoryType? Type { get; set; }
+  public required InventoryType Type { get; set; }
   public int InventorySubTypeId { get; set; }
-  public InventorySubType? SubType { get; set; }
+  public required InventorySubType SubType { get; set; }
   public int? InventoryMaterialId { get; set; }
   public InventoryMaterial? Material { get; set; }
   public int? InventoryColorId { get; set; }
