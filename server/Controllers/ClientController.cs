@@ -90,85 +90,113 @@ public class ClientController : ControllerBase
 
   [HttpGet("fuzzy-search")]
   public async Task<IActionResult> FuzzySearchClients(
-    [FromQuery] string? query,
-    [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 25)
+      [FromQuery] string? query,
+      [FromQuery] int page = 1,
+      [FromQuery] int pageSize = 25)
   {
-    query = query?.ToLower().Trim();
+      query = query?.ToLower().Trim();
 
-    if (string.IsNullOrWhiteSpace(query))
-    {
-        return Ok(new PaginatedResponse<ClientSearchResultDto>
-        {
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = 0,
-            TotalPages = 0,
-            Data = new List<ClientSearchResultDto>()
-        });
-    }
+      if (string.IsNullOrWhiteSpace(query))
+      {
+          return Ok(new PaginatedResponse<ClientResponseDto>
+          {
+              Page = page,
+              PageSize = pageSize,
+              TotalCount = 0,
+              TotalPages = 0,
+              Data = new List<ClientResponseDto>()
+          });
+      }
 
-    var clientsQuery = _context.Clients
-        .Include(c => c.ClientAddresses)
-        .AsQueryable();
+      var clientsQuery = _context.Clients
+          .Include(c => c.ClientAddresses)
+          .Where(c => c.ClientAddresses.Any(p =>
+              ((p.FirstName ?? "") + " " + (p.LastName ?? "")).ToLower().Contains(query) ||
+              (p.FirstName ?? "").ToLower().Contains(query) ||
+              (p.LastName ?? "").ToLower().Contains(query) ||
+              (p.Email ?? "").ToLower().Contains(query) ||
+              (p.PhoneNumber ?? "").ToLower().Contains(query)
+          ));
 
-    clientsQuery = clientsQuery.Where(c =>
-        c.ClientAddresses.Any(p =>
-            (p.FirstName + " " + p.LastName).ToLower().Contains(query) ||
-            p.FirstName.ToLower().Contains(query) ||
-            p.LastName.ToLower().Contains(query) ||
-            p.Email.ToLower().Contains(query) ||
-            p.PhoneNumber.ToLower().Contains(query)
-        )
-    );
+      var totalCount = await clientsQuery.CountAsync();
+      var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
-    var totalCount = await clientsQuery.CountAsync();
-    var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+      var clients = await clientsQuery
+          .OrderBy(c => c.LastName)
+          .ThenBy(c => c.FirstName)
+          .Skip((page - 1) * pageSize)
+          .Take(pageSize)
+          .ToListAsync();
 
-    var results = await clientsQuery
-        .OrderBy(c => c.ClientAddresses
-            .Where(p => p.IsPrimary)
-            .Select(p => p.LastName)
-            .FirstOrDefault())
-        .ThenBy(c => c.ClientAddresses
-            .Where(p => p.IsPrimary)
-            .Select(p => p.FirstName)
-            .FirstOrDefault())
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(c => new ClientSearchResultDto
-        {
-            Uid = c.Uid,
-            Type = c.Type,
-            FirstName = c.FirstName,
-            LastName = c.LastName,
-            Email = c.Email,
-            PhoneNumber = c.PhoneNumber,
-            Notes = c.Notes,
-            CreatedAt = c.CreatedAt,
-            BillingAddress = c.ClientAddresses
-                .Where(p => p.Type == ClientAddressType.Billing && p.IsPrimary)
-                .Select(p => new AddressDto
-                {
-                    AddressLine1 = p.AddressLine1,
-                    AddressLine2 = p.AddressLine2,
-                    City = p.City,
-                    State = p.State,
-                    ZipCode = p.ZipCode,
-                    IsPrimary = p.IsPrimary
-                })
-                .FirstOrDefault() ?? new AddressDto()
-        })
-        .ToListAsync();
+      var results = clients.Select(c =>
+      {
+          var primaryBilling = c.ClientAddresses
+              .Where(a => a.Type == ClientAddressType.Billing)
+              .OrderByDescending(a => a.IsPrimary)
+              .FirstOrDefault();
 
-    return Ok(new PaginatedResponse<ClientSearchResultDto>
-    {
-        Page = page,
-        PageSize = pageSize,
-        TotalCount = totalCount,
-        TotalPages = totalPages,
-        Data = results
-    });
+        var primaryDelivery = c.ClientAddresses
+            .Where(a => a.Type == ClientAddressType.Delivery)
+            .OrderByDescending(a => a.IsPrimary)
+            .FirstOrDefault();
+
+          return new ClientResponseDto
+          {
+              Uid = c.Uid,
+              Notes = c.Notes,
+              CreatedAt = c.CreatedAt,
+              Type = c.Type,
+              FirstName = c.FirstName,
+              LastName = c.LastName,
+              Email = c.Email,
+              PhoneNumber = c.PhoneNumber,
+              BillingAddresses = c.ClientAddresses
+                  .Where(a => a.Type == ClientAddressType.Billing)
+                  .OrderByDescending(a => a.IsPrimary)
+                  .Select(a => new ClientProfileDto
+                  {
+                      Uid = a.Uid,
+                      FirstName = primaryBilling?.FirstName ?? "",
+                      LastName = primaryBilling?.LastName ?? "",
+                      PhoneNumber = primaryBilling?.PhoneNumber ?? "",
+                      Email = primaryBilling?.Email ?? "",
+                      AddressLine1 = a.AddressLine1,
+                      AddressLine2 = a.AddressLine2,
+                      City = a.City,
+                      State = a.State,
+                      ZipCode = a.ZipCode,
+                      IsPrimary = a.IsPrimary
+                  })
+                  .ToList(),
+              DeliveryAddresses = c.ClientAddresses
+                  .Where(a => a.Type == ClientAddressType.Delivery)
+                  .OrderByDescending(a => a.IsPrimary)
+                  .Select(a => new ClientProfileDto
+                  {
+                      Uid = a.Uid,
+                      FirstName = primaryDelivery?.FirstName ?? "",
+                      LastName = primaryDelivery?.LastName ?? "",
+                      PhoneNumber = primaryDelivery?.PhoneNumber ?? "",
+                      Email = primaryDelivery?.Email ?? "",
+                      AddressLine1 = a.AddressLine1,
+                      AddressLine2 = a.AddressLine2,
+                      City = a.City,
+                      State = a.State,
+                      ZipCode = a.ZipCode,
+                      IsPrimary = a.IsPrimary
+                  })
+                  .ToList()
+          };
+      }).ToList();
+
+      return Ok(new PaginatedResponse<ClientResponseDto>
+      {
+          Page = page,
+          PageSize = pageSize,
+          TotalCount = totalCount,
+          TotalPages = totalPages,
+          Data = results
+      });
   }
 
   [HttpGet("search")]

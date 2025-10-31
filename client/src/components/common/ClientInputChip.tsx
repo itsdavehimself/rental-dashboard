@@ -1,9 +1,10 @@
 import { X } from "lucide-react";
+import type { ClientSearchResult } from "../../types/Client";
 
 interface ClientInputChipProps {
   name: string;
   setSelectedClient: React.Dispatch<
-    React.SetStateAction<{ name: string; uid: string } | null>
+    React.SetStateAction<ClientSearchResult | null>
   >;
 }
 

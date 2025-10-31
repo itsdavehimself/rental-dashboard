@@ -2,39 +2,47 @@ import XButton from "../../../components/common/XButton";
 import { useRef, useEffect, useState } from "react";
 import { handleError, type ErrorsState } from "../../../helpers/handleError";
 import DebouncedSearchBar from "../../../components/common/DebouncedSearchBar";
-import type { EventModalType } from "../../Events/EventsDashboard/Events";
 import { UserRoundPlus } from "lucide-react";
 import LinkButton from "../../../components/common/LinkButton";
-import type { ClientSearchResult } from "../../../types/Client";
+import type { ClientDetail } from "../../../types/Client";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { searchClients } from "../../../service/clientService";
 import { useToast } from "../../../hooks/useToast";
 import ClientSearchResultRow from "./ClientSearchResultRow";
 import ClientInputChip from "../../../components/common/ClientInputChip";
+import ActionButton from "../../../components/common/ActionButton";
+import { useCreateEvent } from "../../../context/useCreateEvent";
+import { useNavigate } from "react-router";
 
-interface SearchClientsProps {
-  openModal: string | null;
-  setOpenModal: React.Dispatch<React.SetStateAction<EventModalType>>;
+interface SearchClientsProps<T extends string | null> {
+  openModal: T | null;
+  setOpenModal: React.Dispatch<React.SetStateAction<T | null>>;
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
+  title: string;
+  label: string;
+  mode: "create" | "update";
 }
 
-const SearchClients: React.FC<SearchClientsProps> = ({
+const SearchClients = <T extends string | null>({
   openModal,
   setOpenModal,
   setErrors,
-}) => {
+  title,
+  label,
+  mode,
+}: SearchClientsProps<T>) => {
   const ref = useRef<HTMLDivElement>(null);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
+  const { setClient } = useCreateEvent();
 
-  const [clients, setClients] = useState<ClientSearchResult[]>([]);
+  const [clients, setClients] = useState<ClientDetail[]>([]);
   const [page, setPage] = useState<number>(1);
   const [query, setQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedClient, setSelectedClient] = useState<{
-    uid: string;
-    name: string;
-  } | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(
+    null
+  );
 
   const handleSearch = async () => {
     try {
@@ -49,12 +57,15 @@ const SearchClients: React.FC<SearchClientsProps> = ({
     }
   };
 
+  const navigate = useNavigate();
+
   const debouncedSearch = useDebounce(handleSearch, 750);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         openModal === "searchClient" &&
+        setOpenModal &&
         !ref.current?.contains(event.target as Node)
       ) {
         setOpenModal(null);
@@ -73,7 +84,7 @@ const SearchClients: React.FC<SearchClientsProps> = ({
       >
         <div className="flex justify-between items-center pl-6 pr-4">
           <div className="flex flex-col">
-            <h4 className="text-lg font-semibold">Create an Event</h4>
+            <h4 className="text-lg font-semibold">{title}</h4>
             <p className="text-sm text-gray-500">
               Search for a client by phone number, email, name, or business name
             </p>
@@ -84,7 +95,7 @@ const SearchClients: React.FC<SearchClientsProps> = ({
         <div className="flex flex-col justify-center items-center px-12">
           <div className="relative grid grid-cols-[1fr_3rem] w-full gap-4 h-fit max-h-72">
             {!selectedClient ? (
-              <DebouncedSearchBar<ClientSearchResult>
+              <DebouncedSearchBar<ClientDetail>
                 placeholder="Search"
                 results={clients}
                 setResults={setClients}
@@ -104,7 +115,7 @@ const SearchClients: React.FC<SearchClientsProps> = ({
               />
             ) : (
               <ClientInputChip
-                name={selectedClient.name}
+                name={`${selectedClient.firstName} ${selectedClient.lastName}`}
                 setSelectedClient={setSelectedClient}
               />
             )}
@@ -114,11 +125,25 @@ const SearchClients: React.FC<SearchClientsProps> = ({
           </div>
         </div>
         <div className="flex justify-end w-full px-6">
-          <LinkButton
-            to={`/events/create?clientId=${selectedClient?.uid}`}
-            label="Select Client"
-            disabled={!selectedClient}
-          />
+          {mode === "create" ? (
+            <LinkButton
+              to={`/events/create?clientId=${selectedClient?.uid}`}
+              label={label}
+              disabled={!selectedClient}
+            />
+          ) : (
+            <ActionButton
+              label={label}
+              style="filled"
+              onClick={() => {
+                setClient(selectedClient);
+                setOpenModal(null);
+                navigate(`/events/create?clientId=${selectedClient?.uid}`, {
+                  replace: true,
+                });
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

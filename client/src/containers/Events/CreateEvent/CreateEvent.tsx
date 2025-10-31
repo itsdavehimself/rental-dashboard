@@ -19,6 +19,7 @@ import EditClientNotes from "./components/EditClientNotes";
 import EditAddresses from "./components/EditAddresses";
 import EventInternalNotes from "./components/EventInternalNotes";
 import { useCreateEvent } from "../../../context/useCreateEvent";
+import SearchClients from "../../Clients/components/SearchClients";
 
 export type CreateEventModalType =
   | null
@@ -27,7 +28,8 @@ export type CreateEventModalType =
   | "editClientNotes"
   | "changeClient"
   | "addBillingAddress"
-  | "addDeliveryAddress";
+  | "addDeliveryAddress"
+  | "searchClient";
 
 export type CreateEventInputs = {
   deliveryDate: Date;
@@ -55,7 +57,15 @@ const CreateEvent: React.FC = () => {
     formState: { errors: formErrors },
   } = useForm<CreateEventInputs>({});
 
-  const { client, setClient, openModal, selectedItems } = useCreateEvent();
+  const {
+    client,
+    setClient,
+    openModal,
+    setOpenModal,
+    selectedItems,
+    setEventBilling,
+    setEventDelivery,
+  } = useCreateEvent();
 
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -106,6 +116,20 @@ const CreateEvent: React.FC = () => {
       setValue("contactPhone", splitPhoneNumber(client.phoneNumber) || "");
       setValue("contactEmail", client.email || "");
     }
+
+    if (client?.billingAddresses?.length) {
+      const primaryBilling =
+        client.billingAddresses.find((a) => a.isPrimary) ??
+        client.billingAddresses[0];
+      setEventBilling(primaryBilling);
+    }
+
+    if (client?.deliveryAddresses?.length) {
+      const primaryDelivery =
+        client.deliveryAddresses.find((a) => a.isPrimary) ??
+        client.deliveryAddresses[0];
+      setEventDelivery(primaryDelivery);
+    }
   }, [client]);
 
   const onSubmit: SubmitHandler<CreateEventInputs> = async (data) => {
@@ -119,6 +143,16 @@ const CreateEvent: React.FC = () => {
 
   return (
     <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
+      {openModal === "searchClient" && (
+        <SearchClients<CreateEventModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          setErrors={setErrors}
+          title="Change Client"
+          label="Update Client"
+          mode="update"
+        />
+      )}
       {openModal === "editClientNotes" && (
         <EditModal children={<EditClientNotes title="Edit client notes" />} />
       )}

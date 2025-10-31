@@ -26,19 +26,6 @@ type CreateClient = {
   type: "Residential" | "Business";
 };
 
-type ClientSearchResult = {
-  uid: string;
-  type: "Residential" | "Business";
-  firstName?: string;
-  lastName?: string;
-  businessName?: string;
-  email?: string;
-  phoneNumber?: string;
-  notes?: string;
-  createdAt: string;
-  billingAddress: Address;
-};
-
 type ClientDetail = {
   uid: string;
   type: "Residential" | "Business";
@@ -64,4 +51,4 @@ export const CLIENT_TYPES = {
 
 export type ClientType = keyof typeof CLIENT_TYPES;
 
-export type { Client, CreateClient, ClientSearchResult, ClientDetail };
+export type { Client, CreateClient, ClientDetail };

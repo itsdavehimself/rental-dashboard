@@ -40,13 +40,17 @@ const ResidentialClientInfo: React.FC = () => {
                   {client.firstName} {client.lastName}
                 </p>
               </div>
-              <button className="font-semibold text-xs text-gray-500 hover:text-primary hover:cursor-pointer transition duration-200">
+              <button
+                onClick={() => setOpenModal("searchClient")}
+                className="font-semibold text-xs text-gray-500 hover:text-primary hover:cursor-pointer transition duration-200"
+              >
                 Change
               </button>
             </div>
           </div>
           <hr className="text-gray-200" />
           <ResidentialClientSection<CreateEventModalType>
+            minHeight={2.5}
             title="Notes"
             children={
               <>
@@ -64,7 +68,7 @@ const ResidentialClientInfo: React.FC = () => {
           />
           <ResidentialClientSection<CreateEventModalType>
             title="Billing Address"
-            minHeight={6.5}
+            minHeight={7.7}
             children={
               <>
                 <p>
@@ -87,7 +91,7 @@ const ResidentialClientInfo: React.FC = () => {
           />
           <ResidentialClientSection<CreateEventModalType>
             title="Delivery Address"
-            minHeight={6.5}
+            minHeight={7.7}
             children={
               <>
                 <p>

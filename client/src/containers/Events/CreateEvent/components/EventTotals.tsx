@@ -37,7 +37,7 @@ const EventTotals: React.FC = () => {
           Payment Due
         </div>
       </div>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div className="grid grid-cols-[1fr_.4fr] text-sm">
           <h6 className="font-semibold">Subtotal</h6>
           <p className="text-right">${subTotal.toFixed(2)}</p>
@@ -49,7 +49,7 @@ const EventTotals: React.FC = () => {
           <h6 className="font-semibold">Discounts</h6>
           <p className="text-right">${discounts.toFixed(2)}</p>
         </div>
-        <div className="grid grid-cols-[1fr_.4fr]">
+        <div className="grid grid-cols-[1fr_.4fr] text-sm">
           <h5 className="font-semibold">Total</h5>
           <p className="font-semibold text-right">${total.toFixed(2)}</p>
         </div>

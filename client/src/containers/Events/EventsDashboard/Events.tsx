@@ -31,10 +31,13 @@ const Events: React.FC = () => {
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
       {openModal === "searchClient" && (
-        <SearchClients
+        <SearchClients<EventModalType>
           openModal={openModal}
           setOpenModal={setOpenModal}
           setErrors={setErrors}
+          title="Create an Event"
+          label="Create Event"
+          mode="create"
         />
       )}
       <h2 className="self-start text-2xl font-semibold">Events</h2>
