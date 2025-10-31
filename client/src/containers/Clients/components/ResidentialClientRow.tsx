@@ -1,10 +1,10 @@
-import type { ResidentialClient } from "../../../types/Client";
+import type { Client } from "../../../types/Client";
 import { useNavigate } from "react-router";
 import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
 import { formatAddress } from "../../../helpers/formatAddress";
 
 interface ResidentialClientRowProps {
-  item: ResidentialClient;
+  item: Client;
   isLast: boolean;
   columnTemplate: string;
   gap: number;

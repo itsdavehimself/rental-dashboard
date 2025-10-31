@@ -4,9 +4,9 @@ import AddButton from "../../components/common/AddButton";
 import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import SearchBar from "../../components/common/DebouncedSearchBar";
-import ResidentialClientForm from "./components/ResidentialClientForm";
 import ResidentialClientRow from "./components/ResidentialClientRow";
-import { useResidentialClients } from "../../hooks/useResidentialClients";
+import { useClients } from "../../hooks/useClients";
+import ClientForm from "./components/ClientForm";
 
 export type ClientModalType = null | "addClient";
 
@@ -14,8 +14,7 @@ const Clients: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [openModal, setOpenModal] = useState<ClientModalType>(null);
 
-  const { residentialClients, setResidentialClients, errors, setErrors } =
-    useResidentialClients(page);
+  const { clients, setClients, errors, setErrors } = useClients(page);
 
   const headers = [
     "Last Name",
@@ -34,11 +33,11 @@ const Clients: React.FC = () => {
           setErrors={setErrors}
           modalKey="addClient"
         >
-          <ResidentialClientForm
+          <ClientForm
             errors={errors}
             setErrors={setErrors}
-            residentialClients={residentialClients}
-            setResidentialClients={setResidentialClients}
+            clients={clients}
+            setClients={setClients}
             setOpenModal={setOpenModal}
           />
         </AddModal>
@@ -57,7 +56,7 @@ const Clients: React.FC = () => {
         <Table
           columnTemplate={columnTemplate}
           headers={headers}
-          tableItems={residentialClients}
+          tableItems={clients}
           tableRowType={ResidentialClientRow}
           getKey={(client) => client.uid}
           gap={4}

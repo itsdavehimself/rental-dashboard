@@ -1,4 +1,4 @@
-export type InventoryListItem = {
+type InventoryListItem = {
   uid: string;
   description: string;
   quantityTotal: number;
@@ -6,7 +6,7 @@ export type InventoryListItem = {
   unitPrice?: number;
 };
 
-export type InventoryItemDetails = {
+type InventoryItemDetails = {
   uid: string;
   description: string;
   type: string;
@@ -24,4 +24,23 @@ export type InventoryItemDetails = {
   purchaseCost?: number;
   isActive: boolean;
   packageOnly: boolean;
+};
+
+type InventoryItemSearchResult = {
+  uid: string;
+  description: string;
+  quantityTotal: number;
+  sku: string;
+  unitPrice: number;
+  type: string;
+  subType: string;
+  material?: string;
+  color?: string;
+  bounceHouseType?: string;
+};
+
+export type {
+  InventoryItemDetails,
+  InventoryListItem,
+  InventoryItemSearchResult,
 };

@@ -1,7 +1,6 @@
-using server.Models.Clients;
-using server.DTOs.Address;
+using server.DTOs.ClientProfile;
 
-namespace server.Dtos.Clients;
+namespace server.DTOs.Client;
 
 public class ClientResponseDto
 {
@@ -17,11 +16,10 @@ public class ClientResponseDto
   // For BusinessClient
   public string? BusinessName { get; set; }
   public bool? IsTaxExempt { get; set; }
-  public List<ContactDto>? Contacts { get; set; }
 
   public string? Notes { get; set; }
   public DateTime CreatedAt { get; set; }
 
-  public List<AddressBookEntryDto>? BillingAddresses { get; set; }
-  public List<AddressBookEntryDto>? DeliveryAddresses { get; set; }
+  public List<ClientProfileDto>? BillingAddresses { get; set; }
+  public List<ClientProfileDto>? DeliveryAddresses { get; set; }
 }

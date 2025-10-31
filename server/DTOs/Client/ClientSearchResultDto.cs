@@ -1,5 +1,4 @@
 using server.DTOs.Address;
-using server.Models.Clients;
 public class ClientSearchResultDto
 {
   public Guid Uid { get; set; }

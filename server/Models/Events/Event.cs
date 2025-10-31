@@ -1,5 +1,4 @@
 namespace server.Models.Event;
-using server.Models.Clients;
 public class Event
 {
   public int Id { get; set; }
@@ -9,8 +8,13 @@ public class Event
   public string? EventName { get; set; }
   public DateTime EventStart { get; set; }
   public DateTime EventEnd { get; set; }
-  public int AddressId { get; set; }
-  public Address Address { get; set; } = null!;
+  public string AddressLine1 { get; set; } = "";
+  public string? AddressLine2 { get; set; }
+  public string City { get; set; } = "";
+  public string State { get; set; } = "";
+  public string ZipCode { get; set; } = "";
+  public string NormalizedCity { get; set; } = "";
+  public string NormalizedStreet { get; set; } = "";
   public EventStatus Status { get; set; } = EventStatus.Draft;
   public string? Notes { get; set; }
   public List<LogisticsTask> LogisticsTasks { get; set; } = [];

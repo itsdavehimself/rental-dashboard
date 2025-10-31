@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using server.DTOs;
-using server.Helpers;
+using server.DTOs.Address;
 
 namespace server.Controllers;
 
@@ -49,7 +48,8 @@ public class AddressController : ControllerBase
         .Take(pageSize)
         .Select(a => new AddressSearchResultDto
         {
-            Street = AddressFormatter.ToProperCase(a.Address),
+            Id = a.Id,
+            AddressLine1 = AddressFormatter.ToProperCase(a.Address),
             City = AddressFormatter.ToProperCase(a.City),
             State = a.State,
             ZipCode = a.ZipCode

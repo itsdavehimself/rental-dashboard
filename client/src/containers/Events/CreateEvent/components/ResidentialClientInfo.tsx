@@ -1,21 +1,33 @@
-import { Mail, PartyPopper, PenSquare, Phone, UserRound } from "lucide-react";
 import { formatPhoneNumber } from "../../../../helpers/formatPhoneNumber";
-import type { ClientDetail } from "../../../../types/Client";
 import ResidentialClientSection from "./ResidentialClientSection";
+import type { CreateEventModalType } from "../CreateEvent";
+import { useCreateEvent } from "../../../../context/useCreateEvent";
+import { useEffect } from "react";
 
-interface ResidentialClientInfoProps {
-  client: ClientDetail | null;
-}
+const ResidentialClientInfo: React.FC = () => {
+  const {
+    client,
+    setOpenModal,
+    eventBilling,
+    setEventBilling,
+    eventDelivery,
+    setEventDelivery,
+  } = useCreateEvent();
 
-const ResidentialClientInfo: React.FC<ResidentialClientInfoProps> = ({
-  client,
-}) => {
   const primaryBillingAddress = client?.billingAddresses.find(
     (ba) => ba.isPrimary === true
   );
   const primaryDeliveryAddress = client?.deliveryAddresses.find(
     (ba) => ba.isPrimary === true
   );
+
+  useEffect(() => {
+    if (!eventBilling && primaryBillingAddress)
+      setEventBilling(primaryBillingAddress);
+    if (!eventDelivery && primaryDeliveryAddress)
+      setEventDelivery(primaryDeliveryAddress);
+  }, [primaryBillingAddress, primaryDeliveryAddress]);
+
   return (
     <>
       {client && primaryBillingAddress && primaryDeliveryAddress && (
@@ -24,7 +36,6 @@ const ResidentialClientInfo: React.FC<ResidentialClientInfoProps> = ({
           <div className="flex flex-col gap-2 mt-4 mb-4 text-sm">
             <div className="flex items-center justify-between">
               <div className="flex gap-2 items-center">
-                <UserRound className="h-4 w-4 text-gray-400" />
                 <p>
                   {client.firstName} {client.lastName}
                 </p>
@@ -33,27 +44,9 @@ const ResidentialClientInfo: React.FC<ResidentialClientInfoProps> = ({
                 Change
               </button>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2 items-center">
-                <Mail className="h-4 w-4 text-gray-400" />
-                <p>{client.email}</p>
-              </div>
-              <button className="flex justify-center items-center text-gray-500 hover:text-primary hover:cursor-pointer transition-all duration-200">
-                <PenSquare className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2 items-center">
-                <Phone className="h-4 w-4 text-gray-400" />
-                <p>{formatPhoneNumber(client.phoneNumber)}</p>
-              </div>
-              <button className="flex justify-center items-center text-gray-500 hover:text-primary hover:cursor-pointer transition-all duration-200">
-                <PenSquare className="w-4 h-4" />
-              </button>
-            </div>
           </div>
           <hr className="text-gray-200" />
-          <ResidentialClientSection
+          <ResidentialClientSection<CreateEventModalType>
             title="Notes"
             children={
               <>
@@ -66,37 +59,55 @@ const ResidentialClientInfo: React.FC<ResidentialClientInfoProps> = ({
                 )}
               </>
             }
+            setOpenModal={setOpenModal}
+            modalKey="editClientNotes"
           />
-          <ResidentialClientSection
+          <ResidentialClientSection<CreateEventModalType>
             title="Billing Address"
+            minHeight={6.5}
             children={
               <>
-                <p>{primaryDeliveryAddress.street}</p>
-                {primaryDeliveryAddress.unit && (
-                  <p>{primaryDeliveryAddress.unit}</p>
+                <p>
+                  {eventBilling?.firstName} {eventBilling?.lastName}
+                </p>
+                <p>{formatPhoneNumber(eventBilling?.phoneNumber)}</p>
+                <p>{eventBilling?.addressLine1}</p>
+                {eventBilling?.addressLine2 && (
+                  <p>{eventBilling?.addressLine2}</p>
                 )}
                 <p>
-                  {primaryDeliveryAddress.city}, {primaryDeliveryAddress.state}{" "}
-                  {primaryDeliveryAddress.zipCode}
+                  {eventBilling?.city}, {eventBilling?.state}{" "}
+                  {eventBilling?.zipCode}
                 </p>
+                <p>{eventBilling?.email}</p>
               </>
             }
+            setOpenModal={setOpenModal}
+            modalKey="editClientBilling"
           />
-          <ResidentialClientSection
+          <ResidentialClientSection<CreateEventModalType>
             title="Delivery Address"
+            minHeight={6.5}
             children={
               <>
-                <p>{primaryBillingAddress.street}</p>
-                {primaryBillingAddress.unit && (
-                  <p>{primaryBillingAddress.unit}</p>
+                <p>
+                  {eventDelivery?.firstName} {eventDelivery?.lastName}
+                </p>
+                <p>{formatPhoneNumber(eventDelivery?.phoneNumber)}</p>
+                <p>{eventDelivery?.addressLine1}</p>
+                {eventDelivery?.addressLine2 && (
+                  <p>{eventDelivery?.addressLine2}</p>
                 )}
                 <p>
-                  {primaryBillingAddress.city}, {primaryBillingAddress.state}{" "}
-                  {primaryBillingAddress.zipCode}
+                  {eventDelivery?.city}, {eventDelivery?.state}{" "}
+                  {eventDelivery?.zipCode}
                 </p>
+                <p>{eventDelivery?.email}</p>
               </>
             }
             lastItem={true}
+            setOpenModal={setOpenModal}
+            modalKey="editClientDelivery"
           />
         </div>
       )}

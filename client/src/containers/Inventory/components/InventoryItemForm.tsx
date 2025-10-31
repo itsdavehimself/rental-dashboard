@@ -3,7 +3,7 @@ import StyledInput from "../../../components/common/StyledInput";
 import SubmitButton from "../../../components/common/SubmitButton";
 import { useEffect, useState, useRef } from "react";
 import TextAreaInput from "../../../components/common/TextAreaInput";
-import { toCamelCasePath } from "../../../helpers/toCamelCastPath";
+import { toCamelCasePath } from "../../../helpers/toCamelCasePath";
 import Dropdown from "../../../components/common/Dropdown";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import type { InventoryType } from "../../../types/InventoryConfigResponse";

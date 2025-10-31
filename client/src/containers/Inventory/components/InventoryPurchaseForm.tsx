@@ -3,7 +3,7 @@ import StyledInput from "../../../components/common/StyledInput";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import SubmitButton from "../../../components/common/SubmitButton";
 import { useEffect } from "react";
-import { toCamelCasePath } from "../../../helpers/toCamelCastPath";
+import { toCamelCasePath } from "../../../helpers/toCamelCasePath";
 
 export type InventoryPurchaseInput = {
   quantity: number;

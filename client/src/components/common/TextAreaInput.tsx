@@ -6,12 +6,14 @@ interface TextAreaInputProps
   label: string;
   placeholder?: string;
   optional: boolean;
+  defaultValue?: string;
 }
 
 const TextAreaInput: React.FC<TextAreaInputProps> = ({
   label,
   register,
   optional,
+  defaultValue,
   ...rest
 }) => {
   return (
@@ -25,6 +27,7 @@ const TextAreaInput: React.FC<TextAreaInputProps> = ({
       <textarea
         {...register}
         {...rest}
+        defaultValue={defaultValue}
         className="text-sm outline-1 w-full rounded-lg pl-2 pt-2 resize-none flex-grow min-h-[6rem] transition-all duration-200 outline-gray-200 hover:outline-black focus:outline-primary focus:outline-1"
       />
     </div>

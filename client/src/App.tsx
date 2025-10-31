@@ -15,6 +15,7 @@ import ResidentialClient from "./containers/Clients/ResidentialClient";
 import Library from "./containers/Library/Library";
 import Vendors from "./containers/Vendors/Vendors";
 import CreateEvent from "./containers/Events/CreateEvent/CreateEvent";
+import { CreateEventProvider } from "./context/CreateEventProvider";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -38,7 +39,14 @@ function App() {
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/events">
             <Route index element={<Events />} />
-            <Route path="/events/create" element={<CreateEvent />} />
+            <Route
+              path="/events/create"
+              element={
+                <CreateEventProvider>
+                  <CreateEvent />
+                </CreateEventProvider>
+              }
+            />
           </Route>
           <Route path="/clients">
             <Route index element={<Clients />} />

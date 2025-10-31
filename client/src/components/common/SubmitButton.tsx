@@ -6,7 +6,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ label }) => {
   return (
     <button
       type="submit"
-      className="bg-primary text-white ring-1 ring-primary w-full rounded-lg h-10 font-semibold hover:cursor-pointer hover:bg-primary-hover transition-all duration-200"
+      className="bg-primary text-white ring-1 ring-primary w-full px-8 rounded-lg h-10 font-semibold hover:cursor-pointer hover:bg-primary-hover transition-all duration-200"
     >
       {label}
     </button>

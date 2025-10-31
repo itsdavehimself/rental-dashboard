@@ -1,5 +1,8 @@
 import type { PaginatedResponse } from "../types/PaginatedResponse";
-import type { InventoryListItem } from "../types/InventoryItem";
+import type {
+  InventoryItemSearchResult,
+  InventoryListItem,
+} from "../types/InventoryItem";
 import { CustomError } from "../types/CustomError";
 import type { InventoryConfigResponse } from "../types/InventoryConfigResponse";
 import type { InventoryItemInput } from "../containers/Inventory/components/InventoryItemForm";
@@ -106,9 +109,34 @@ const createInventoryPurchase = async (
   return await response.json();
 };
 
+const searchInventory = async (
+  apiUrl: string,
+  page: number,
+  query: string
+): Promise<PaginatedResponse<InventoryItemSearchResult>> => {
+  const response = await fetch(
+    `${apiUrl}/api/inventory/fuzzy-search?page=${page}&pageSize=25&query=${query}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Getting inventory items failed.", errorData);
+  }
+
+  return await response.json();
+};
+
 export {
   fetchInventoryItems,
   fetchInventoryConfig,
   createInventoryItem,
   createInventoryPurchase,
+  searchInventory,
 };

@@ -6,8 +6,8 @@ public class AddressDto
 {
 
   [Required(ErrorMessage = "Street address is required")]
-  public string Street { get; set; } = string.Empty;
-  public string? Unit { get; set; }
+  public string AddressLine1 { get; set; } = string.Empty;
+  public string? AddressLine2 { get; set; }
   [Required(ErrorMessage = "City is required")]
   public string City { get; set; } = string.Empty;
   [Required(ErrorMessage = "State is required")]

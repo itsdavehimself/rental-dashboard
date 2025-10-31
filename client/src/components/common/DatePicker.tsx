@@ -7,9 +7,17 @@ interface DatePickerProps {
   label: string;
   date: Date;
   onSelect: (val: Date) => void;
+  disablePastDates: boolean;
+  deliveryDate?: Date;
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ label, date, onSelect }) => {
+const DatePicker: React.FC<DatePickerProps> = ({
+  label,
+  date,
+  onSelect,
+  disablePastDates,
+  deliveryDate,
+}) => {
   const [openDatePicker, setOpenDatePicker] = useState<boolean>(false);
 
   const defaultClassNames = getDefaultClassNames();
@@ -60,6 +68,13 @@ const DatePicker: React.FC<DatePickerProps> = ({ label, date, onSelect }) => {
           <div className="absolute flex justify-center left-0 top-full z-50 mt-1 bg-white shadow-md rounded-xl ring-1 ring-gray-200 w-full">
             <DayPicker
               animate
+              disabled={{
+                before: deliveryDate
+                  ? new Date(deliveryDate.setHours(0, 0, 0, 0))
+                  : disablePastDates
+                  ? new Date(new Date().setHours(0, 0, 0, 0))
+                  : undefined,
+              }}
               mode="single"
               selected={date}
               onSelect={onSelect}

@@ -2,24 +2,22 @@ import { useEffect, useState } from "react";
 import { handleError } from "../helpers/handleError";
 import { useToast } from "./useToast";
 import type { ErrorsState } from "../helpers/handleError";
-import type { ResidentialClient } from "../types/Client";
-import { fetchResidentialClients } from "../service/clientService";
+import type { Client } from "../types/Client";
+import { fetchClients } from "../service/clientService";
 
-export function useResidentialClients(page: number) {
-  const [residentialClients, setResidentialClients] = useState<
-    ResidentialClient[]
-  >([]);
+export function useClients(page: number) {
+  const [clients, setClients] = useState<Client[]>([]);
   const [errors, setErrors] = useState<ErrorsState>(null);
   const { addToast } = useToast();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const refresh = async () => {
     try {
-      const clientList = await fetchResidentialClients(apiUrl, page);
-      setResidentialClients(clientList.data);
+      const clientList = await fetchClients(apiUrl, page);
+      setClients(clientList.data);
     } catch (err) {
       handleError(err, setErrors);
-      addToast("Error", "There was a problem fetching inventory data.");
+      addToast("Error", "There was a problem fetching clients.");
     }
   };
 
@@ -28,8 +26,8 @@ export function useResidentialClients(page: number) {
   }, [page]);
 
   return {
-    residentialClients,
-    setResidentialClients,
+    clients,
+    setClients,
     errors,
     setErrors,
     refresh,

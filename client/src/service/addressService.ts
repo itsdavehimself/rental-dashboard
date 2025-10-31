@@ -19,7 +19,7 @@ const searchAddress = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new CustomError("Getting clients failed.", errorData);
+    throw new CustomError("Getting addresses failed.", errorData);
   }
 
   return await response.json();

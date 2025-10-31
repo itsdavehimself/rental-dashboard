@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using server.Models.User;
-using server.Models.Clients;
+using server.Models;
 using server.Models.Inventory;
 using server.Models.Event;
 using server.Data.Seed;
-using server.Models;
 
 public class AppDbContext : DbContext
 {
@@ -15,8 +14,7 @@ public class AppDbContext : DbContext
   public DbSet<Permission> Permissions => Set<Permission>();
   public DbSet<JobTitle> JobTitles => Set<JobTitle>();
   public DbSet<Client> Clients => Set<Client>();
-  public DbSet<ResidentialClient> ResidentialClients => Set<ResidentialClient>();
-  public DbSet<BusinessClient> BusinessClients => Set<BusinessClient>();
+  public DbSet<ClientAddress> ClientAddresses => Set<ClientAddress>();
   public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
   public DbSet<InventoryPurchase> InventoryPurchases => Set<InventoryPurchase>();
   public DbSet<InventoryRetirement> InventoryRetirements => Set<InventoryRetirement>();
@@ -30,9 +28,6 @@ public class AppDbContext : DbContext
   public DbSet<LogisticsTask> LogisticsTasks => Set<LogisticsTask>();
   public DbSet<Package> Packages => Set<Package>();
   public DbSet<PackageItem> PackageItems => Set<PackageItem>();
-  public DbSet<Address> Addresses => Set<Address>();
-  public DbSet<ClientAddressBookEntry> ClientAddressBookEntries => Set<ClientAddressBookEntry>();
-  public DbSet<Person> People => Set<Person>();
   public DbSet<TaxJurisdiction> TaxJurisdictions => Set<TaxJurisdiction>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -43,46 +38,6 @@ public class AppDbContext : DbContext
       .HasMany(r => r.Permissions)
       .WithMany(p => p.Roles)
       .UsingEntity(j => j.ToTable("RolePermissions"));
-
-    modelBuilder.Entity<Client>()
-      .HasOne(c => c.ResidentialClient)
-      .WithOne(rc => rc.Client)
-      .HasForeignKey<ResidentialClient>(rc => rc.ClientId)
-      .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<Client>()
-      .HasOne(c => c.BusinessClient)
-      .WithOne(bc => bc.Client)
-      .HasForeignKey<BusinessClient>(bc => bc.ClientId)
-      .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<BusinessClient>()
-      .HasMany(bc => bc.Contacts)
-      .WithOne(cp => cp.BusinessClient)
-      .HasForeignKey(cp => cp.BusinessClientId)
-      .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<ClientAddressBookEntry>()
-        .HasOne(e => e.Client)
-        .WithMany(c => c.AddressBookEntries)
-        .HasForeignKey(e => e.ClientId)
-        .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<ClientAddressBookEntry>()
-        .HasOne(e => e.Person)
-        .WithMany(p => p.AddressBookEntries)
-        .HasForeignKey(e => e.PersonId)
-        .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<ClientAddressBookEntry>()
-        .HasOne(e => e.Address)
-        .WithMany(a => a.AddressBookEntries)
-        .HasForeignKey(e => e.AddressId)
-        .OnDelete(DeleteBehavior.Cascade);
-
-    modelBuilder.Entity<ClientAddressBookEntry>()
-        .Property(e => e.Type)
-        .HasConversion<string>();
 
     modelBuilder.Entity<InventoryPurchase>()
       .HasOne(p => p.InventoryItem)
@@ -148,12 +103,6 @@ public class AppDbContext : DbContext
       .HasIndex(pi => new { pi.PackageId, pi.InventoryItemId })
       .IsUnique();
 
-    modelBuilder.Entity<ResidentialClient>()
-      .HasOne(rc => rc.Person)
-      .WithMany()
-      .HasForeignKey(rc => rc.PersonId)
-      .OnDelete(DeleteBehavior.Cascade);
-
     modelBuilder.Entity<TaxJurisdiction>()
       .HasIndex(t => new { t.ZipCode, t.City, t.Address });
 
@@ -163,6 +112,20 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<TaxJurisdiction>()
       .Property(t => t.HighRate)
       .IsRequired();
+
+    modelBuilder.Entity<Client>()
+      .HasMany(c => c.ClientAddresses)
+      .WithOne(a => a.Client)
+      .HasForeignKey(a => a.ClientId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<ClientAddress>()
+      .Property(a => a.Type)
+      .HasConversion<string>();
+
+    modelBuilder.Entity<ClientAddress>()
+      .HasIndex(a => a.Uid)
+      .IsUnique();
 
     InventoryConfigSeeder.Seed(modelBuilder);
   }

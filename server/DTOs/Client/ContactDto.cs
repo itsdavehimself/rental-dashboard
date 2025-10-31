@@ -1,4 +1,4 @@
-namespace server.Dtos.Clients;
+namespace server.DTOs.Client;
 
 public class ContactDto
 {

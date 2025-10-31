@@ -1,7 +1,6 @@
-import type { Address } from "./Address";
-import type { Contact } from "./Contact";
+import type { Address, AddressEntry } from "./Address";
 
-type ResidentialClient = {
+type Client = {
   uid: string;
   firstName: string;
   lastName: string;
@@ -11,15 +10,20 @@ type ResidentialClient = {
   createdAt: string;
   billingAddress: Address;
   deliveryAddress: Address;
+  businessName?: string;
+  isTaxExempt: boolean;
 };
 
-type CreateResidentialClient = {
+type CreateClient = {
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber: string;
   notes?: string;
   address: Omit<Address, "isPrimary">;
+  isTaxExempt: boolean;
+  businessName?: string;
+  type: "Residential" | "Business";
 };
 
 type ClientSearchResult = {
@@ -48,10 +52,9 @@ type ClientDetail = {
   // Business-specific
   businessName?: string;
   isTaxExempt?: boolean;
-  contacts?: Contact[];
   // Both
-  billingAddresses: Address[];
-  deliveryAddresses: Address[];
+  billingAddresses: AddressEntry[];
+  deliveryAddresses: AddressEntry[];
 };
 
 export const CLIENT_TYPES = {
@@ -61,9 +64,4 @@ export const CLIENT_TYPES = {
 
 export type ClientType = keyof typeof CLIENT_TYPES;
 
-export type {
-  ResidentialClient,
-  CreateResidentialClient,
-  ClientSearchResult,
-  ClientDetail,
-};
+export type { Client, CreateClient, ClientSearchResult, ClientDetail };
