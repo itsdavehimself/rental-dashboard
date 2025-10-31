@@ -156,6 +156,7 @@ const createAddressEntry = async (
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.phoneNumber.replaceAll("-", ""),
+        email: data.email,
         addressLine1: data.addressLine1,
         addressLine2: data.addressLine2,
         city: data.city,

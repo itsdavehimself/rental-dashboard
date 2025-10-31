@@ -156,10 +156,10 @@ public class ClientController : ControllerBase
                   .Select(a => new ClientProfileDto
                   {
                       Uid = a.Uid,
-                      FirstName = primaryBilling?.FirstName ?? "",
-                      LastName = primaryBilling?.LastName ?? "",
-                      PhoneNumber = primaryBilling?.PhoneNumber ?? "",
-                      Email = primaryBilling?.Email ?? "",
+                      FirstName = a.FirstName,
+                      LastName = a.LastName,
+                      PhoneNumber = a.PhoneNumber,
+                      Email = a.Email,
                       AddressLine1 = a.AddressLine1,
                       AddressLine2 = a.AddressLine2,
                       City = a.City,
@@ -174,10 +174,10 @@ public class ClientController : ControllerBase
                   .Select(a => new ClientProfileDto
                   {
                       Uid = a.Uid,
-                      FirstName = primaryDelivery?.FirstName ?? "",
-                      LastName = primaryDelivery?.LastName ?? "",
-                      PhoneNumber = primaryDelivery?.PhoneNumber ?? "",
-                      Email = primaryDelivery?.Email ?? "",
+                      FirstName = a.FirstName,
+                      LastName = a.LastName,
+                      PhoneNumber = a.PhoneNumber,
+                      Email = a.Email,
                       AddressLine1 = a.AddressLine1,
                       AddressLine2 = a.AddressLine2,
                       City = a.City,
@@ -338,10 +338,10 @@ public class ClientController : ControllerBase
         .Select(p => new ClientProfileDto
         {
           Uid = p.Uid,
-          FirstName = primaryBilling.FirstName,
-          LastName = primaryBilling.LastName,
-          PhoneNumber = primaryBilling.PhoneNumber,
-          Email = primaryBilling.Email,
+          FirstName = p.FirstName,
+          LastName = p.LastName,
+          PhoneNumber = p.PhoneNumber,
+          Email = p.Email,
           AddressLine1 = p.AddressLine1,
           AddressLine2 = p.AddressLine2,
           City = p.City,
@@ -355,10 +355,10 @@ public class ClientController : ControllerBase
         .Select(a => new ClientProfileDto
         {
           Uid = a.Uid,
-          FirstName = primaryDelivery.FirstName,
-          LastName = primaryDelivery.LastName,
-          PhoneNumber = primaryDelivery.PhoneNumber,
-          Email = primaryDelivery.Email,
+          FirstName = a.FirstName,
+          LastName = a.LastName,
+          PhoneNumber = a.PhoneNumber,
+          Email = a.Email,
           AddressLine1 = a.AddressLine1,
           AddressLine2 = a.AddressLine2,
           City = a.City,
@@ -592,6 +592,8 @@ public class ClientController : ControllerBase
       PhoneNumber = request.PhoneNumber,
       AddressLine1 = request.AddressLine1,
       AddressLine2 = request.AddressLine2,
+      NormalizedCity = CityNormalizer.NormalizeCity(request.City),
+      NormalizedStreet = AddressNormalizer.Normalize(request.AddressLine1),
       City = request.City,
       State = request.State,
       ZipCode = request.ZipCode,
@@ -666,8 +668,10 @@ public class ClientController : ControllerBase
       .FirstOrDefaultAsync();
 
     if (primaryAddress != null)
+    {
+        primaryAddress.IsPrimary = false;
+    }
 
-      primaryAddress.IsPrimary = false;
     clientAddress.IsPrimary = true;
     await _context.SaveChangesAsync();
     return NoContent();
@@ -747,7 +751,7 @@ public class ClientController : ControllerBase
       });
   }
   
-  [HttpDelete("address-book-entries/{addressUid}")]
+  [HttpDelete("client-addresses/{addressUid}")]
   public async Task<IActionResult> DeleteAddressEntry(Guid addressUid)
   {
     var addressBookEntry = await _context.ClientAddresses.FirstOrDefaultAsync(a => a.Uid == addressUid);
