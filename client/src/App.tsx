@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route, Outlet } from "react-router";
 import Login from "./containers/auth/Login";
 import Dashboard from "./containers/Dashboard";
 import ProtectedRoute from "./layouts/ProtectedRoute";
@@ -37,16 +37,16 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
-          <Route path="/events">
+          <Route
+            path="/events"
+            element={
+              <CreateEventProvider>
+                <Outlet />
+              </CreateEventProvider>
+            }
+          >
             <Route index element={<Events />} />
-            <Route
-              path="/events/create"
-              element={
-                <CreateEventProvider>
-                  <CreateEvent />
-                </CreateEventProvider>
-              }
-            />
+            <Route path="create" element={<CreateEvent />} />
           </Route>
           <Route path="/clients">
             <Route index element={<Clients />} />
