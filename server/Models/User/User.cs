@@ -10,7 +10,7 @@ public class User
   public string PhoneNumber { get; set; } = string.Empty;
   public string PasswordHash { get; set; } = string.Empty;
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-  public DateTime LastModifiedAt { get; set; } = DateTime.UtcNow;
+  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
   public DateTime? StartDate { get; set; }
   public int RoleId { get; set; }
   public Role Role { get; set; } = null!;

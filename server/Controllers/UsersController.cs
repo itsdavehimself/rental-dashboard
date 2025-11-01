@@ -49,7 +49,7 @@ public class UsersController : ControllerBase
         u.Email,
         u.PhoneNumber,
         u.CreatedAt,
-        u.LastModifiedAt,
+        u.UpdatedAt,
         u.IsActive,
         startDate = u.StartDate != null ? u.StartDate : null,
         jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
@@ -99,7 +99,7 @@ public class UsersController : ControllerBase
       u.Email,
       u.PhoneNumber,
       u.CreatedAt,
-      u.LastModifiedAt,
+      u.UpdatedAt,
       u.IsActive,
       startDate = u.StartDate != null ? u.StartDate : null,
       jobTitle = u.JobTitle != null ? u.JobTitle.Title : null,
@@ -215,7 +215,7 @@ public class UsersController : ControllerBase
       }
     }
 
-    user.LastModifiedAt = DateTime.UtcNow;
+    user.UpdatedAt = DateTime.UtcNow;
 
     await _context.SaveChangesAsync();
 

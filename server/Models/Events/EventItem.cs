@@ -13,6 +13,8 @@ public class EventItem
   public int Quantity { get; set; }
   public decimal UnitPrice { get; set; }
   public ItemType Type { get; set; }
+  public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+  public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public enum ItemType

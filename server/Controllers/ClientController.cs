@@ -469,67 +469,68 @@ public class ClientController : ControllerBase
   [HttpPatch("{uid}")]
   public async Task<IActionResult> Update(Guid uid, [FromBody] UpdateClientDto body)
   {
-      var client = await _context.Clients
-          .Include(c => c.ClientAddresses)
-          .FirstOrDefaultAsync(c => c.Uid == uid);
+    var client = await _context.Clients
+        .Include(c => c.ClientAddresses)
+        .FirstOrDefaultAsync(c => c.Uid == uid);
 
-      if (client == null)
-          return NotFound(new { message = "Client not found." });
+    if (client == null)
+        return NotFound(new { message = "Client not found." });
 
-      client.Notes = body.Notes;
+    client.Notes = body.Notes;
+    client.UpdatedAt = DateTime.UtcNow;
 
-      await _context.SaveChangesAsync();
+    await _context.SaveChangesAsync();
 
-      var primaryContact = client.ClientAddresses
-          .FirstOrDefault(c => c.IsPrimary)
-          ?? client.ClientAddresses.FirstOrDefault();
+    var primaryContact = client.ClientAddresses
+        .FirstOrDefault(c => c.IsPrimary)
+        ?? client.ClientAddresses.FirstOrDefault();
 
-      return Ok(new ClientResponseDto
-      {
-          Uid = client.Uid,
-          CreatedAt = client.CreatedAt,
-          Type = client.Type,
-          Notes = client.Notes,
+    return Ok(new ClientResponseDto
+    {
+      Uid = client.Uid,
+      CreatedAt = client.CreatedAt,
+      Type = client.Type,
+      Notes = client.Notes,
 
-          FirstName = client.FirstName,
-          LastName = client.LastName,
-          Email = client.Email,
-          PhoneNumber = client.PhoneNumber,
+      FirstName = client.FirstName,
+      LastName = client.LastName,
+      Email = client.Email,
+      PhoneNumber = client.PhoneNumber,
 
-          BillingAddresses = client.ClientAddresses
-              .Where(p => p.Type == ClientAddressType.Billing)
-              .OrderByDescending(p => p.IsPrimary)
-              .Select(p => new ClientProfileDto
-              {
-                  Uid = p.Uid,
-                  FirstName = p.FirstName,
-                  LastName = p.LastName,
-                  PhoneNumber = p.PhoneNumber,
-                  AddressLine1 = p.AddressLine1,
-                  AddressLine2 = p.AddressLine2,
-                  City = p.City,
-                  State = p.State,
-                  ZipCode = p.ZipCode,
-                  IsPrimary = p.IsPrimary
-              }).ToList(),
+      BillingAddresses = client.ClientAddresses
+        .Where(p => p.Type == ClientAddressType.Billing)
+        .OrderByDescending(p => p.IsPrimary)
+        .Select(p => new ClientProfileDto
+        {
+          Uid = p.Uid,
+          FirstName = p.FirstName,
+          LastName = p.LastName,
+          PhoneNumber = p.PhoneNumber,
+          AddressLine1 = p.AddressLine1,
+          AddressLine2 = p.AddressLine2,
+          City = p.City,
+          State = p.State,
+          ZipCode = p.ZipCode,
+          IsPrimary = p.IsPrimary
+        }).ToList(),
 
-          DeliveryAddresses = client.ClientAddresses
-              .Where(p => p.Type == ClientAddressType.Delivery)
-              .OrderByDescending(p => p.IsPrimary)
-              .Select(p => new ClientProfileDto
-              {
-                  Uid = p.Uid,
-                  FirstName = p.FirstName,
-                  LastName = p.LastName,
-                  PhoneNumber = p.PhoneNumber,
-                  AddressLine1 = p.AddressLine1,
-                  AddressLine2 = p.AddressLine2,
-                  City = p.City,
-                  State = p.State,
-                  ZipCode = p.ZipCode,
-                  IsPrimary = p.IsPrimary
-              }).ToList()
-      });
+      DeliveryAddresses = client.ClientAddresses
+        .Where(p => p.Type == ClientAddressType.Delivery)
+        .OrderByDescending(p => p.IsPrimary)
+        .Select(p => new ClientProfileDto
+        {
+          Uid = p.Uid,
+          FirstName = p.FirstName,
+          LastName = p.LastName,
+          PhoneNumber = p.PhoneNumber,
+          AddressLine1 = p.AddressLine1,
+          AddressLine2 = p.AddressLine2,
+          City = p.City,
+          State = p.State,
+          ZipCode = p.ZipCode,
+          IsPrimary = p.IsPrimary
+        }).ToList()
+    });
   }
 
   [HttpPost("{uid}/client-addresses")]
@@ -597,6 +598,8 @@ public class ClientController : ControllerBase
       City = request.City,
       State = request.State,
       ZipCode = request.ZipCode,
+      CreatedAt = DateTime.UtcNow,
+      UpdatedAt = DateTime.UtcNow
     };
 
     _context.ClientAddresses.Add(entry);
@@ -673,6 +676,7 @@ public class ClientController : ControllerBase
     }
 
     clientAddress.IsPrimary = true;
+    clientAddress.UpdatedAt = DateTime.UtcNow;
     await _context.SaveChangesAsync();
     return NoContent();
   }
@@ -680,74 +684,76 @@ public class ClientController : ControllerBase
   [HttpPatch("client-addresses/{addressUid}")]
   public async Task<IActionResult> UpdateAddress(Guid addressUid, [FromBody] ClientAddressCreateDto request)
   {
-      var entry = await _context.ClientAddresses
-          .FirstOrDefaultAsync(e => e.Uid == addressUid);
+    var entry = await _context.ClientAddresses
+        .FirstOrDefaultAsync(e => e.Uid == addressUid);
 
-      if (entry == null)
-          return NotFound(new ProblemDetails
-          {
-              Title = "Not Found",
-              Detail = "Address Book Entry not found."
-          });
+    if (entry == null)
+        return NotFound(new ProblemDetails
+        {
+            Title = "Not Found",
+            Detail = "Address Book Entry not found."
+        });
 
-      if (!Enum.TryParse<ClientAddressType>(request.Type, true, out var parsedType))
-          return BadRequest(new ProblemDetails
-          {
-              Title = "Invalid Address Type",
-              Detail = $"'{request.Type}' is not valid. Use 'Billing' or 'Delivery'."
-          });
+    if (!Enum.TryParse<ClientAddressType>(request.Type, true, out var parsedType))
+        return BadRequest(new ProblemDetails
+        {
+            Title = "Invalid Address Type",
+            Detail = $"'{request.Type}' is not valid. Use 'Billing' or 'Delivery'."
+        });
 
-      entry.FirstName = request.FirstName;
-      entry.LastName = request.LastName;
-      entry.PhoneNumber = request.PhoneNumber;
-      entry.Email = request.Email ?? "";
-      entry.Role = request.Role;
+    entry.FirstName = request.FirstName;
+    entry.LastName = request.LastName;
+    entry.PhoneNumber = request.PhoneNumber;
+    entry.Email = request.Email ?? "";
+    entry.Role = request.Role;
 
-      entry.AddressLine1 = request.AddressLine1;
-      entry.AddressLine2 = request.AddressLine2;
-      entry.City = request.City;
-      entry.State = request.State;
-      entry.ZipCode = request.ZipCode;
+    entry.AddressLine1 = request.AddressLine1;
+    entry.AddressLine2 = request.AddressLine2;
+    entry.City = request.City;
+    entry.State = request.State;
+    entry.ZipCode = request.ZipCode;
 
-      entry.Label = request.Label;
-      entry.Type = parsedType;
+    entry.Label = request.Label;
+    entry.Type = parsedType;
+    entry.UpdatedAt = DateTime.UtcNow;
 
-      if (request.IsPrimary)
-      {
-          var existingPrimary = await _context.ClientAddresses
-              .FirstOrDefaultAsync(e =>
-                  e.ClientId == entry.ClientId &&
-                  e.Type == parsedType &&
-                  e.IsPrimary &&
-                  e.Uid != entry.Uid);
+    if (request.IsPrimary)
+    {
+      var existingPrimary = await _context.ClientAddresses
+          .FirstOrDefaultAsync(e =>
+              e.ClientId == entry.ClientId &&
+              e.Type == parsedType &&
+              e.IsPrimary &&
+              e.Uid != entry.Uid);
 
-          if (existingPrimary != null)
-              existingPrimary.IsPrimary = false;
+      if (existingPrimary != null)
+          existingPrimary.IsPrimary = false;
 
-          entry.IsPrimary = true;
-      }
-      else
-      {
-          entry.IsPrimary = false;
-      }
+      entry.IsPrimary = true;
+        
+    }
+    else
+    {
+        entry.IsPrimary = false;
+    }
 
-      await _context.SaveChangesAsync();
+    await _context.SaveChangesAsync();
 
-      return Ok(new ClientAddressDto
-      {
-          Uid = entry.Uid,
-          FirstName = entry.FirstName,
-          LastName = entry.LastName,
-          PhoneNumber = entry.PhoneNumber,
-          Email = entry.Email,
-          AddressLine1 = entry.AddressLine1,
-          AddressLine2 = entry.AddressLine2,
-          City = entry.City,
-          State = entry.State,
-          ZipCode = entry.ZipCode,
-          IsPrimary = entry.IsPrimary,
-          Label = entry.Label,
-          Type = parsedType,
+    return Ok(new ClientAddressDto
+    {
+        Uid = entry.Uid,
+        FirstName = entry.FirstName,
+        LastName = entry.LastName,
+        PhoneNumber = entry.PhoneNumber,
+        Email = entry.Email,
+        AddressLine1 = entry.AddressLine1,
+        AddressLine2 = entry.AddressLine2,
+        City = entry.City,
+        State = entry.State,
+        ZipCode = entry.ZipCode,
+        IsPrimary = entry.IsPrimary,
+        Label = entry.Label,
+        Type = parsedType,
       });
   }
   
