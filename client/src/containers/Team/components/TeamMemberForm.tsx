@@ -164,33 +164,36 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col justify-center px-8 pt-4 gap-4"
     >
-      <StyledInput
-        label="First Name"
-        placeholder="Becky"
-        register={register("firstName")}
-        error={formErrors.firstName?.message}
-      />
-      <StyledInput
-        label="Last Name"
-        placeholder="Bouncehouse"
-        register={register("lastName")}
-        error={formErrors.lastName?.message}
-      />
-      <StyledInput
-        label="Email"
-        placeholder="beckybouncehouse@adrentals.com"
-        register={register("email")}
-        error={formErrors.email?.message}
-      />
-      <PhoneInput
-        label="Phone Number"
-        register={register("phoneNumber")}
-        error={formErrors.phoneNumber?.message}
-      />
+      <div className="grid grid-cols-2 gap-4 w-172">
+        <StyledInput
+          label="First Name"
+          placeholder="Becky"
+          register={register("firstName")}
+          error={formErrors.firstName?.message}
+        />
+        <StyledInput
+          label="Last Name"
+          placeholder="Bouncehouse"
+          register={register("lastName")}
+          error={formErrors.lastName?.message}
+        />
+        <StyledInput
+          label="Email"
+          placeholder="beckybouncehouse@adrentals.com"
+          register={register("email")}
+          error={formErrors.email?.message}
+        />
+        <PhoneInput
+          label="Phone Number"
+          register={register("phoneNumber")}
+          error={formErrors.phoneNumber?.message}
+        />
+      </div>
       <DatePicker
         label="Start Date"
         date={startDate}
         onSelect={(val) => setValue("startDate", val)}
+        disablePastDates={false}
       />
       <Dropdown
         ref={jobTitleRef}

@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { RefObject } from "react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface DropdownProps {
   ref: RefObject<HTMLDivElement | null>;
@@ -26,6 +26,26 @@ const Dropdown: React.FC<DropdownProps> = ({
   error,
 }) => {
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (openDropdown === label && listRef.current) {
+      let startIndex = options.findIndex((o) => o.value === value);
+      if (startIndex === -1) startIndex = 0;
+
+      setHighlightedIndex(startIndex);
+
+      const item = listRef.current.children[startIndex] as HTMLElement;
+      if (item) item.scrollIntoView({ block: "nearest" });
+    }
+  }, [openDropdown]);
+
+  useEffect(() => {
+    if (!listRef.current || highlightedIndex < 0) return;
+
+    const item = listRef.current.children[highlightedIndex] as HTMLElement;
+    if (item) item.scrollIntoView({ block: "nearest" });
+  }, [highlightedIndex]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -85,7 +105,10 @@ const Dropdown: React.FC<DropdownProps> = ({
         </div>
       </div>
       {openDropdown === label && (
-        <ul className="flex flex-col border-1 bg-white w-full border-gray-300 rounded-lg overflow-hidden absolute mt-0.5 z-100 max-h-54 overflow-y-scroll">
+        <ul
+          ref={listRef}
+          className="flex flex-col border-1 bg-white w-full border-gray-300 rounded-lg overflow-hidden absolute mt-0.5 z-100 max-h-54 overflow-y-scroll"
+        >
           {options.map((opt, i) => (
             <li
               key={opt.value}

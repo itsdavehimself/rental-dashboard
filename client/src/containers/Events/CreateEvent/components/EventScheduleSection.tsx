@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { type UseFormSetValue, type FieldErrors } from "react-hook-form";
 import { type CreateEventInputs } from "../CreateEvent";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 
 interface EventScheduleSectionProps {
   deliveryDate: Date;
@@ -27,6 +27,21 @@ const EventScheduleSection: React.FC<EventScheduleSectionProps> = ({
   const [openDropDown, setOpenDropDown] = useState<string | null>(null);
   const deliveryTimeRef = useRef<HTMLDivElement>(null);
   const pickUpTimeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        openDropDown &&
+        !deliveryTimeRef.current?.contains(e.target as Node) &&
+        !pickUpTimeRef.current?.contains(e.target as Node)
+      ) {
+        setOpenDropDown(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openDropDown]);
 
   return (
     <>
