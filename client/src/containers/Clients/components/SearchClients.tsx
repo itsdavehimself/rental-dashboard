@@ -11,7 +11,7 @@ import { useToast } from "../../../hooks/useToast";
 import ClientSearchResultRow from "./ClientSearchResultRow";
 import ClientInputChip from "../../../components/common/ClientInputChip";
 import ActionButton from "../../../components/common/ActionButton";
-import { useCreateEvent } from "../../../context/useCreateEvent";
+import { useCreateEvent } from "../../Events/hooks/useCreateEvent";
 import { useNavigate } from "react-router";
 
 interface SearchClientsProps<T extends string | null> {
