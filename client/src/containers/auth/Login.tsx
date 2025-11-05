@@ -6,6 +6,7 @@ import SubmitButton from "../../components/common/SubmitButton";
 import ValidatedInput from "../../components/common/ValidatedInput";
 import { useAppDispatch } from "../../app/hooks";
 import { fetchUser } from "../../app/slices/userSlice";
+import loginTent from "../../assets/login_tent_edit.png";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -74,6 +75,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-white justify-center items-center gap-10 px-10">
+      <img className="h-1/4 -mt-100" src={loginTent} alt="" />
       <div className="flex flex-col justify-center items-center gap-10 w-full p-10 rounded-xl sm:w-100 ring-1 ring-gray-200">
         <div className="flex flex-col">
           <h1 className="text-4xl font-bold text-text">AD Rentals</h1>

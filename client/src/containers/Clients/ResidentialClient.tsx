@@ -1,8 +1,8 @@
 import { useParams } from "react-router";
-import { getClientDetails } from "../../service/clientService";
+import { getClientDetails } from "./services/clientService";
 import { useToast } from "../../hooks/useToast";
 import { useState, useEffect } from "react";
-import type { ResidentialClient } from "../../types/Client";
+import type { ClientDetail } from "./types/Client";
 import type { ErrorsState } from "../../helpers/handleError";
 import { handleError } from "../../helpers/handleError";
 
@@ -11,7 +11,7 @@ const ResidentialClientDetails: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
 
-  const [client, setClient] = useState<ResidentialClient | null>(null);
+  const [client, setClient] = useState<ClientDetail | null>(null);
   const [errors, setErrors] = useState<ErrorsState>(null);
 
   const handleClientFetch = async (): Promise<void> => {

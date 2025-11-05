@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { handleError } from "../helpers/handleError";
-import { useToast } from "./useToast";
-import type { ErrorsState } from "../helpers/handleError";
+import { handleError } from "../../../helpers/handleError";
+import { useToast } from "../../../hooks/useToast";
+import type { ErrorsState } from "../../../helpers/handleError";
 import type { Client } from "../types/Client";
-import { fetchClients } from "../service/clientService";
+import { fetchClients } from "../services/clientService";
 
 export function useClients(page: number) {
   const [clients, setClients] = useState<Client[]>([]);

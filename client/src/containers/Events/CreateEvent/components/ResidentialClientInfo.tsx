@@ -1,7 +1,7 @@
 import { formatPhoneNumber } from "../../../../helpers/formatPhoneNumber";
 import ResidentialClientSection from "./ResidentialClientSection";
 import type { CreateEventModalType } from "../CreateEvent";
-import { useCreateEvent } from "../../../../context/useCreateEvent";
+import { useCreateEvent } from "../../hooks/useCreateEvent";
 import { useEffect } from "react";
 
 const ResidentialClientInfo: React.FC = () => {

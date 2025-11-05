@@ -1,6 +1,5 @@
 import { formatDistanceToNowStrict } from "date-fns";
-import type { User } from "../../../types/User";
-import { Ellipsis } from "lucide-react";
+import type { User } from "../types/User";
 import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
 
 interface MemberRowProps {

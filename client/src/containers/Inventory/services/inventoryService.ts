@@ -1,12 +1,12 @@
-import type { PaginatedResponse } from "../types/PaginatedResponse";
+import type { PaginatedResponse } from "../../../types/PaginatedResponse";
 import type {
   InventoryItemSearchResult,
   InventoryListItem,
 } from "../types/InventoryItem";
-import { CustomError } from "../types/CustomError";
+import { CustomError } from "../../../types/CustomError";
 import type { InventoryConfigResponse } from "../types/InventoryConfigResponse";
-import type { InventoryItemInput } from "../containers/Inventory/components/InventoryItemForm";
-import type { InventoryPurchaseInput } from "../containers/Inventory/components/InventoryPurchaseForm";
+import type { InventoryItemInput } from "../components/InventoryItemForm";
+import type { InventoryPurchaseInput } from "../components/InventoryPurchaseForm";
 
 const fetchInventoryItems = async (
   apiUrl: string,

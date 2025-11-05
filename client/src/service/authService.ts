@@ -1,4 +1,4 @@
-import type { CreateUser, User } from "../types/User";
+import type { CreateUser, User } from "../containers/Team/types/User";
 import { CustomError } from "../types/CustomError";
 
 const registerUser = async (

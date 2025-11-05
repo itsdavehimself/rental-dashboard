@@ -6,8 +6,8 @@ import SearchBar from "../../components/common/DebouncedSearchBar";
 import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import InventoryItemForm from "./components/InventoryItemForm";
-import { useInventoryItems } from "../../hooks/useInventoryItems";
-import { useInventoryConfig } from "../../hooks/useInventoryConfig";
+import { useInventoryItems } from "./hooks/useInventoryItems";
+import { useInventoryConfig } from "./hooks/useInventoryConfig";
 
 export type InventoryModalType = null | "addItem" | "addStock";
 

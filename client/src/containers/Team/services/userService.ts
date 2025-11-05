@@ -1,5 +1,5 @@
 import type { User } from "../types/User";
-import { CustomError } from "../types/CustomError";
+import { CustomError } from "../../../types/CustomError";
 
 const fetchUsers = async (apiUrl: string, url: string): Promise<User[]> => {
   const response = await fetch(`${apiUrl}/${url}`, {

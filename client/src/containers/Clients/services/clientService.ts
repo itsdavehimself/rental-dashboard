@@ -1,12 +1,7 @@
-import { CustomError } from "../types/CustomError";
-import type { PaginatedResponse } from "../types/PaginatedResponse";
-import type {
-  ClientDetail,
-  ClientSearchResult,
-  CreateClient,
-  Client,
-} from "../types/Client";
-import type { AddressEntry, CreateAddressEntry } from "../types/Address";
+import { CustomError } from "../../../types/CustomError";
+import type { PaginatedResponse } from "../../../types/PaginatedResponse";
+import type { ClientDetail, CreateClient, Client } from "../types/Client";
+import type { AddressEntry, CreateAddressEntry } from "../../../types/Address";
 
 const fetchClients = async (
   apiUrl: string,
@@ -35,7 +30,7 @@ const searchClients = async (
   apiUrl: string,
   page: number,
   query: string
-): Promise<PaginatedResponse<ClientSearchResult>> => {
+): Promise<PaginatedResponse<ClientDetail>> => {
   const response = await fetch(
     `${apiUrl}/api/client/fuzzy-search?page=${page}&pageSize=25&query=${query}`,
     {

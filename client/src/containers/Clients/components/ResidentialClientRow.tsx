@@ -1,4 +1,4 @@
-import type { Client } from "../../../types/Client";
+import type { Client } from "../types/Client";
 import { useNavigate } from "react-router";
 import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
 import { formatAddress } from "../../../helpers/formatAddress";

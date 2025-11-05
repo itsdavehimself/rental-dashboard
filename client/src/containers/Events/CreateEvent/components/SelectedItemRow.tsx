@@ -1,11 +1,11 @@
-import type { SelectedItem } from "../CreateEvent";
+import type { EventItem } from "../CreateEvent";
 import QuantityInput from "../../../../components/common/QuantityInput";
 import { X } from "lucide-react";
 
 interface SelectedItemRowProps {
-  item: SelectedItem;
-  selectedItems: SelectedItem[];
-  setSelectedItems: React.Dispatch<React.SetStateAction<SelectedItem[]>>;
+  item: EventItem;
+  selectedItems: EventItem[];
+  setSelectedItems: React.Dispatch<React.SetStateAction<EventItem[]>>;
 }
 
 const SelectedItemRow: React.FC<SelectedItemRowProps> = ({
@@ -16,7 +16,7 @@ const SelectedItemRow: React.FC<SelectedItemRowProps> = ({
   const handleQuantityChange = (uid: string, newQuantity: number) => {
     setSelectedItems((prev) =>
       prev.map((item) =>
-        item.uid === uid ? { ...item, quantitySelected: newQuantity } : item
+        item.uid === uid ? { ...item, count: newQuantity } : item
       )
     );
   };
@@ -32,7 +32,7 @@ const SelectedItemRow: React.FC<SelectedItemRowProps> = ({
       <div className="grid grid-cols-[1fr_3rem_2rem] gap-4 items-center">
         <div className="text-right font-semibold">${item.unitPrice}/unit</div>
         <QuantityInput
-          value={item.quantitySelected}
+          value={item.count}
           onValueChange={(val) => handleQuantityChange(item.uid, val)}
         />
         <button

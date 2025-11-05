@@ -1,4 +1,4 @@
-import type { ResidentialClient } from "../../../types/Client";
+import type { ResidentialClient } from "../types/Client";
 import SelectButton from "../../../components/common/SelectButton";
 import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
 

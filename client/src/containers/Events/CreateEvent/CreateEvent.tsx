@@ -1,6 +1,6 @@
 import { useLocation } from "react-router";
 import { useEffect, useState } from "react";
-import { getClientDetails } from "../../../service/clientService";
+import { getClientDetails } from "../../Clients/services/clientService";
 import { useToast } from "../../../hooks/useToast";
 import { type ErrorsState, handleError } from "../../../helpers/handleError";
 import ResidentialClientInfo from "./components/ResidentialClientInfo";
@@ -18,8 +18,10 @@ import EditModal from "../../../components/common/EditModal";
 import EditClientNotes from "./components/EditClientNotes";
 import EditAddresses from "./components/EditAddresses";
 import EventInternalNotes from "./components/EventInternalNotes";
-import { useCreateEvent } from "../../../context/useCreateEvent";
+import { useCreateEvent } from "../hooks/useCreateEvent";
 import SearchClients from "../../Clients/components/SearchClients";
+import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
+import { saveEventDraft } from "../services/eventService";
 
 export type CreateEventModalType =
   | null
@@ -30,6 +32,15 @@ export type CreateEventModalType =
   | "addBillingAddress"
   | "addDeliveryAddress"
   | "searchClient";
+
+export type EventItem = Omit<InventoryListItem, "quantityTotal"> & {
+  count: number;
+};
+
+export type ItemBasics = Omit<
+  InventoryListItem,
+  "quantityTotal" | "description" | "sku" | "unitPrice" | "uid"
+> & { inventoryItemUid: string };
 
 export type CreateEventInputs = {
   deliveryDate: Date;
@@ -65,6 +76,8 @@ const CreateEvent: React.FC = () => {
     selectedItems,
     setEventBilling,
     setEventDelivery,
+    eventBilling,
+    eventDelivery,
   } = useCreateEvent();
 
   const location = useLocation();
@@ -132,12 +145,23 @@ const CreateEvent: React.FC = () => {
     }
   }, [client]);
 
-  const onSubmit: SubmitHandler<CreateEventInputs> = async (data) => {
-    try {
-      console.log(data);
-      console.log(selectedItems);
-    } catch (err) {
-      console.log("error");
+  const saveDraftSubmit: SubmitHandler<CreateEventInputs> = async (data) => {
+    if (client && eventBilling && eventDelivery) {
+      try {
+        const items = selectedItems.map((i) => ({
+          inventoryItemUid: i.uid,
+          quantity: i.count,
+        }));
+        const uids = {
+          clientUid: client.uid,
+          billingUid: eventBilling.uid,
+          deliveryUid: eventDelivery.uid,
+        };
+        await saveEventDraft(apiUrl, data, items, uids);
+        addToast("Success", "Event saved as draft.");
+      } catch (err) {
+        console.log("error");
+      }
     }
   };
 
@@ -171,13 +195,13 @@ const CreateEvent: React.FC = () => {
         <div className="flex gap-4 w-fit">
           <ActionButton
             label="Save Draft"
-            onClick={() => console.log("saved")}
+            onClick={handleSubmit(saveDraftSubmit)}
             style="outline"
             icon={Save}
           />
           <ActionButton
             label="Reserve"
-            onClick={handleSubmit(onSubmit)}
+            onClick={() => console.log("reserve")}
             style="filled"
             icon={CalendarCheck}
           />

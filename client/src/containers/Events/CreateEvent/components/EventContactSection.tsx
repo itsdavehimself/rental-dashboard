@@ -1,6 +1,6 @@
 import PhoneInput from "../../../../components/common/PhoneInput";
 import StyledInput from "../../../../components/common/StyledInput";
-import type { ClientDetail } from "../../../../types/Client";
+import type { ClientDetail } from "../../../Clients/types/Client";
 import { type UseFormRegister, type FieldErrors } from "react-hook-form";
 import { type CreateEventInputs } from "../CreateEvent";
 import { splitPhoneNumber } from "../../../../helpers/formatPhoneNumber";

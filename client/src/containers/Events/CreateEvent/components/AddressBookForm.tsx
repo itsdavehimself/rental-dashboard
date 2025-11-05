@@ -17,8 +17,8 @@ import BooleanCheckbox from "../../../../components/common/BooleanCheckbox";
 import {
   createAddressEntry,
   updateAddressEntry,
-} from "../../../../service/clientService";
-import { useCreateEvent } from "../../../../context/useCreateEvent";
+} from "../../../Clients/services/clientService";
+import { useCreateEvent } from "../../hooks/useCreateEvent";
 
 export type AddressInputs = {
   addressLine1: string;

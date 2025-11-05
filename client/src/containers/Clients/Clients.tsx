@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import SearchBar from "../../components/common/DebouncedSearchBar";
 import ResidentialClientRow from "./components/ResidentialClientRow";
-import { useClients } from "../../hooks/useClients";
+import { useClients } from "./hooks/useClients";
 import ClientForm from "./components/ClientForm";
 
 export type ClientModalType = null | "addClient";

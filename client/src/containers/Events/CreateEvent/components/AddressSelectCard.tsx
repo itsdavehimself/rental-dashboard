@@ -1,8 +1,8 @@
-import { useCreateEvent } from "../../../../context/useCreateEvent";
+import { useCreateEvent } from "../../hooks/useCreateEvent";
 import type { AddressEntry } from "../../../../types/Address";
 import { formatPhoneNumber } from "../../../../helpers/formatPhoneNumber";
 import { SquarePen, Trash2 } from "lucide-react";
-import { setAddressEntryAsPrimary } from "../../../../service/clientService";
+import { setAddressEntryAsPrimary } from "../../../Clients/services/clientService";
 
 interface AddressSelectCardProps {
   address: AddressEntry;

@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { CreateEventContext } from "./CreateEventContext";
-import type { ClientDetail } from "../types/Client";
-import type { CreateEventModalType } from "../containers/Events/CreateEvent/CreateEvent";
-import type { InventoryItemSearchResult } from "../types/InventoryItem";
-import type { AddressEntry } from "../types/Address";
+import type { ClientDetail } from "../../Clients/types/Client";
+import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
+import type { AddressEntry } from "../../../types/Address";
+import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
 
-export type SelectedItem = InventoryItemSearchResult & {
-  quantitySelected: number;
+type EventItem = Omit<InventoryListItem, "quantityTotal"> & {
+  count: number;
 };
 
 export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [client, setClient] = useState<ClientDetail | null>(null);
-  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
+  const [selectedItems, setSelectedItems] = useState<EventItem[]>([]);
   const [openModal, setOpenModal] = useState<CreateEventModalType>(null);
   const [eventBilling, setEventBilling] = useState<AddressEntry | null>(null);
   const [eventDelivery, setEventDelivery] = useState<AddressEntry | null>(null);

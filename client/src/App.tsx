@@ -15,7 +15,7 @@ import ResidentialClient from "./containers/Clients/ResidentialClient";
 import Library from "./containers/Library/Library";
 import Vendors from "./containers/Vendors/Vendors";
 import CreateEvent from "./containers/Events/CreateEvent/CreateEvent";
-import { CreateEventProvider } from "./context/CreateEventProvider";
+import { CreateEventProvider } from "./containers/Events/context/CreateEventProvider";
 
 function App() {
   const dispatch = useAppDispatch();

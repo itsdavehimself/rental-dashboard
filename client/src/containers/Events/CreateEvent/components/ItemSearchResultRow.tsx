@@ -1,10 +1,10 @@
-import type { InventoryItemSearchResult } from "../../../../types/InventoryItem";
-import type { SelectedItem } from "../CreateEvent";
+import type { InventoryItemSearchResult } from "../../../Inventory/types/InventoryItem";
+import type { EventItem } from "../CreateEvent";
 
 interface ItemSearchResultRowProps {
   item: InventoryItemSearchResult;
-  selectedItems: SelectedItem[];
-  setSelectedItems: React.Dispatch<React.SetStateAction<SelectedItem[]>>;
+  selectedItems: EventItem[];
+  setSelectedItems: React.Dispatch<React.SetStateAction<EventItem[]>>;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -26,14 +26,8 @@ const ItemSearchResultRow: React.FC<ItemSearchResultRowProps> = ({
               uid: item.uid,
               description: item.description,
               sku: item.sku,
-              type: item.type,
-              subType: item.subType,
-              quantityTotal: item.quantityTotal,
+              count: 1,
               unitPrice: item.unitPrice,
-              material: item.material ?? "",
-              color: item.color ?? "",
-              bounceHouseType: item.bounceHouseType ?? "",
-              quantitySelected: 1,
             },
           ];
         });

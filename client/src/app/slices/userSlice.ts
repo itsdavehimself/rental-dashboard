@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { UserMe } from "../../types/User";
+import type { UserMe } from "../../containers/Team/types/User";
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 export const fetchUser = createAsyncThunk("user/fetchUser", async () => {

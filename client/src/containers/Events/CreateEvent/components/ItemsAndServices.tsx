@@ -3,11 +3,11 @@ import { useState, useRef } from "react";
 import { useToast } from "../../../../hooks/useToast";
 import { handleError, type ErrorsState } from "../../../../helpers/handleError";
 import { useDebounce } from "../../../../hooks/useDebounce";
-import { searchInventory } from "../../../../service/inventoryService";
-import { type InventoryItemSearchResult } from "../../../../types/InventoryItem";
+import { searchInventory } from "../../../Inventory/services/inventoryService";
+import { type InventoryItemSearchResult } from "../../../Inventory/types/InventoryItem";
 import ItemSearchResultRow from "./ItemSearchResultRow";
 import SelectedItemRow from "./SelectedItemRow";
-import { useCreateEvent } from "../../../../context/useCreateEvent";
+import { useCreateEvent } from "../../hooks/useCreateEvent";
 
 const ItemsAndServices: React.FC = () => {
   const { addToast } = useToast();
@@ -26,7 +26,6 @@ const ItemsAndServices: React.FC = () => {
     try {
       setIsLoading(true);
       const results = await searchInventory(apiUrl, page, query);
-      console.log(results.data);
       setInventoryItemResults(results.data);
       setIsLoading(false);
     } catch (err) {

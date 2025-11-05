@@ -6,11 +6,11 @@ import TextAreaInput from "../../../components/common/TextAreaInput";
 import { toCamelCasePath } from "../../../helpers/toCamelCasePath";
 import Dropdown from "../../../components/common/Dropdown";
 import CurrencyInput from "../../../components/common/CurrencyInput";
-import type { InventoryType } from "../../../types/InventoryConfigResponse";
-import { createInventoryItem } from "../../../service/inventoryService";
+import type { InventoryType } from "../types/InventoryConfigResponse";
+import { createInventoryItem } from "../services/inventoryService";
 import { useToast } from "../../../hooks/useToast";
 import { handleError, type ErrorsState } from "../../../helpers/handleError";
-import { type InventoryListItem } from "../../../types/InventoryItem";
+import { type InventoryListItem } from "../types/InventoryItem";
 import { type InventoryModalType } from "../Inventory";
 
 export type InventoryItemInput = {

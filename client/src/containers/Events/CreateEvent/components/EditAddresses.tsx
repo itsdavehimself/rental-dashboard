@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import XButton from "../../../../components/common/XButton";
 import { type ErrorsState } from "../../../../helpers/handleError";
-import { useCreateEvent } from "../../../../context/useCreateEvent";
+import { useCreateEvent } from "../../hooks/useCreateEvent";
 import AddressSelectCard from "./AddressSelectCard";
 import DeleteModal from "../../../../components/common/DeleteModal";
-import { deleteAddressEntry } from "../../../../service/clientService";
+import { deleteAddressEntry } from "../../../Clients/services/clientService";
 import { useToast } from "../../../../hooks/useToast";
 import AddressBookForm from "./AddressBookForm";
 

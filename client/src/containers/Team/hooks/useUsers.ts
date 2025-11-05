@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { type User } from "../types/User";
-import { handleError, type ErrorsState } from "../helpers/handleError";
-import { useToast } from "./useToast";
-import { fetchUsers } from "../service/userService";
+import { handleError, type ErrorsState } from "../../../helpers/handleError";
+import { useToast } from "../../../hooks/useToast";
+import { fetchUsers } from "../services/userService";
 
 export function useUsers(filter: "active" | "inactive" | "all") {
   const [users, setUsers] = useState<User[]>([]);

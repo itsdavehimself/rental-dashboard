@@ -1,18 +1,14 @@
 import { createContext } from "react";
-import type { ClientDetail } from "../types/Client";
-import type { InventoryItemSearchResult } from "../types/InventoryItem";
-import type { CreateEventModalType } from "../containers/Events/CreateEvent/CreateEvent";
-import type { AddressEntry } from "../types/Address";
-
-export type SelectedItem = InventoryItemSearchResult & {
-  quantitySelected: number;
-};
+import type { ClientDetail } from "../../Clients/types/Client";
+import type { EventItem } from "../CreateEvent/CreateEvent";
+import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
+import type { AddressEntry } from "../../../types/Address";
 
 export interface CreateEventContextType {
   client: ClientDetail | null;
   setClient: React.Dispatch<React.SetStateAction<ClientDetail | null>>;
-  selectedItems: SelectedItem[];
-  setSelectedItems: React.Dispatch<React.SetStateAction<SelectedItem[]>>;
+  selectedItems: EventItem[];
+  setSelectedItems: React.Dispatch<React.SetStateAction<EventItem[]>>;
   openModal: CreateEventModalType;
   setOpenModal: React.Dispatch<React.SetStateAction<CreateEventModalType>>;
   eventBilling: AddressEntry | null;

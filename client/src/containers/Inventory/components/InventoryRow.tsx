@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import type { InventoryListItem } from "../../../types/InventoryItem";
+import type { InventoryListItem } from "../types/InventoryItem";
 import React, { useState, useEffect } from "react";
 
 interface InventoryRowProps {

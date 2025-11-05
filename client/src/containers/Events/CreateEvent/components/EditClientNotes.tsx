@@ -1,11 +1,11 @@
 import SaveButton from "../../../../components/common/SaveButton";
 import { Save } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { updateClient } from "../../../../service/clientService";
+import { updateClient } from "../../../Clients/services/clientService";
 import { useToast } from "../../../../hooks/useToast";
 import TextAreaInputLocal from "../../../../components/common/TextAreaInputLocal";
 import XButton from "../../../../components/common/XButton";
-import { useCreateEvent } from "../../../../context/useCreateEvent";
+import { useCreateEvent } from "../../hooks/useCreateEvent";
 
 interface EditClientNotesProps {
   title: string;

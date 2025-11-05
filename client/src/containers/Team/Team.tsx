@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { User } from "../../types/User";
+import type { User } from "./types/User";
 import MemberRow from "./components/MemberRow";
 import Table from "../../components/Table/Table";
 import SearchBar from "../../components/common/DebouncedSearchBar";
@@ -7,7 +7,7 @@ import AddButton from "../../components/common/AddButton";
 import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import TeamMemberForm from "./components/TeamMemberForm";
-import { useUsers } from "../../hooks/useUsers";
+import { useUsers } from "./hooks/useUsers";
 
 export type TeamModalType = null | "addTeamMember";
 

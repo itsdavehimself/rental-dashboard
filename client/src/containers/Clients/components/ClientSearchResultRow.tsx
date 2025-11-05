@@ -1,6 +1,6 @@
 import { formatAddress } from "../../../helpers/formatAddress";
 import { formatPhoneNumber } from "../../../helpers/formatPhoneNumber";
-import type { ClientDetail } from "../../../types/Client";
+import type { ClientDetail } from "../types/Client";
 
 interface ClientSearchResultRowProps {
   client: ClientDetail;

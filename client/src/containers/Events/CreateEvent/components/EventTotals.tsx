@@ -1,23 +1,51 @@
 import ActionButton from "../../../../components/common/ActionButton";
-import { DollarSign, HandCoins } from "lucide-react";
-import { useEffect, useMemo } from "react";
-import { useCreateEvent } from "../../../../context/useCreateEvent";
+import { DollarSign } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useCreateEvent } from "../../hooks/useCreateEvent";
+import { getTaxRate } from "../../../../service/taxService";
+import { handleError } from "../../../../helpers/handleError";
+import { useToast } from "../../../../hooks/useToast";
 
 const EventTotals: React.FC = () => {
-  const { selectedItems } = useCreateEvent();
+  const { selectedItems, eventDelivery } = useCreateEvent();
+  const [taxRate, setTaxRate] = useState<number>(0);
+  const [zipCode, setZipCode] = useState(eventDelivery?.zipCode);
+
+  const { addToast } = useToast();
+
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const subTotal = useMemo(() => {
     return selectedItems.reduce(
-      (total, item) => total + item.quantitySelected * item.unitPrice,
+      (total, item) => total + item.count * (item.unitPrice ?? 0),
       0
     );
   }, [selectedItems]);
 
-  const taxes = 0;
-
   const discounts = 0;
 
-  const zipCode = 60089;
+  const fetchTaxRate = async () => {
+    if (zipCode)
+      try {
+        const taxRes = await getTaxRate(apiUrl, zipCode);
+        setTaxRate(taxRes.taxRate);
+      } catch (err) {
+        handleError(err, setErrors);
+        addToast("Error", "There was a problem getting the tax rate.");
+      }
+  };
+
+  useEffect(() => {
+    fetchTaxRate();
+  }, [zipCode]);
+
+  useEffect(() => {
+    setZipCode(eventDelivery?.zipCode);
+  }, [eventDelivery]);
+
+  const taxes = useMemo(() => {
+    return ((subTotal - discounts) * taxRate) / 100;
+  }, [subTotal, discounts, taxRate]);
 
   const total = useMemo(() => {
     return subTotal + taxes - discounts;
@@ -37,7 +65,7 @@ const EventTotals: React.FC = () => {
           Payment Due
         </div>
       </div>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <div className="grid grid-cols-[1fr_.4fr] text-sm">
           <h6 className="font-semibold">Subtotal</h6>
           <p className="text-right">${subTotal.toFixed(2)}</p>
@@ -48,6 +76,10 @@ const EventTotals: React.FC = () => {
         <div className="grid grid-cols-[1fr_.4fr] text-sm">
           <h6 className="font-semibold">Discounts</h6>
           <p className="text-right">${discounts.toFixed(2)}</p>
+        </div>
+        <div className="grid grid-cols-[1fr_.4fr] text-sm">
+          <h6 className="font-semibold">Tax</h6>
+          <p className="text-right">${taxes.toFixed(2)}</p>
         </div>
         <div className="grid grid-cols-[1fr_.4fr] text-sm">
           <h5 className="font-semibold">Total</h5>
@@ -65,17 +97,10 @@ const EventTotals: React.FC = () => {
       </div>
       <div className="flex flex-col gap-4 justify-center h-full w-full items-center">
         <ActionButton
-          label="New Deposit"
-          icon={HandCoins}
-          style="outline"
-          onClick={() => "deposit"}
-          full={true}
-        />
-        <ActionButton
-          label="New Payment"
+          label="Add Payment"
           icon={DollarSign}
           style="filled"
-          onClick={() => "payment"}
+          onClick={() => console.log("payment")}
           full={true}
         />
       </div>

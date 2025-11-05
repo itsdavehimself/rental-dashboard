@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { fetchInventoryConfig } from "../service/inventoryService";
-import { handleError } from "../helpers/handleError";
-import { useToast } from "./useToast";
+import { fetchInventoryConfig } from "../services/inventoryService";
+import { handleError } from "../../../helpers/handleError";
+import { useToast } from "../../../hooks/useToast";
 import type { InventoryType } from "../types/InventoryConfigResponse";
-import type { ErrorsState } from "../helpers/handleError";
+import type { ErrorsState } from "../../../helpers/handleError";
 
 export function useInventoryConfig() {
   const [types, setTypes] = useState<InventoryType[]>([]);

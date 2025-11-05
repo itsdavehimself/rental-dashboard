@@ -4,14 +4,14 @@ import PhoneInput from "../../../components/common/PhoneInput";
 import SubmitButton from "../../../components/common/SubmitButton";
 import Dropdown from "../../../components/common/Dropdown";
 import { useEffect, useState, useRef } from "react";
-import { fetchJobTitles } from "../../../service/jobTitleService";
-import { fetchRoles } from "../../../service/roleService";
+import { fetchJobTitles } from "../services/jobTitleService";
+import { fetchRoles } from "../services/roleService";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import DatePicker from "../../../components/common/DatePicker";
 import { registerUser } from "../../../service/authService";
 import { type TeamModalType } from "../Team";
 import { handleError, type ErrorsState } from "../../../helpers/handleError";
-import type { User } from "../../../types/User";
+import type { User } from "../types/User";
 import { useToast } from "../../../hooks/useToast";
 
 export type TeamMemberInputs = {
@@ -164,31 +164,29 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col justify-center px-8 pt-4 gap-4"
     >
-      <div className="grid grid-cols-2 gap-4 w-172">
-        <StyledInput
-          label="First Name"
-          placeholder="Becky"
-          register={register("firstName")}
-          error={formErrors.firstName?.message}
-        />
-        <StyledInput
-          label="Last Name"
-          placeholder="Bouncehouse"
-          register={register("lastName")}
-          error={formErrors.lastName?.message}
-        />
-        <StyledInput
-          label="Email"
-          placeholder="beckybouncehouse@adrentals.com"
-          register={register("email")}
-          error={formErrors.email?.message}
-        />
-        <PhoneInput
-          label="Phone Number"
-          register={register("phoneNumber")}
-          error={formErrors.phoneNumber?.message}
-        />
-      </div>
+      <StyledInput
+        label="First Name"
+        placeholder="Becky"
+        register={register("firstName")}
+        error={formErrors.firstName?.message}
+      />
+      <StyledInput
+        label="Last Name"
+        placeholder="Bouncehouse"
+        register={register("lastName")}
+        error={formErrors.lastName?.message}
+      />
+      <StyledInput
+        label="Email"
+        placeholder="beckybouncehouse@adrentals.com"
+        register={register("email")}
+        error={formErrors.email?.message}
+      />
+      <PhoneInput
+        label="Phone Number"
+        register={register("phoneNumber")}
+        error={formErrors.phoneNumber?.message}
+      />
       <DatePicker
         label="Start Date"
         date={startDate}
