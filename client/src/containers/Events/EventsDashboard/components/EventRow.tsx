@@ -3,6 +3,7 @@ import type { Event } from "../../types/Event";
 import { useState, useEffect } from "react";
 import { formatAddress } from "../../../../helpers/formatAddress";
 import { format } from "date-fns";
+import ChipTag from "../../../../components/common/ChipTag";
 
 interface EventRowProps {
   item: Event;
@@ -10,6 +11,14 @@ interface EventRowProps {
   columnTemplate: string;
   gap: number;
 }
+
+const statusMap: Record<string, { label: string; color: string }> = {
+  Draft: { label: "Draft", color: "gray" },
+  Confirmed: { label: "Confirmed", color: "blue" },
+  Scheduled: { label: "Scheduled", color: "amber" },
+  Completed: { label: "Completed", color: "green" },
+  Cancelled: { label: "Cancelled", color: "red" },
+};
 
 const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
   const navigate = useNavigate();
@@ -55,8 +64,17 @@ const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
         })}
       </p>
 
-      <>{paid() ? <p>Paid</p> : <p>Balance Due</p>}</>
-      <p>{item.status}</p>
+      <>
+        {paid() ? (
+          <ChipTag label="Paid" color="green" />
+        ) : (
+          <ChipTag label="Balance Due" color="yellow" />
+        )}
+      </>
+      <ChipTag
+        label={statusMap[item.status].label}
+        color={statusMap[item.status].color}
+      />
       <p>{item.internalNotes ?? ""}</p>
     </div>
   );

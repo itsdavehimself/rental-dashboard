@@ -23,13 +23,12 @@ const Events: React.FC = () => {
     "Notes",
   ];
   const columnTemplate =
-    "[grid-template-columns:1fr_1fr_1fr_1fr_1fr_.4fr_.4fr_.4fr]";
+    "[grid-template-columns:1fr_1fr_.7fr_.7fr_1.5fr_.4fr_.4fr_1fr]";
 
   const [page, setPage] = useState<number>(1);
   const [openModal, setOpenModal] = useState<EventModalType>(null);
 
   const { events, setEvents, errors, setErrors } = useEvents(page);
-  console.log(events);
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
