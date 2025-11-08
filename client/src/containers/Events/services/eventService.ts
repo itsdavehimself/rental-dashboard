@@ -1,6 +1,31 @@
 import type { CreateEventInputs, ItemBasics } from "../CreateEvent/CreateEvent";
 import { CustomError } from "../../../types/CustomError";
 import type { Client } from "../../Clients/types/Client";
+import type { PaginatedResponse } from "../../../types/PaginatedResponse";
+import type { Event } from "../types/Event";
+
+const fetchEvents = async (
+  apiUrl: string,
+  page: number
+): Promise<PaginatedResponse<Event>> => {
+  const response = await fetch(
+    `${apiUrl}/api/events?page=${page}&pageSize=25`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Getting events failed.", errorData);
+  }
+
+  return await response.json();
+};
 
 const saveEventDraft = async (
   apiUrl: string,
@@ -37,4 +62,4 @@ const saveEventDraft = async (
   return await response.json();
 };
 
-export { saveEventDraft };
+export { fetchEvents, saveEventDraft };

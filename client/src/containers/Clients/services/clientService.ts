@@ -8,7 +8,7 @@ const fetchClients = async (
   page: number
 ): Promise<PaginatedResponse<Client>> => {
   const response = await fetch(
-    `${apiUrl}/api/client?page=${page}&pageSize=25`,
+    `${apiUrl}/api/clients?page=${page}&pageSize=25`,
     {
       method: "GET",
       headers: {
@@ -32,7 +32,7 @@ const searchClients = async (
   query: string
 ): Promise<PaginatedResponse<ClientDetail>> => {
   const response = await fetch(
-    `${apiUrl}/api/client/fuzzy-search?page=${page}&pageSize=25&query=${query}`,
+    `${apiUrl}/api/clients/fuzzy-search?page=${page}&pageSize=25&query=${query}`,
     {
       method: "GET",
       headers: {
@@ -55,7 +55,7 @@ const updateClient = async (
   uid: string,
   note: string
 ): Promise<Client> => {
-  const response = await fetch(`${apiUrl}/api/client/${uid}`, {
+  const response = await fetch(`${apiUrl}/api/clients/${uid}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -78,7 +78,7 @@ const getClientDetails = async (
   apiUrl: string,
   uid: string
 ): Promise<ClientDetail> => {
-  const response = await fetch(`${apiUrl}/api/client/${uid}`, {
+  const response = await fetch(`${apiUrl}/api/clients/${uid}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -98,7 +98,7 @@ const createClient = async (
   apiUrl: string,
   data: CreateClient
 ): Promise<Client> => {
-  const response = await fetch(`${apiUrl}/api/client`, {
+  const response = await fetch(`${apiUrl}/api/clients`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -140,7 +140,7 @@ const createAddressEntry = async (
   type: "billing" | "delivery"
 ): Promise<AddressEntry> => {
   const response = await fetch(
-    `${apiUrl}/api/client/${clientUid}/client-addresses`,
+    `${apiUrl}/api/clients/${clientUid}/client-addresses`,
     {
       method: "POST",
       headers: {
@@ -178,7 +178,7 @@ const updateAddressEntry = async (
   type: "billing" | "delivery"
 ): Promise<AddressEntry> => {
   const response = await fetch(
-    `${apiUrl}/api/client/client-addresses/${addressUid}`,
+    `${apiUrl}/api/clients/client-addresses/${addressUid}`,
     {
       method: "PATCH",
       headers: {
@@ -215,7 +215,7 @@ const setAddressEntryAsPrimary = async (
   type: string
 ): Promise<void> => {
   const response = await fetch(
-    `${apiUrl}/api/client/client-addresses/${addressUid}/${type}`,
+    `${apiUrl}/api/clients/client-addresses/${addressUid}/${type}`,
     {
       method: "PATCH",
       headers: {
@@ -238,7 +238,7 @@ const deleteAddressEntry = async (
   addressUid: string
 ): Promise<void> => {
   const response = await fetch(
-    `${apiUrl}/api/client/client-addresses/${addressUid}`,
+    `${apiUrl}/api/clients/client-addresses/${addressUid}`,
     {
       method: "DELETE",
       headers: {

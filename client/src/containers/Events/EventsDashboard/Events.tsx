@@ -6,6 +6,8 @@ import EventRow from "../EventsDashboard/components/EventRow";
 import AddButton from "../../../components/common/AddButton";
 import SearchClients from "../../Clients/components/SearchClients";
 import { type ErrorsState } from "../../../helpers/handleError";
+import { useEvents } from "../hooks/useEvents";
+import type { Event } from "../types/Event";
 
 export type EventModalType = null | "searchClient" | "addClient";
 
@@ -15,18 +17,19 @@ const Events: React.FC = () => {
     "Name",
     "Delivery",
     "Pick Up",
-    "Items",
     "Location",
     "Paid",
     "Status",
     "Notes",
   ];
   const columnTemplate =
-    "[grid-template-columns:1fr_1fr_1fr_1fr_1fr_1fr_.4fr_.4fr_.4fr]";
+    "[grid-template-columns:1fr_1fr_1fr_1fr_1fr_.4fr_.4fr_.4fr]";
 
-  const [events, setEvents] = useState([]);
-  const [errors, setErrors] = useState<ErrorsState>(null);
+  const [page, setPage] = useState<number>(1);
   const [openModal, setOpenModal] = useState<EventModalType>(null);
+
+  const { events, setEvents, errors, setErrors } = useEvents(page);
+  console.log(events);
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
@@ -51,12 +54,12 @@ const Events: React.FC = () => {
             modalKey="searchClient"
           />
         </div>
-        <Table
+        <Table<Event>
           columnTemplate={columnTemplate}
           headers={headers}
           tableItems={events}
           tableRowType={EventRow}
-          getKey={(item) => item.sku}
+          getKey={(event) => event.uid}
           gap={10}
         />
       </div>
