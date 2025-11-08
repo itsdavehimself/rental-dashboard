@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251101183814_Payments")]
+    partial class Payments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,43 +159,6 @@ namespace server.Migrations
                     b.ToTable("ClientAddresses");
                 });
 
-            modelBuilder.Entity("Discount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("Uid")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventId");
-
-                    b.ToTable("Discounts");
-                });
-
             modelBuilder.Entity("EventItem", b =>
                 {
                     b.Property<int>("Id")
@@ -218,9 +184,6 @@ namespace server.Migrations
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
-
-                    b.Property<Guid>("Uid")
-                        .HasColumnType("uuid");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("numeric");
@@ -471,6 +434,9 @@ namespace server.Migrations
                     b.Property<string>("DeliveryZipCode")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<decimal>("Discounts")
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime>("EventEnd")
                         .HasColumnType("timestamp with time zone");
@@ -1179,15 +1145,6 @@ namespace server.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("Discount", b =>
-                {
-                    b.HasOne("server.Models.Event.Event", null)
-                        .WithMany("Discounts")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("EventItem", b =>
                 {
                     b.HasOne("server.Models.Event.Event", "Event")
@@ -1413,8 +1370,6 @@ namespace server.Migrations
 
             modelBuilder.Entity("server.Models.Event.Event", b =>
                 {
-                    b.Navigation("Discounts");
-
                     b.Navigation("Items");
 
                     b.Navigation("LogisticsTasks");

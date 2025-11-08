@@ -4,6 +4,7 @@ using server.Models.Inventory;
 public class EventItem
 {
   public int Id { get; set; }
+  public Guid Uid { get; set; } = Guid.NewGuid();
   public int EventId { get; set; }
   public Event Event { get; set; } = null!;
   public int? InventoryItemId { get; set; } 

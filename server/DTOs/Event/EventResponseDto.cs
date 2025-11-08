@@ -1,9 +1,11 @@
-namespace server.Models.Event;
-public class Event
+namespace server.DTOs.Event;
+
+using server.Models.Event;
+
+public class EventResponseDto
 {
-  public int Id { get; set; }
   public Guid Uid { get; set; } = Guid.NewGuid();
-  public int ClientId { get; set; }
+  public Guid ClientUid { get; set; } = Guid.NewGuid();
   public string ClientName { get; set; } = "";
   public string? BusinessName { get; set; } = "";
   public string ClientPhone { get; set; } = "";
@@ -23,25 +25,16 @@ public class Event
   public string DeliveryCity { get; set; } = "";
   public string DeliveryState { get; set; } = "";
   public string DeliveryZipCode { get; set; } = "";
-  public EventStatus Status { get; set; } = EventStatus.Draft;
+  public EventStatus Status { get; set; }
   public string? Notes { get; set; }
   public string? InternalNotes { get; set; }
-  public List<LogisticsTask> LogisticsTasks { get; set; } = [];
-  public List<EventItem> Items { get; set; } = [];
+  public List<LogisticsTaskResponseDto> LogisticsTasks { get; set; } = [];
+  public List<EventItemResponseDto> Items { get; set; } = [];
   public decimal Subtotal { get; set; }
   public decimal TaxAmount { get; set; }
-  public List<Discount> Discounts { get; set; } = [];
+  public List<DiscountResponseDto> Discounts { get; set; } = [];
   public decimal Total { get; set; }
-  public List<Payment> Payments { get; set; } = [];
+  public List<PaymentResponseDto> Payments { get; set; } = [];
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-}
-
-public enum EventStatus
-{
-  Draft,
-  Confirmed,
-  Scheduled,
-  Completed,
-  Cancelled
 }

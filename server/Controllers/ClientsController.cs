@@ -15,12 +15,12 @@ namespace server.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 
-public class ClientController : ControllerBase
+public class ClientsController : ControllerBase
 {
   private readonly AppDbContext _context;
   private readonly IConfiguration _config;
 
-  public ClientController(AppDbContext context, IConfiguration config)
+  public ClientsController(AppDbContext context, IConfiguration config)
   {
     _context = context;
     _config = config;

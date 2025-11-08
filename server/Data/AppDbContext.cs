@@ -29,6 +29,8 @@ public class AppDbContext : DbContext
   public DbSet<Package> Packages => Set<Package>();
   public DbSet<PackageItem> PackageItems => Set<PackageItem>();
   public DbSet<TaxJurisdiction> TaxJurisdictions => Set<TaxJurisdiction>();
+  public DbSet<Payment> Payments => Set<Payment>();
+  public DbSet<Discount> Discounts => Set<Discount>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -126,6 +128,34 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<ClientAddress>()
       .HasIndex(a => a.Uid)
       .IsUnique();
+
+    modelBuilder.Entity<Payment>()
+      .Property(p => p.Method)
+      .HasConversion<string>();
+
+    modelBuilder.Entity<Payment>()
+      .HasIndex(p => p.Uid)
+      .IsUnique();
+
+    modelBuilder.Entity<Event>()
+      .Property(e => e.Status)
+      .HasConversion<string>();
+
+    modelBuilder.Entity<Event>()
+      .HasMany(e => e.Payments)
+      .WithOne(p => p.Event)
+      .HasForeignKey(p => p.EventId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<Event>()
+      .HasMany(e => e.Discounts)
+      .WithOne()
+      .HasForeignKey(d => d.EventId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<Discount>()
+      .Property(d => d.Type)
+      .HasConversion<string>();
 
     InventoryConfigSeeder.Seed(modelBuilder);
   }

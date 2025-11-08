@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251102140255_AddEventDiscounts")]
+    partial class AddEventDiscounts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -156,7 +159,7 @@ namespace server.Migrations
                     b.ToTable("ClientAddresses");
                 });
 
-            modelBuilder.Entity("Discount", b =>
+            modelBuilder.Entity("EventDiscount", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -183,14 +186,11 @@ namespace server.Migrations
                     b.Property<Guid>("Uid")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("Discounts");
+                    b.ToTable("EventDiscounts");
                 });
 
             modelBuilder.Entity("EventItem", b =>
@@ -218,9 +218,6 @@ namespace server.Migrations
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
-
-                    b.Property<Guid>("Uid")
-                        .HasColumnType("uuid");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("numeric");
@@ -1179,7 +1176,7 @@ namespace server.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("Discount", b =>
+            modelBuilder.Entity("EventDiscount", b =>
                 {
                     b.HasOne("server.Models.Event.Event", null)
                         .WithMany("Discounts")
