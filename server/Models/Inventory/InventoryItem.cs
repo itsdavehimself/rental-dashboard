@@ -14,7 +14,6 @@ public class InventoryItem
   public InventoryColor? Color { get; set; }
   public int? BounceHouseTypeId { get; set; }
   public BounceHouseType? BounceHouseType { get; set; }
-  public int QuantityTotal { get; set; }
   public string SKU { get; set; } = string.Empty;
   public string? Notes { get; set; }
   public string? ImageUrl { get; set; }

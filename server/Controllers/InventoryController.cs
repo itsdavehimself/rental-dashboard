@@ -217,6 +217,8 @@ public async Task<IActionResult> GetInventory(
       .Include(i => i.SubType)
       .Include(i => i.Material)
       .Include(i => i.Color)
+      .Include(i => i.Purchases)
+      .Include(i => i.Retirements)
       .AsQueryable();
 
     if (!string.IsNullOrWhiteSpace(query))
@@ -243,7 +245,8 @@ public async Task<IActionResult> GetInventory(
     {
       Uid = i.Uid,
       Description = i.Description,
-      QuantityTotal = i.QuantityTotal,
+      QuantityTotal = i.Purchases.Sum(p => p.QuantityPurchased)
+  - i.Retirements.Sum(r => r.QuantityRetired),
       SKU = i.SKU,
       UnitPrice = i.UnitPrice,
       Type = i.Type.Name,
