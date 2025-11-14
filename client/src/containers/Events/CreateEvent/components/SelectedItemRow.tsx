@@ -24,6 +24,12 @@ const SelectedItemRow: React.FC<SelectedItemRowProps> = ({
     );
   };
 
+  const q = item.quantityAvailable;
+  const color = q > 0 ? "green" : q < 0 ? "red" : "gray";
+
+  const label =
+    q > 0 ? `${q} available` : q < 0 ? `${Math.abs(q)} short` : `0 available`;
+
   useEffect(() => {
     setItemSubtotal(item.count * item.unitPrice);
   }, [item.count]);
@@ -38,22 +44,7 @@ const SelectedItemRow: React.FC<SelectedItemRowProps> = ({
         </div>
       </div>
       <div className="flex justify-center items-center">
-        {item.availabilityChecked && (
-          <>
-            {" "}
-            {item.quantityAvailable >= 0 ? (
-              <ChipTag
-                label={`${Math.abs(item.quantityAvailable)} available`}
-                color="green"
-              />
-            ) : (
-              <ChipTag
-                label={`${Math.abs(item.quantityAvailable)} short`}
-                color="red"
-              />
-            )}
-          </>
-        )}
+        {item.availabilityChecked && <ChipTag label={label} color={color} />}
       </div>
       <div className="grid grid-cols-[4rem_3rem] gap-4 items-center">
         <div className="text-right font-semibold">${item.unitPrice}/unit</div>
