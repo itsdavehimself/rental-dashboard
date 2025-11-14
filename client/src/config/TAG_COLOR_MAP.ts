@@ -1,4 +1,4 @@
-const COLOR_MAP = {
+const TAG_COLOR_MAP = {
   gray: { bg: "bg-gray-200", text: "text-gray-800" },
   blue: { bg: "bg-blue-200", text: "text-blue-800" },
   amber: { bg: "bg-amber-200", text: "text-amber-800" },
@@ -7,4 +7,4 @@ const COLOR_MAP = {
   yellow: { bg: "bg-yellow-200", text: "text-yellow-800" },
 } as const;
 
-export default COLOR_MAP;
+export default TAG_COLOR_MAP;
