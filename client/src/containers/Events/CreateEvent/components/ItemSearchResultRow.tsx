@@ -28,6 +28,8 @@ const ItemSearchResultRow: React.FC<ItemSearchResultRowProps> = ({
               sku: item.sku,
               count: 1,
               unitPrice: item.unitPrice,
+              quantityAvailable: 0,
+              availabilityChecked: false,
             },
           ];
         });

@@ -15,6 +15,7 @@ export interface CreateEventContextType {
   setEventBilling: React.Dispatch<React.SetStateAction<AddressEntry | null>>;
   eventDelivery: AddressEntry | null;
   setEventDelivery: React.Dispatch<React.SetStateAction<AddressEntry | null>>;
+  clearContext: () => void;
 }
 
 export const CreateEventContext = createContext<

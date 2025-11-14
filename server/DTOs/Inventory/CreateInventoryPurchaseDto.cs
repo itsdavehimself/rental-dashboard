@@ -4,9 +4,6 @@ namespace server.DTOs.Inventory;
 
 public class CreateInventoryPurchaseDto
 {
-  [Required(ErrorMessage = "Item ID is required")]
-  public int InventoryItemId { get; set; }
-
   [Required(ErrorMessage = "Purchase quantity is required")]
   [Range(1, int.MaxValue, ErrorMessage = "Purchase quantity must be at least 1")]
   public int QuantityPurchased { get; set; }

@@ -21,5 +21,5 @@ public class CreateInventoryItemDto
   [Range(1, 9999, ErrorMessage = "Height must be 1 or more")]
   public decimal? Height { get; set; }  
   [Range(0, double.MaxValue, ErrorMessage = "Price must be non-negative")]
-  public decimal? UnitPrice { get; set; }
+  public decimal UnitPrice { get; set; }
 }

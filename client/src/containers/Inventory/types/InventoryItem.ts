@@ -3,7 +3,7 @@ type InventoryListItem = {
   description: string;
   quantityTotal: number;
   sku: string;
-  unitPrice?: number;
+  unitPrice: number;
 };
 
 type InventoryItemDetails = {
@@ -20,7 +20,7 @@ type InventoryItemDetails = {
   width?: number;
   height?: number;
   material?: number;
-  unitPrice?: number;
+  unitPrice: number;
   purchaseCost?: number;
   isActive: boolean;
   packageOnly: boolean;
@@ -39,8 +39,15 @@ type InventoryItemSearchResult = {
   bounceHouseType?: string;
 };
 
+type InventoryAvailability = {
+  uid: string;
+  reservedQuantity: number;
+  availableQuantity: number;
+};
+
 export type {
   InventoryItemDetails,
   InventoryListItem,
   InventoryItemSearchResult,
+  InventoryAvailability,
 };

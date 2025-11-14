@@ -22,6 +22,7 @@ import { useCreateEvent } from "../hooks/useCreateEvent";
 import SearchClients from "../../Clients/components/SearchClients";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
 import { saveEventDraft } from "../services/eventService";
+import { checkAvailability } from "../../Inventory/services/inventoryService";
 
 export type CreateEventModalType =
   | null
@@ -35,6 +36,8 @@ export type CreateEventModalType =
 
 export type EventItem = Omit<InventoryListItem, "quantityTotal"> & {
   count: number;
+  quantityAvailable: number;
+  availabilityChecked: boolean;
 };
 
 export type ItemBasics = Omit<
@@ -74,10 +77,12 @@ const CreateEvent: React.FC = () => {
     openModal,
     setOpenModal,
     selectedItems,
+    setSelectedItems,
     setEventBilling,
     setEventDelivery,
     eventBilling,
     eventDelivery,
+    clearContext,
   } = useCreateEvent();
 
   const location = useLocation();
@@ -92,6 +97,9 @@ const CreateEvent: React.FC = () => {
   const deliveryTime = watch("deliveryTime");
   const pickUpDate = watch("pickUpDate");
   const pickUpTime = watch("pickUpTime");
+
+  const selectedUids = selectedItems.map((i) => i.uid).join(",");
+  const selectedQuantities = selectedItems.map((i) => i.count).join(",");
 
   const fetchClient = async () => {
     try {
@@ -121,6 +129,54 @@ const CreateEvent: React.FC = () => {
       setValue("pickUpDate", deliveryDate);
     }
   }, [deliveryDate]);
+
+  useEffect(() => {
+    if (
+      selectedItems.length === 0 ||
+      !deliveryDate ||
+      !deliveryTime ||
+      !pickUpDate ||
+      !pickUpTime
+    )
+      return;
+
+    const fetchAvailability = async () => {
+      try {
+        const itemAvailability = await checkAvailability(
+          apiUrl,
+          selectedItems.map((i) => i.uid),
+          deliveryDate,
+          deliveryTime,
+          pickUpDate,
+          pickUpTime
+        );
+
+        setSelectedItems((prev) =>
+          prev.map((item) => {
+            const match = itemAvailability.find((a) => a.uid === item.uid);
+            if (!match) return item;
+
+            return {
+              ...item,
+              quantityAvailable: match.availableQuantity - item.count,
+              availabilityChecked: true,
+            };
+          })
+        );
+      } catch (err) {
+        console.error("Error checking availability:", err);
+      }
+    };
+
+    fetchAvailability();
+  }, [
+    selectedUids,
+    selectedQuantities,
+    deliveryDate,
+    deliveryTime,
+    pickUpDate,
+    pickUpTime,
+  ]);
 
   useEffect(() => {
     if (client) {
@@ -164,6 +220,12 @@ const CreateEvent: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      clearContext();
+    };
+  }, []);
 
   return (
     <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">

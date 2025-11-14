@@ -255,7 +255,7 @@ public class EventsController : ControllerBase
         EventId = newEvent.Id,
         InventoryItemId = inventory.Id,
         Quantity = item.Quantity,
-        UnitPrice = inventory.UnitPrice ?? 0,
+        UnitPrice = inventory.UnitPrice,
         Type = ItemType.AlaCarte,
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow

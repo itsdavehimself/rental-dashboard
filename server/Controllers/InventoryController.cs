@@ -318,26 +318,88 @@ public async Task<IActionResult> GetInventory(
       .Include(i => i.Purchases)
       .Include(i => i.Retirements)
       .FirstOrDefaultAsync(i => i.Id == item.Id);
-      
+
     if (updatedItem == null)
+    {
+      return new ObjectResult(new ProblemDetails
       {
-        return new ObjectResult(new ProblemDetails
-        {
-          Title = "Not Found",
-          Detail = "Item not found.",
-          Status = StatusCodes.Status404NotFound
-        })
-        {
-          StatusCode = StatusCodes.Status404NotFound
-        };
-      }
+        Title = "Not Found",
+        Detail = "Item not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
 
     return Ok(new
-      {
-        updatedItem.Uid,
-        QuantityTotal = updatedItem.Purchases.Sum(p => p.QuantityPurchased) - updatedItem.Retirements.Sum(r => r.QuantityRetired)
-      });
-    }
+    {
+      updatedItem.Uid,
+      QuantityTotal = updatedItem.Purchases.Sum(p => p.QuantityPurchased) - updatedItem.Retirements.Sum(r => r.QuantityRetired)
+    });
+  }
+
+  [HttpPost("availability")]
+  public async Task<IActionResult> CheckAvailability(CheckAvailabilityDto request)
+  {
+    var centralZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
+
+    var deliveryDateTime = TimeZoneInfo.ConvertTimeToUtc(
+        DateTime.SpecifyKind(
+            request.StartDate.Date.Add(DateTime.Parse(request.StartTime).TimeOfDay),
+            DateTimeKind.Unspecified
+        ),
+        centralZone
+    );
+
+    var pickupDateTime = TimeZoneInfo.ConvertTimeToUtc(
+        DateTime.SpecifyKind(
+            request.EndDate.Date.Add(DateTime.Parse(request.EndTime).TimeOfDay),
+            DateTimeKind.Unspecified
+        ),
+        centralZone
+    );
+
+    var itemIds = await _context.InventoryItems
+        .Where(i => request.Items.Contains(i.Uid))
+        .Select(i => new { i.Id, i.Uid })
+        .ToListAsync();
+
+    var ids = itemIds.Select(x => x.Id).ToList();
+
+    var events = _context.Events
+        .Include(e => e.Items)
+        .Where(e => e.EventStart <= pickupDateTime && e.EventEnd >= deliveryDateTime);
+
+    var reserved = await events
+      .SelectMany(e => e.Items)
+      .Where(x => x.InventoryItemId.HasValue && ids.Contains(x.InventoryItemId.Value))
+      .GroupBy(x => x.InventoryItemId)
+      .Select(g => new { InventoryItemId = g.Key!.Value, ReservedQty = g.Sum(x => x.Quantity) })
+      .ToListAsync();
+
+    var results = await _context.InventoryItems
+      .Include(i => i.Purchases)
+      .Include(i => i.Retirements)
+      .Where(i => ids.Contains(i.Id))
+      .ToListAsync();
+
+    var response = results.Select(i =>
+    {
+      var reservedQty = reserved.FirstOrDefault(r => r.InventoryItemId == i.Id)?.ReservedQty ?? 0;
+      var availableQty = 
+          i.Purchases.Sum(p => p.QuantityPurchased) - i.Retirements.Sum(r => r.QuantityRetired)
+          - reservedQty;
+
+      return new {
+        i.Uid,
+        ReservedQuantity = reservedQty,
+        AvailableQuantity = availableQty
+      };
+    });
+
+    return Ok(response);
+  }
 
   [HttpGet("config")]
   public async Task<IActionResult> GetInventoryConfig()

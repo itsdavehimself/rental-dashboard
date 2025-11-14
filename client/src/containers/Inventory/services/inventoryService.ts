@@ -2,6 +2,7 @@ import type { PaginatedResponse } from "../../../types/PaginatedResponse";
 import type {
   InventoryItemSearchResult,
   InventoryListItem,
+  InventoryAvailability,
 } from "../types/InventoryItem";
 import { CustomError } from "../../../types/CustomError";
 import type { InventoryConfigResponse } from "../types/InventoryConfigResponse";
@@ -133,10 +134,42 @@ const searchInventory = async (
   return await response.json();
 };
 
+const checkAvailability = async (
+  apiUrl: string,
+  items: string[],
+  startDate: Date,
+  startTime: string,
+  endDate: Date,
+  endTime: string
+): Promise<InventoryAvailability[]> => {
+  const response = await fetch(`${apiUrl}/api/inventory/availability`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      items,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Checking item availability failed.", errorData);
+  }
+
+  return await response.json();
+};
+
 export {
   fetchInventoryItems,
   fetchInventoryConfig,
   createInventoryItem,
   createInventoryPurchase,
   searchInventory,
+  checkAvailability,
 };

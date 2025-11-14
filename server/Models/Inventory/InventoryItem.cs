@@ -20,7 +20,7 @@ public class InventoryItem
   public bool IsActive { get; set; } = true;
   public bool PackageOnly { get; set; } = false;
   public bool IsDeleted { get; set; } = false;
-  public decimal? UnitPrice { get; set; }
+  public decimal UnitPrice { get; set; }
   public decimal? AveragePurchaseCost { get; set; }
   public decimal? Length { get; set; }
   public decimal? Width { get; set; }

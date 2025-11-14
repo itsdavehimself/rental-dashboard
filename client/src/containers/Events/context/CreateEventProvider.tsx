@@ -18,6 +18,14 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [eventBilling, setEventBilling] = useState<AddressEntry | null>(null);
   const [eventDelivery, setEventDelivery] = useState<AddressEntry | null>(null);
 
+  const clearContext = () => {
+    setClient(null);
+    setSelectedItems([]);
+    setOpenModal(null);
+    setEventBilling(null);
+    setEventDelivery(null);
+  };
+
   const value = {
     client,
     setClient,
@@ -29,6 +37,7 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     setEventBilling,
     eventDelivery,
     setEventDelivery,
+    clearContext,
   };
 
   return (
