@@ -1,6 +1,5 @@
 import { useLocation } from "react-router";
-import { useEffect, useState } from "react";
-import { getClientDetails } from "../../Clients/services/clientService";
+import { useEffect, useState, useRef } from "react";
 import { useToast } from "../../../hooks/useToast";
 import { type ErrorsState, handleError } from "../../../helpers/handleError";
 import ResidentialClientInfo from "./components/ResidentialClientInfo";
@@ -9,11 +8,9 @@ import EventDetailsSection from "./components/EventDetailsSection";
 import ItemsAndServices from "./components/ItemsAndServices";
 import EventTotals from "./components/EventTotals";
 import ActionButton from "../../../components/common/ActionButton";
-import { Save } from "lucide-react";
-import { CalendarCheck } from "lucide-react";
+import { Save, CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { splitPhoneNumber } from "../../../helpers/formatPhoneNumber";
 import EditModal from "../../../components/common/EditModal";
 import EditClientNotes from "./components/EditClientNotes";
 import EditAddresses from "./components/EditAddresses";
@@ -21,8 +18,14 @@ import EventInternalNotes from "./components/EventInternalNotes";
 import { useCreateEvent } from "../hooks/useCreateEvent";
 import SearchClients from "../../Clients/components/SearchClients";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
-import { saveEventDraft } from "../services/eventService";
-import { checkAvailability } from "../../Inventory/services/inventoryService";
+import { upsertEventDraft } from "../services/eventService";
+import PaymentForm from "./components/PaymentForm";
+import { useFetchClient } from "../hooks/useFetchClient";
+import { useFetchEvent } from "../hooks/useFetchEvent";
+import { mapItemResToEvent } from "../helpers/mapItemResToEvent";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import { mapAddressResToEvent } from "../helpers/mapAddressResToEvent";
+import { useFetchAvailability } from "../hooks/useFetchAvailability";
 
 export type CreateEventModalType =
   | null
@@ -32,9 +35,10 @@ export type CreateEventModalType =
   | "changeClient"
   | "addBillingAddress"
   | "addDeliveryAddress"
-  | "searchClient";
+  | "searchClient"
+  | "addPayment";
 
-export type EventItem = Omit<InventoryListItem, "quantityTotal"> & {
+export type EventLineItem = Omit<InventoryListItem, "quantityTotal"> & {
   count: number;
   quantityAvailable: number;
   availabilityChecked: boolean;
@@ -52,15 +56,16 @@ export type CreateEventInputs = {
   pickUpTime: string;
   eventName?: string;
   eventType: string;
-  eventNotes: string;
-  contactFirstName: string;
-  contactLastName: string;
-  contactPhone: string;
-  contactEmail: string;
-  internalNotes: string;
+  eventNotes?: string;
+  internalNotes?: string;
 };
 
 const CreateEvent: React.FC = () => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const clientUid = params.get("clientId");
+  const eventUid = params.get("eventId");
+
   const {
     handleSubmit,
     register,
@@ -82,12 +87,25 @@ const CreateEvent: React.FC = () => {
     setEventDelivery,
     eventBilling,
     eventDelivery,
+    setEventUid,
+    setPayments,
     clearContext,
   } = useCreateEvent();
 
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const clientId = params.get("clientId");
+  const {
+    client: fetchedClient,
+    loading: loadingClient,
+    fetchClient,
+  } = useFetchClient(clientUid);
+
+  const {
+    event: fetchedEvent,
+    loading: loadingEvent,
+    fetchEvent,
+    eventStart,
+    eventEnd,
+  } = useFetchEvent(eventUid);
+
   const [errors, setErrors] = useState<ErrorsState>(null);
 
   const { addToast } = useToast();
@@ -98,28 +116,83 @@ const CreateEvent: React.FC = () => {
   const pickUpDate = watch("pickUpDate");
   const pickUpTime = watch("pickUpTime");
 
-  const selectedUids = selectedItems.map((i) => i.uid).join(",");
-  const selectedQuantities = selectedItems.map((i) => i.count).join(",");
+  const datesSelected = !!(
+    deliveryDate &&
+    deliveryTime &&
+    pickUpDate &&
+    pickUpTime
+  );
 
-  const fetchClient = async () => {
-    try {
-      if (clientId) {
-        const client = await getClientDetails(apiUrl, clientId);
-        setClient(client);
-      }
-    } catch (err) {
-      handleError(err, setErrors);
-      addToast("Error", "There was a problem fetching client data.");
-      navigate("/dashboard");
+  const canSaveDraft = client && eventBilling && eventDelivery && datesSelected;
+
+  useEffect(() => {
+    if (!fetchedClient) return;
+    setClient(fetchedClient);
+  }, [fetchedClient, setClient]);
+
+  const previousClientUid = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!client) return;
+
+    const isInitialClientLoad = previousClientUid.current === null;
+    const isClientChangedByUser =
+      previousClientUid.current !== null &&
+      previousClientUid.current !== client.uid;
+
+    previousClientUid.current = client.uid;
+
+    if (eventUid && isInitialClientLoad) {
+      return;
     }
-  };
+
+    if (!eventUid && isInitialClientLoad) {
+      setPrimaryAddressesFromClient(client);
+      return;
+    }
+
+    if (isClientChangedByUser) {
+      setPrimaryAddressesFromClient(client);
+    }
+  }, [client]);
+
+  function setPrimaryAddressesFromClient(client) {
+    if (client.billingAddresses?.length) {
+      const primaryBilling =
+        client.billingAddresses.find((a) => a.isPrimary) ??
+        client.billingAddresses[0];
+      setEventBilling(primaryBilling);
+    }
+
+    if (client.deliveryAddresses?.length) {
+      const primaryDelivery =
+        client.deliveryAddresses.find((a) => a.isPrimary) ??
+        client.deliveryAddresses[0];
+      setEventDelivery(primaryDelivery);
+    }
+  }
 
   useEffect(() => {
-    fetchClient();
-  }, []);
+    if (!fetchedEvent || !eventStart || !eventEnd) return;
+    setValue("deliveryDate", eventStart.date);
+    setValue("deliveryTime", eventStart.time);
+    setValue("pickUpDate", eventEnd.date);
+    setValue("pickUpTime", eventEnd.time);
+    setValue("eventName", fetchedEvent?.eventName);
+    setValue("eventNotes", fetchedEvent?.notes);
+    setValue("internalNotes", fetchedEvent?.internalNotes);
+    setValue("eventType", fetchedEvent?.eventType);
+    setEventUid(fetchedEvent?.uid);
+    setPayments(fetchedEvent.payments);
+    const mappedAddresses = mapAddressResToEvent(fetchedEvent);
+    setEventBilling(mappedAddresses.billing);
+    setEventDelivery(mappedAddresses.delivery);
+    const eventItems = mapItemResToEvent(fetchedEvent?.items);
+    setSelectedItems(eventItems);
+  }, [fetchedEvent, eventStart, eventEnd, setValue]);
 
   useEffect(() => {
-    if (clientId === "") {
+    if (clientUid === "") {
       navigate("/dashboard");
     }
   }, []);
@@ -130,94 +203,41 @@ const CreateEvent: React.FC = () => {
     }
   }, [deliveryDate]);
 
-  useEffect(() => {
-    if (
-      selectedItems.length === 0 ||
-      !deliveryDate ||
-      !deliveryTime ||
-      !pickUpDate ||
-      !pickUpTime
-    )
-      return;
-
-    const fetchAvailability = async () => {
-      try {
-        const itemAvailability = await checkAvailability(
-          apiUrl,
-          selectedItems.map((i) => i.uid),
-          deliveryDate,
-          deliveryTime,
-          pickUpDate,
-          pickUpTime
-        );
-
-        setSelectedItems((prev) =>
-          prev.map((item) => {
-            const match = itemAvailability.find((a) => a.uid === item.uid);
-            if (!match) return item;
-
-            return {
-              ...item,
-              quantityAvailable: match.availableQuantity - item.count,
-              availabilityChecked: true,
-            };
-          })
-        );
-      } catch (err) {
-        console.error("Error checking availability:", err);
-      }
-    };
-
-    fetchAvailability();
-  }, [
-    selectedUids,
-    selectedQuantities,
+  useFetchAvailability(
+    apiUrl,
+    selectedItems,
     deliveryDate,
     deliveryTime,
     pickUpDate,
     pickUpTime,
-  ]);
-
-  useEffect(() => {
-    if (client) {
-      setValue("contactFirstName", client.firstName || "");
-      setValue("contactLastName", client.lastName || "");
-      setValue("contactPhone", splitPhoneNumber(client.phoneNumber) || "");
-      setValue("contactEmail", client.email || "");
-    }
-
-    if (client?.billingAddresses?.length) {
-      const primaryBilling =
-        client.billingAddresses.find((a) => a.isPrimary) ??
-        client.billingAddresses[0];
-      setEventBilling(primaryBilling);
-    }
-
-    if (client?.deliveryAddresses?.length) {
-      const primaryDelivery =
-        client.deliveryAddresses.find((a) => a.isPrimary) ??
-        client.deliveryAddresses[0];
-      setEventDelivery(primaryDelivery);
-    }
-  }, [client]);
+    setSelectedItems
+  );
 
   const saveDraftSubmit: SubmitHandler<CreateEventInputs> = async (data) => {
-    if (client && eventBilling && eventDelivery) {
-      try {
-        const items = selectedItems.map((i) => ({
-          inventoryItemUid: i.uid,
-          quantity: i.count,
-        }));
-        const uids = {
-          clientUid: client.uid,
-          billingUid: eventBilling.uid,
-          deliveryUid: eventDelivery.uid,
-        };
-        await saveEventDraft(apiUrl, data, items, uids);
-        addToast("Success", "Event saved as draft.");
-      } catch (err) {
-        console.log("error");
-      }
+    if (!client || !eventBilling || !eventDelivery || !datesSelected) return;
+
+    try {
+      const items = selectedItems.map((i) => ({
+        inventoryItemUid: i.uid,
+        quantity: i.count,
+      }));
+
+      const uids = {
+        clientUid: client.uid,
+        billingUid: eventBilling.uid,
+        deliveryUid: eventDelivery.uid,
+      };
+
+      const event = await upsertEventDraft(apiUrl, data, items, uids, eventUid);
+
+      if (!eventUid) setEventUid(event.uid);
+
+      addToast(
+        "Success",
+        eventUid ? "Event draft updated." : "Event saved as draft."
+      );
+    } catch (err) {
+      console.log("error", err);
     }
   };
 
@@ -226,6 +246,16 @@ const CreateEvent: React.FC = () => {
       clearContext();
     };
   }, []);
+
+  if (loadingEvent || loadingClient) {
+    return (
+      <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6 justify-center items-center">
+        <div className="flex justify-center items-center w-full text-sm text-gray-400 h-10">
+          <LoadingSpinner dimensions={{ x: 10, y: 10 }} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
@@ -252,6 +282,7 @@ const CreateEvent: React.FC = () => {
           children={<EditAddresses type="delivery" setErrors={setErrors} />}
         />
       )}
+      {openModal === "addPayment" && <EditModal children={<PaymentForm />} />}
       <div className="flex justify-between">
         <h2 className="text-2xl font-semibold">Create Event</h2>
         <div className="flex gap-4 w-fit">
@@ -260,12 +291,14 @@ const CreateEvent: React.FC = () => {
             onClick={handleSubmit(saveDraftSubmit)}
             style="outline"
             icon={Save}
+            disabled={!canSaveDraft}
           />
           <ActionButton
             label="Reserve"
             onClick={() => console.log("reserve")}
             style="filled"
             icon={CalendarCheck}
+            disabled={!canSaveDraft}
           />
         </div>
       </div>

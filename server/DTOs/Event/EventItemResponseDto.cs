@@ -7,6 +7,7 @@ public class EventItemResponseDto
   public ItemType Type { get; set; }
   public Guid? PackageUid { get; set; }
   public int Quantity { get; set; }
+  public string InventoryItemSKU { get; set; } = "";
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

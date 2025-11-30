@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251129174003_SplitAddressNameInEvent")]
+    partial class SplitAddressNameInEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -354,9 +357,6 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("ReceivedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -427,19 +427,11 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("BillingEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("BillingFirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("BillingLastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BillingPhone")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -493,19 +485,11 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("DeliveryEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("DeliveryFirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("DeliveryLastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("DeliveryPhone")
                         .IsRequired()
                         .HasColumnType("text");
 

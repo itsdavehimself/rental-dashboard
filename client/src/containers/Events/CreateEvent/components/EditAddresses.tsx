@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import XButton from "../../../../components/common/XButton";
 import { type ErrorsState } from "../../../../helpers/handleError";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
@@ -7,6 +7,7 @@ import DeleteModal from "../../../../components/common/DeleteModal";
 import { deleteAddressEntry } from "../../../Clients/services/clientService";
 import { useToast } from "../../../../hooks/useToast";
 import AddressBookForm from "./AddressBookForm";
+import { useClickOutside } from "../../../../hooks/useClickOutside";
 
 interface EditAddressesProps {
   type: "billing" | "delivery";
@@ -29,17 +30,10 @@ const EditAddresses: React.FC<EditAddressesProps> = ({ type, setErrors }) => {
 
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpenModal(null);
-        setErrors(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [setOpenModal, setErrors]);
+  useClickOutside(ref, () => {
+    setOpenModal(null);
+    setErrors(null);
+  });
 
   const handleDelete = async (addressEntryUid: string | null) => {
     if (!client) return;

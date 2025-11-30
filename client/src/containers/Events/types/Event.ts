@@ -3,27 +3,37 @@ import type { ItemBasics } from "../CreateEvent/CreateEvent";
 type Event = {
   uid: string;
   clientUid: string;
-  clientName: string;
+  clientFirstName: string;
+  clientLastName: string;
   businessName?: string;
   clientPhone: string;
   clientEmail: string;
   eventName?: string;
   eventStart: string;
   eventEnd: string;
-  billingName: string;
+  billingAddressEntryUid: string;
+  billingFirstName: string;
+  billingLastName: string;
   billingAddressLine1: string;
   billingAddressLine2?: string;
   billingCity: string;
   billingState: string;
   billingZipCode: string;
-  deliveryName: string;
+  billingPhone: string;
+  billingEmail: string;
+  deliveryAddressEntryUid: string;
+  deliveryFirstName: string;
+  deliveryLastName: string;
   deliveryAddressLine1: string;
   deliveryAddressLine2?: string;
   deliveryCity: string;
   deliveryState: string;
   deliveryZipCode: string;
+  deliveryPhone: string;
+  deliveryEmail: string;
   status: EventStatus;
   notes?: string;
+  eventType: string;
   internalNotes?: string;
   logisticsTasks: LogisticsTask[];
   items: EventItem[];
@@ -62,14 +72,14 @@ type PaymentMethod =
 type DiscountType = "FlatAmount" | "Percentage";
 
 type EventItem = {
-  id: number;
-  eventId: number;
-  inventoryItemId?: number;
-  packageId?: number;
+  uid: string;
+  inventoryItemUid: string;
   description: string;
-  quantity: number;
   unitPrice: number;
-  type: ItemType;
+  type: string;
+  packageUid: string;
+  quantity: number;
+  inventoryItemSKU: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -85,22 +95,22 @@ type LogisticsTask = {
   notes?: string;
 };
 
-type Payment = {
-  id: number;
+export type Payment = {
   uid: string;
-  eventId: number;
+  eventUid: string;
   amount: number;
   method: PaymentMethod;
-  receivedAt: string;
+  receivedAt: Date;
   transactionId?: string;
   refunded: boolean;
   refundedAmount: number;
   refundedAt?: string;
   refundReason?: string;
+  notes?: string;
+  collectedBy: string;
 };
 
 type EventDiscount = {
-  id: number;
   uid: string;
   eventId: number;
   type: DiscountType;
@@ -123,4 +133,18 @@ type EventDraft = {
   items: ItemBasics[];
 };
 
-export type { Event, EventDiscount, EventDraft, EventItem, EventStatus };
+type EventDraftResponse = {
+  uid: string;
+  status: string;
+  clientName: string;
+  total: number;
+};
+
+export type {
+  Event,
+  EventDiscount,
+  EventDraft,
+  EventItem,
+  EventStatus,
+  EventDraftResponse,
+};

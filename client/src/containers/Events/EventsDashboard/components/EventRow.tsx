@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { formatAddress } from "../../../../helpers/formatAddress";
 import { format } from "date-fns";
 import ChipTag from "../../../../components/common/ChipTag";
+import TAG_COLOR_MAP from "../../../../config/TAG_COLOR_MAP";
+import { paymentStatus } from "../../helpers/paymentStatus";
 
 interface EventRowProps {
   item: Event;
@@ -12,7 +14,9 @@ interface EventRowProps {
   gap: number;
 }
 
-const statusMap: Record<string, { label: string; color: string }> = {
+type TagColor = keyof typeof TAG_COLOR_MAP;
+
+const statusMap: Record<string, { label: string; color: TagColor }> = {
   Draft: { label: "Draft", color: "gray" },
   Confirmed: { label: "Confirmed", color: "blue" },
   Scheduled: { label: "Scheduled", color: "amber" },
@@ -22,10 +26,8 @@ const statusMap: Record<string, { label: string; color: string }> = {
 
 const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
   const navigate = useNavigate();
-  const paid = (): boolean => {
-    const paymentsTotal = item.payments.reduce((sum, p) => sum + p.amount, 0);
-    return paymentsTotal >= item.total;
-  };
+
+  const status = paymentStatus(item.payments, item.total);
 
   const [popoverOpen, setPopoverOpen] = useState<boolean>(false);
 
@@ -43,33 +45,37 @@ const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
           setPopoverOpen(false);
           return;
         }
-        navigate(`${item.uid}`);
+        if (item.status === "Draft") {
+          navigate(
+            `/events/create?clientId=${item.clientUid}&eventId=${item.uid}`
+          );
+        } else {
+          navigate(`${item.uid}`);
+        }
       }}
       className={`relative grid ${columnTemplate} items-center w-full gap-${gap} px-8 py-4 text-sm transition-all duration-200
     ${isLast ? "rounded-b-xl" : "border-b border-gray-200"}
     ${popoverOpen ? "" : "hover:bg-gray-50 hover:cursor-pointer"}
   `}
     >
-      <p>{item.clientName}</p>
+      <p>
+        {item.clientFirstName} {item.clientLastName}
+      </p>
       <p>{item.eventName ?? ""}</p>
       <p>{format(new Date(item.eventStart), "Pp")}</p>
       <p>{format(new Date(item.eventEnd), "Pp")}</p>
       <p>
         {formatAddress({
-          addressLine1: item.billingAddressLine1,
-          addressLine2: item.billingAddressLine2,
-          city: item.billingCity,
-          state: item.billingState,
-          zipCode: item.billingZipCode,
+          addressLine1: item.deliveryAddressLine1,
+          addressLine2: item.deliveryAddressLine2,
+          city: item.deliveryCity,
+          state: item.deliveryState,
+          zipCode: item.deliveryZipCode,
         })}
       </p>
 
       <>
-        {paid() ? (
-          <ChipTag label="Paid" color="green" />
-        ) : (
-          <ChipTag label="Balance Due" color="yellow" />
-        )}
+        <ChipTag label={status.label} color={status.color} />
       </>
       <ChipTag
         label={statusMap[item.status].label}

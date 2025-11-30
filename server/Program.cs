@@ -63,6 +63,8 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
+builder.Services.AddAutoMapper(typeof(EventProfile));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddAuthorization();
 
 var app = builder.Build();

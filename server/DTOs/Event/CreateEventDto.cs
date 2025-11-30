@@ -8,6 +8,7 @@ public class CreateEventDto
   public string DeliveryTime { get; set; } = "";
   public DateTime PickUpDate { get; set; }
   public string PickUpTime { get; set; } = "";
+  public string EventType { get; set; } = "";
   public Guid BillingAddress { get; set; }
   public Guid DeliveryAddress { get; set; }
   public string? Notes { get; set; }

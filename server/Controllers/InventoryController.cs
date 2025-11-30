@@ -4,6 +4,7 @@ using server.Models.Inventory;
 using Microsoft.EntityFrameworkCore;
 using server.Helpers;
 using System.Security.Claims;
+using server.Models.Event;
 
 namespace server.Controllers;
 
@@ -368,8 +369,10 @@ public async Task<IActionResult> GetInventory(
     var ids = itemIds.Select(x => x.Id).ToList();
 
     var events = _context.Events
-        .Include(e => e.Items)
-        .Where(e => e.EventStart <= pickupDateTime && e.EventEnd >= deliveryDateTime);
+    .Include(e => e.Items)
+    .Where(e => e.Status != EventStatus.Draft
+        && e.EventStart <= pickupDateTime 
+        && e.EventEnd >= deliveryDateTime);
 
     var reserved = await events
       .SelectMany(e => e.Items)

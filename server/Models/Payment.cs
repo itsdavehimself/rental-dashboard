@@ -1,4 +1,5 @@
 using server.Models.Event;
+using server.Models.User;
 public class Payment
 {
   public int Id { get; set; }
@@ -13,6 +14,9 @@ public class Payment
   public decimal RefundedAmount { get; set; }
   public DateTime? RefundedAt { get; set; }
   public string? RefundReason { get; set; }
+  public int CollectedById { get; set; }
+  public User CollectedBy { get; set; } = null!;
+  public string? Notes { get; set; }
 }
 public enum PaymentMethod
 {

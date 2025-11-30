@@ -65,7 +65,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         </div>
 
         {openDatePicker && (
-          <div className="absolute flex justify-center left-0 top-full z-50 mt-1 bg-white shadow-md rounded-xl ring-1 ring-gray-200 w-full">
+          <div className="absolute flex justify-center left-0 top-full z-50 mt-1 bg-white shadow-md rounded-xl ring-1 ring-gray-200 w-fit">
             <DayPicker
               animate
               disabled={{

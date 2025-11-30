@@ -34,7 +34,7 @@ const SearchClients = <T extends string | null>({
   const ref = useRef<HTMLDivElement>(null);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
-  const { setClient } = useCreateEvent();
+  const { setClient, eventUid } = useCreateEvent();
 
   const [clients, setClients] = useState<ClientDetail[]>([]);
   const [page, setPage] = useState<number>(1);
@@ -138,9 +138,16 @@ const SearchClients = <T extends string | null>({
               onClick={() => {
                 setClient(selectedClient);
                 setOpenModal(null);
-                navigate(`/events/create?clientId=${selectedClient?.uid}`, {
-                  replace: true,
-                });
+                navigate(
+                  `${
+                    eventUid
+                      ? `/events/create?clientId=${selectedClient?.uid}&eventId=${eventUid}`
+                      : `/events/create?clientId=${selectedClient?.uid}`
+                  }`,
+                  {
+                    replace: true,
+                  }
+                );
               }}
             />
           )}

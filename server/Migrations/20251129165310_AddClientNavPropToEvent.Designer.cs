@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251129165310_AddClientNavPropToEvent")]
+    partial class AddClientNavPropToEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -354,9 +357,6 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("ReceivedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -427,19 +427,7 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("BillingEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BillingFirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BillingLastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BillingPhone")
+                    b.Property<string>("BillingName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -458,23 +446,16 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ClientFirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("ClientId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ClientLastName")
+                    b.Property<string>("ClientName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ClientPhone")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<Guid>("ClientUid")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -493,19 +474,7 @@ namespace server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("DeliveryEmail")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("DeliveryFirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("DeliveryLastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("DeliveryPhone")
+                    b.Property<string>("DeliveryName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -556,6 +525,8 @@ namespace server.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
 
                     b.ToTable("Events");
                 });
@@ -1325,6 +1296,17 @@ namespace server.Migrations
                         .HasForeignKey("RolesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("server.Models.Event.Event", b =>
+                {
+                    b.HasOne("Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("server.Models.Inventory.BounceHouseType", b =>
