@@ -10,8 +10,12 @@ export const paymentStatus = (payments: Payment[], total: number) => {
     return { label: "No Balance", color: "gray" as TagColor };
   }
 
-  if (paymentsTotal >= total) {
+  if (paymentsTotal === total) {
     return { label: "Paid", color: "green" as TagColor };
+  }
+
+  if (paymentsTotal > total) {
+    return { label: "Overpaid", color: "blue" as TagColor };
   }
 
   return { label: "Balance Due", color: "yellow" as TagColor };
