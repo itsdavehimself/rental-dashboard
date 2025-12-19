@@ -587,7 +587,7 @@ public class EventsController : ControllerBase
       ReceivedAt = DateTime.UtcNow,
       TransactionId = request.TransactionId ?? null,
       CollectedById = user.Id,
-      Notes = request.Notes
+      Notes = request.Notes != "" ? request.Notes : null
     };
 
     _context.Payments.Add(newPayment);

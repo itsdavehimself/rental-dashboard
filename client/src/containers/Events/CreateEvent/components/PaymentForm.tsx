@@ -7,6 +7,7 @@ import Dropdown from "../../../../components/common/Dropdown";
 import { PAYMENT_METHODS } from "../../../../config/PAYMENT_TYPES";
 import { useForm } from "react-hook-form";
 import CashPaymentForm from "./CashPaymentForm";
+import StripePaymentForm from "../../../Clients/components/StripePaymentForm";
 
 interface PaymentFormProps {}
 
@@ -15,6 +16,7 @@ export type PaymentInputs = {
   amount: number;
   date: Date;
   notes: string;
+  amountToCharge: number;
 };
 
 const PaymentForm: React.FC<PaymentFormProps> = () => {
@@ -38,6 +40,7 @@ const PaymentForm: React.FC<PaymentFormProps> = () => {
   const paymentMethod = watch("paymentMethod");
   const amount = watch("amount");
   const date = watch("date");
+  const amountToCharge = watch("amountToCharge");
 
   useClickOutside(modalRef, () => {
     setOpenModal(null);
@@ -74,6 +77,12 @@ const PaymentForm: React.FC<PaymentFormProps> = () => {
             setValue={setValue}
             amount={amount}
             date={date}
+          />
+        )}
+        {paymentMethod === "Card" && (
+          <StripePaymentForm
+            amountToCharge={amountToCharge}
+            setValue={setValue}
           />
         )}
       </div>

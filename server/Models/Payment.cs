@@ -21,8 +21,7 @@ public class Payment
 public enum PaymentMethod
 {
   Cash,
-  CreditCard,
-  DebitCard,
+  Card,
   Zelle,
   Check,
   BankTransfer,

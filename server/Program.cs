@@ -8,6 +8,9 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var apiKey = Environment.GetEnvironmentVariable("STRIPE_SANDBOX_API_KEY");
+Stripe.StripeConfiguration.ApiKey = apiKey;
+
 // Config
 builder.Configuration.AddUserSecrets<Program>();
 

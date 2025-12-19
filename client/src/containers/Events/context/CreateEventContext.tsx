@@ -20,6 +20,14 @@ export interface CreateEventContextType {
   setEventUid: React.Dispatch<React.SetStateAction<string | null>>;
   payments: Payment[];
   setPayments: React.Dispatch<React.SetStateAction<Payment[]>>;
+  subTotal: number;
+  discounts: number;
+  taxes: number;
+  total: number;
+  amountDue: number;
+  totalPayments: number;
+  taxRate: number;
+  setTaxRate: React.Dispatch<React.SetStateAction<number>>;
   clearContext: () => void;
 }
 

@@ -43,12 +43,16 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
       setErrors(null);
       const payment = await addCashPayment(apiUrl, data, eventUid, user?.uid);
       setPayments((prev) => [...prev, payment]);
-      addToast("Success", ` successfully added to the team.`);
+      addToast(
+        "Success",
+        `$${(amount / 100).toFixed(2)} cash payment successfully added.`
+      );
       setOpenModal(null);
     } catch (err) {
       handleError(err, setErrors);
     }
   };
+  console.log(amount);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -69,7 +73,10 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         optional={true}
       />
       <div className="flex self-center w-1/2">
-        <SubmitButton label="Add Payment" />
+        <SubmitButton
+          label="Add Payment"
+          disabled={amount === 0 || amount === undefined}
+        />
       </div>
     </form>
   );

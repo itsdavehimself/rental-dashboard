@@ -1,11 +1,1 @@
-export type PaymentMethod =
-  | "Cash"
-  | "CreditCard"
-  | "DebitCard"
-  | "Zelle"
-  | "Check"
-  | "BankTransfer"
-  | "Square"
-  | "Stripe"
-  | "Venmo"
-  | "PayPal";
+export type PaymentMethod = "Cash" | "Card" | "Zelle" | "Venmo" | "PayPal";

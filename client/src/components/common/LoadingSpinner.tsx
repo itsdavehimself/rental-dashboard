@@ -4,7 +4,7 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ dimensions }) => {
   return (
-    <div className="w-24 h-24 bg-white rounded-md flex items-center justify-center animate-pulse">
+    <div className="w-24 h-24 bg-transparent rounded-md flex items-center justify-center animate-pulse">
       <div role="status">
         <svg
           aria-hidden="true"

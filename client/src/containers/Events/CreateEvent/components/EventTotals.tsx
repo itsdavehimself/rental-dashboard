@@ -1,63 +1,22 @@
 import ActionButton from "../../../../components/common/ActionButton";
 import { DollarSign } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
-import { getTaxRate } from "../../../../service/taxService";
-import { handleError } from "../../../../helpers/handleError";
-import { useToast } from "../../../../hooks/useToast";
-import { paymentStatus } from "../../helpers/paymentStatus";
+
 import ChipTag from "../../../../components/common/ChipTag";
+import { paymentStatus } from "../../helpers/paymentStatus";
 
 const EventTotals: React.FC = () => {
-  const { selectedItems, eventDelivery, setOpenModal, eventUid, payments } =
-    useCreateEvent();
-  const [taxRate, setTaxRate] = useState<number>(0);
-  const [zipCode, setZipCode] = useState(eventDelivery?.zipCode);
-
-  const { addToast } = useToast();
-  const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
-  const subTotal = useMemo(() => {
-    return selectedItems.reduce(
-      (total, item) => total + item.count * (item.unitPrice ?? 0),
-      0
-    );
-  }, [selectedItems]);
-
-  const discounts = 0;
-
-  const fetchTaxRate = async () => {
-    if (zipCode)
-      try {
-        const taxRes = await getTaxRate(apiUrl, zipCode);
-        setTaxRate(taxRes.taxRate);
-      } catch (err) {
-        handleError(err, setErrors);
-        addToast("Error", "There was a problem getting the tax rate.");
-      }
-  };
-
-  useEffect(() => {
-    fetchTaxRate();
-  }, [zipCode]);
-
-  useEffect(() => {
-    setZipCode(eventDelivery?.zipCode);
-  }, [eventDelivery]);
-
-  const taxes = useMemo(() => {
-    return ((subTotal - discounts) * taxRate) / 100;
-  }, [subTotal, discounts, taxRate]);
-
-  const total = useMemo(() => {
-    return subTotal + taxes - discounts;
-  }, [subTotal, taxes, discounts]);
-
-  const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
-
-  const amountDue = useMemo(() => {
-    return total - totalPayments;
-  }, [total, totalPayments]);
+  const {
+    setOpenModal,
+    eventUid,
+    subTotal,
+    total,
+    taxes,
+    totalPayments,
+    amountDue,
+    discounts,
+    payments,
+  } = useCreateEvent();
 
   const status = paymentStatus(payments, total);
 
@@ -101,12 +60,12 @@ const EventTotals: React.FC = () => {
       </div>
       <div className="flex flex-col gap-4 justify-center h-full w-full items-center">
         <ActionButton
-          label="Add Payment"
+          label="Payments"
           icon={DollarSign}
-          style="filled"
+          style={amountDue === 0 ? "outline" : "filled"}
           onClick={() => setOpenModal("addPayment")}
           full={true}
-          disabled={!eventUid}
+          disabled={!eventUid || amountDue === undefined}
         />
       </div>
     </div>

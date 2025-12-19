@@ -31,4 +31,35 @@ const addCashPayment = async (
   return await response.json();
 };
 
-export { addCashPayment };
+const addCardPayment = async (
+  apiUrl: string,
+  amount: number,
+  eventUid: string,
+  userUid: string,
+  transactionId: string
+): Promise<Payment> => {
+  const response = await fetch(`${apiUrl}/api/events/${eventUid}/payment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      date: new Date(),
+      amount: amount ? amount / 100 : 0,
+      notes: null,
+      paymentMethod: "Card",
+      collectedByUid: userUid,
+      transactionId,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Adding card payment failed.", errorData);
+  }
+
+  return await response.json();
+};
+
+export { addCashPayment, addCardPayment };
