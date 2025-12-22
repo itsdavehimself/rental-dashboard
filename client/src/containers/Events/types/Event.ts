@@ -41,7 +41,7 @@ type Event = {
   taxAmount: number;
   discounts: EventDiscount[];
   total: number;
-  payments: Payment[];
+  transactions: Transaction[];
   createdAt: string;
   updatedAt: string;
 };
@@ -59,8 +59,7 @@ type LogisticsTaskType = "Delivery" | "Pickup" | "Setup" | "Teardown";
 
 type PaymentMethod =
   | "Cash"
-  | "CreditCard"
-  | "DebitCard"
+  | "Card"
   | "Zelle"
   | "Check"
   | "BankTransfer"
@@ -95,19 +94,21 @@ type LogisticsTask = {
   notes?: string;
 };
 
-export type Payment = {
+type TransactionType = "Payment" | "Refund" | "Adjustment";
+
+export type Transaction = {
   uid: string;
-  eventUid: string;
+  eventUid: number;
   amount: number;
+  type: TransactionType;
   method: PaymentMethod;
-  receivedAt: Date;
-  transactionId?: string;
-  refunded: boolean;
-  refundedAmount: number;
-  refundedAt?: string;
-  refundReason?: string;
+  occurredAt: string;
+  externalTransactionId?: string;
+  relatedTransactionUId?: string;
+  processedBy?: string;
   notes?: string;
-  collectedBy: string;
+  cardBrand: string;
+  last4: string;
 };
 
 type EventDiscount = {

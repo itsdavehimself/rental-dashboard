@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using server.DTOs.Event;
-using server.Migrations;
 using server.Models.Event;
 using server.DTOs;
+using Stripe;
 
 namespace server.Controllers;
 
@@ -30,7 +30,7 @@ public class EventsController : ControllerBase
   public async Task<IActionResult> GetEvents([FromQuery] int page = 1, [FromQuery] int pageSize = 25)
   {
     var query = _context.Events
-      .Include(e => e.Payments).ThenInclude(p => p.CollectedBy)
+      .Include(e => e.Transactions).ThenInclude(p => p.ProcessedBy)
       .Include(e => e.LogisticsTasks)
       .Include(e => e.Items).ThenInclude(i => i.InventoryItem)
       .Include(e => e.Items).ThenInclude(i => i.Package)
@@ -118,17 +118,13 @@ public class EventsController : ControllerBase
         UpdatedAt = d.UpdatedAt
       }).ToList(),
       Total = e.Total,
-      Payments = e.Payments.Select(p => new PaymentResponseDto
+      Transactions = e.Transactions.Select(p => new TransactionResponseDto
       {
         Uid = p.Uid,
         Amount = p.Amount,
         Method = p.Method,
-        ReceivedAt = p.ReceivedAt,
-        TransactionId = p.TransactionId ?? "",
-        Refunded = p.Refunded,
-        RefundedAmount = p.RefundedAmount,
-        RefundedAt = p.RefundedAt,
-        RefundReason = p.RefundReason
+        OccurredAt = p.OccurredAt,
+        ExternalTransactionId = p.ExternalTransactionId ?? "",
       }).ToList(),
       CreatedAt = e.CreatedAt,
       UpdatedAt = e.UpdatedAt,
@@ -151,7 +147,7 @@ public class EventsController : ControllerBase
   public async Task<IActionResult> GetEvent(Guid uid)
   {
     var eventObject = await _context.Events
-      .Include(e => e.Payments).ThenInclude(p => p.CollectedBy)
+      .Include(e => e.Transactions).ThenInclude(p => p.ProcessedBy)
       .Include(e => e.LogisticsTasks)
       .Include(e => e.Items).ThenInclude(i => i.InventoryItem)
       .Include(e => e.Items).ThenInclude(i => i.Package)
@@ -170,7 +166,37 @@ public class EventsController : ControllerBase
       };
     }
 
-    return Ok(_mapper.Map<EventResponseDto>(eventObject));
+    var dto = _mapper.Map<EventResponseDto>(eventObject);
+
+    var cardPayments = dto.Transactions
+      .Where(t => t.Method == PaymentMethod.Card && t.ExternalTransactionId != null)
+      .ToList();
+
+    var chargeService = new ChargeService();
+
+    await Task.WhenAll(cardPayments.Select(async t =>
+    {
+      var charges = await chargeService.ListAsync(new ChargeListOptions
+      {
+        PaymentIntent = t.ExternalTransactionId,
+        Limit = 5
+      });
+
+      var charge = charges.Data
+        .FirstOrDefault(c => c.Status == "succeeded");
+
+      var card = charge?
+        .PaymentMethodDetails?
+        .Card;
+
+      if (card == null)
+        return;
+
+      t.CardBrand = card.Brand;
+      t.Last4 = card.Last4;
+    }));
+
+    return Ok(dto);
   }
 
   [HttpPost("save-draft")]
@@ -236,7 +262,7 @@ public class EventsController : ControllerBase
 
     var pickupDateTime = TimeZoneInfo.ConvertTimeToUtc(localPickupDateTime, centralZone);
 
-    var newEvent = new Event
+    var newEvent = new Models.Event.Event
     {
       ClientId = client.Id,
       ClientUid = client.Uid,
@@ -523,7 +549,7 @@ public class EventsController : ControllerBase
   }
 
   [HttpPost("{uid}/payment")]
-  public async Task<IActionResult> CreatePayment(PaymentDto request, Guid uid)
+  public async Task<IActionResult> CreatePayment(TransactionDto request, Guid uid)
   {
     if (!ModelState.IsValid)
     {
@@ -545,7 +571,7 @@ public class EventsController : ControllerBase
       };
     }
 
-    var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == request.CollectedByUid);
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == request.ProcessedByUid);
 
     if (user == null)
      {
@@ -579,20 +605,52 @@ public class EventsController : ControllerBase
       };  
     }
 
-    var newPayment = new Payment
+    var newTransaction = new Transaction
     {
       EventId = eventRecord.Id,
       Amount = request.Amount,
       Method = paymentMethod,
-      ReceivedAt = DateTime.UtcNow,
-      TransactionId = request.TransactionId ?? null,
-      CollectedById = user.Id,
-      Notes = request.Notes != "" ? request.Notes : null
+      OccurredAt = DateTime.UtcNow,
+      ExternalTransactionId = request.ExternalTransactionId ?? null,
+      ProcessedById = user.Id,
+      Notes = request.Notes != "" ? request.Notes : null,
+      Type = TransactionType.Payment
     };
 
-    _context.Payments.Add(newPayment);
+    _context.Transactions.Add(newTransaction);
     await _context.SaveChangesAsync();
 
-    return Ok(_mapper.Map<PaymentResponseDto>(newPayment));
+    string? cardBrand = null;
+    string? last4 = null;
+
+    if (newTransaction.Method == PaymentMethod.Card && newTransaction.ExternalTransactionId != null)
+    {
+      var chargeService = new ChargeService();
+
+      var charges = await chargeService.ListAsync(new ChargeListOptions
+      {
+        PaymentIntent = newTransaction.ExternalTransactionId,
+        Limit = 5
+      });
+
+      var charge = charges.Data.FirstOrDefault(c => c.Status == "succeeded");
+
+      var card = charge?
+        .PaymentMethodDetails?
+        .Card;
+
+      if (card != null)
+      {
+        cardBrand = card.Brand;
+        last4 = card.Last4;
+      }
+    }
+
+    var dto = _mapper.Map<TransactionResponseDto>(newTransaction);
+
+    dto.CardBrand = cardBrand;
+    dto.Last4 = last4;
+
+    return Ok(dto);
   }
 }

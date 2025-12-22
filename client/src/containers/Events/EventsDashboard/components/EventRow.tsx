@@ -27,7 +27,7 @@ const statusMap: Record<string, { label: string; color: TagColor }> = {
 const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
   const navigate = useNavigate();
 
-  const status = paymentStatus(item.payments, item.total);
+  const status = paymentStatus(item.transactions, item.total);
 
   const [popoverOpen, setPopoverOpen] = useState<boolean>(false);
 

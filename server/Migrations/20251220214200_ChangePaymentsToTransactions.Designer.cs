@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251220214200_ChangePaymentsToTransactions")]
+    partial class ChangePaymentsToTransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -359,6 +362,9 @@ namespace server.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
+                    b.Property<int>("CollectedById")
+                        .HasColumnType("integer");
+
                     b.Property<int>("EventId")
                         .HasColumnType("integer");
 
@@ -375,24 +381,20 @@ namespace server.Migrations
                     b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ProcessedById")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("RelatedTransactionId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("Uid")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId");
+                    b.HasIndex("CollectedById");
 
-                    b.HasIndex("ProcessedById");
+                    b.HasIndex("EventId");
 
                     b.HasIndex("RelatedTransactionId");
 
@@ -1307,15 +1309,15 @@ namespace server.Migrations
 
             modelBuilder.Entity("Transaction", b =>
                 {
-                    b.HasOne("server.Models.Event.Event", "Event")
-                        .WithMany("Transactions")
-                        .HasForeignKey("EventId")
+                    b.HasOne("server.Models.User.User", "CollectedBy")
+                        .WithMany()
+                        .HasForeignKey("CollectedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("server.Models.User.User", "ProcessedBy")
-                        .WithMany()
-                        .HasForeignKey("ProcessedById")
+                    b.HasOne("server.Models.Event.Event", "Event")
+                        .WithMany("Transactions")
+                        .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1323,9 +1325,9 @@ namespace server.Migrations
                         .WithMany()
                         .HasForeignKey("RelatedTransactionId");
 
-                    b.Navigation("Event");
+                    b.Navigation("CollectedBy");
 
-                    b.Navigation("ProcessedBy");
+                    b.Navigation("Event");
 
                     b.Navigation("RelatedTransaction");
                 });

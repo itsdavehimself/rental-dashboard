@@ -3,7 +3,7 @@ import type { ClientDetail } from "../../Clients/types/Client";
 import type { EventLineItem } from "../CreateEvent/CreateEvent";
 import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
 import type { AddressEntry } from "../../../types/Address";
-import type { Payment } from "../types/Event";
+import type { Transaction } from "../types/Event";
 
 export interface CreateEventContextType {
   client: ClientDetail | null;
@@ -18,8 +18,8 @@ export interface CreateEventContextType {
   setEventDelivery: React.Dispatch<React.SetStateAction<AddressEntry | null>>;
   eventUid: string | null;
   setEventUid: React.Dispatch<React.SetStateAction<string | null>>;
-  payments: Payment[];
-  setPayments: React.Dispatch<React.SetStateAction<Payment[]>>;
+  transactions: Transaction[];
+  setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
   subTotal: number;
   discounts: number;
   taxes: number;

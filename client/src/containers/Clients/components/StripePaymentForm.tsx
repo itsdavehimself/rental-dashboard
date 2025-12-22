@@ -10,7 +10,7 @@ import { createPaymentIntent } from "../../Events/services/stripeService";
 import { handleError } from "../../../helpers/handleError";
 import { useToast } from "../../../hooks/useToast";
 import CheckoutForm from "./CheckoutForm";
-import { type PaymentInputs } from "../../Events/CreateEvent/components/PaymentForm";
+import { type PaymentInputs } from "../../Events/CreateEvent/components/PaymentModal";
 import { type UseFormSetValue } from "react-hook-form";
 
 const stripePromise = loadStripe(
@@ -25,7 +25,7 @@ interface Props {
 }
 
 const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
-  const { amountDue, eventBilling } = useCreateEvent();
+  const { amountDue, eventBilling, eventUid } = useCreateEvent();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Error | null>(null);
@@ -42,12 +42,13 @@ const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
 
   const startPaymentIntent = async () => {
     try {
-      if (!eventBilling?.email) return;
+      if (!eventBilling?.email || !eventUid) return;
       setIsLoading(true);
 
       const secret = await createPaymentIntent(
         apiUrl,
-        amountDue,
+        eventUid,
+        amountToCharge,
         eventBilling.email
       );
 
@@ -72,7 +73,7 @@ const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
 
           {overcharge && (
             <p className="text-red-500 text-sm">
-              Amount cannot exceed amount due
+              Amount cannot exceed amount due.
             </p>
           )}
 

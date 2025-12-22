@@ -8,7 +8,7 @@ import type {
   UseFormSetValue,
   SubmitHandler,
 } from "react-hook-form";
-import type { PaymentInputs } from "./PaymentForm";
+import type { PaymentInputs } from "./PaymentModal";
 import { handleError, type ErrorsState } from "../../../../helpers/handleError";
 import { useState } from "react";
 import { useToast } from "../../../../hooks/useToast";
@@ -33,7 +33,8 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
 }) => {
   const [errors, setErrors] = useState<ErrorsState | null>(null);
   const { addToast } = useToast();
-  const { eventUid, setPayments, setOpenModal } = useCreateEvent();
+  const { eventUid, setTransactions, setOpenModal, amountDue } =
+    useCreateEvent();
   const user = useAppSelector((state) => state.user.user);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -41,8 +42,13 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
     try {
       if (!eventUid || !user) return;
       setErrors(null);
-      const payment = await addCashPayment(apiUrl, data, eventUid, user?.uid);
-      setPayments((prev) => [...prev, payment]);
+      const transaction = await addCashPayment(
+        apiUrl,
+        data,
+        eventUid,
+        user?.uid
+      );
+      setTransactions((prev) => [...prev, transaction]);
       addToast(
         "Success",
         `$${(amount / 100).toFixed(2)} cash payment successfully added.`
@@ -52,7 +58,6 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
       handleError(err, setErrors);
     }
   };
-  console.log(amount);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -72,10 +77,17 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         register={register("notes")}
         optional={true}
       />
+      {amount / 100 > amountDue && (
+        <p className="self-center text-red-500 text-sm">
+          Amount cannot exceed amount due.
+        </p>
+      )}
       <div className="flex self-center w-1/2">
         <SubmitButton
           label="Add Payment"
-          disabled={amount === 0 || amount === undefined}
+          disabled={
+            amount === 0 || amount === undefined || amount / 100 > amountDue
+          }
         />
       </div>
     </form>

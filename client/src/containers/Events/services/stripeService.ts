@@ -2,6 +2,7 @@ import { CustomError } from "../../../types/CustomError";
 
 const createPaymentIntent = async (
   apiUrl: string,
+  eventId: string,
   amount: number,
   email: string
 ): Promise<string> => {
@@ -12,6 +13,7 @@ const createPaymentIntent = async (
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      eventId,
       amount,
       email,
     }),

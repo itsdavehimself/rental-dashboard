@@ -4,7 +4,7 @@ import type { ClientDetail } from "../../Clients/types/Client";
 import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
 import type { AddressEntry } from "../../../types/Address";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
-import type { Payment } from "../types/Event";
+import type { Transaction } from "../types/Event";
 import { getTaxRate } from "../../../service/taxService";
 import { useToast } from "../../../hooks/useToast";
 
@@ -23,7 +23,7 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [eventBilling, setEventBilling] = useState<AddressEntry | null>(null);
   const [eventDelivery, setEventDelivery] = useState<AddressEntry | null>(null);
   const [eventUid, setEventUid] = useState<string | null>(null);
-  const [payments, setPayments] = useState<Payment[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [taxRate, setTaxRate] = useState(0);
 
   const clearContext = () => {
@@ -62,9 +62,9 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [subTotal, taxes, discounts]);
 
   const totalPayments = useMemo(() => {
-    const value = payments.reduce((sum, p) => sum + p.amount, 0);
+    const value = transactions.reduce((sum, p) => sum + p.amount, 0);
     return money(value);
-  }, [payments]);
+  }, [transactions]);
 
   const amountDue = useMemo(() => {
     const value = total - totalPayments;
@@ -99,8 +99,8 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     clearContext,
     eventUid,
     setEventUid,
-    payments,
-    setPayments,
+    transactions,
+    setTransactions,
     subTotal,
     discounts,
     taxes,

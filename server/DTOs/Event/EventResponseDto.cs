@@ -44,7 +44,7 @@ public class EventResponseDto
   public decimal TaxAmount { get; set; }
   public List<DiscountResponseDto> Discounts { get; set; } = [];
   public decimal Total { get; set; }
-  public List<PaymentResponseDto> Payments { get; set; } = [];
+  public List<TransactionResponseDto> Transactions { get; set; } = [];
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
   public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

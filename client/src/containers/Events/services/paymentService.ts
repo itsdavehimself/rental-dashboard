@@ -1,13 +1,13 @@
 import { CustomError } from "../../../types/CustomError";
-import type { PaymentInputs } from "../CreateEvent/components/PaymentForm";
-import type { Payment } from "../types/Event";
+import type { PaymentInputs } from "../CreateEvent/components/PaymentModal";
+import type { Transaction } from "../types/Event";
 
 const addCashPayment = async (
   apiUrl: string,
   data: PaymentInputs,
   eventUid: string,
   userUid: string
-): Promise<Payment> => {
+): Promise<Transaction> => {
   const response = await fetch(`${apiUrl}/api/events/${eventUid}/payment`, {
     method: "POST",
     headers: {
@@ -19,7 +19,7 @@ const addCashPayment = async (
       notes: data.notes,
       amount: data.amount ? data.amount / 100 : 0,
       paymentMethod: "Cash",
-      collectedByUid: userUid,
+      processedByUid: userUid,
     }),
   });
 
@@ -36,8 +36,8 @@ const addCardPayment = async (
   amount: number,
   eventUid: string,
   userUid: string,
-  transactionId: string
-): Promise<Payment> => {
+  externalTransactionId: string
+): Promise<Transaction> => {
   const response = await fetch(`${apiUrl}/api/events/${eventUid}/payment`, {
     method: "POST",
     headers: {
@@ -49,8 +49,8 @@ const addCardPayment = async (
       amount: amount ? amount / 100 : 0,
       notes: null,
       paymentMethod: "Card",
-      collectedByUid: userUid,
-      transactionId,
+      processedByUid: userUid,
+      externalTransactionId,
     }),
   });
 

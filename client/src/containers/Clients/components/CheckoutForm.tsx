@@ -19,7 +19,7 @@ interface Props {
 const CheckoutForm: React.FC<Props> = ({ amountToCharge }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { setOpenModal, eventUid, setPayments } = useCreateEvent();
+  const { setOpenModal, eventUid, setTransactions } = useCreateEvent();
   const { addToast } = useToast();
   const user = useAppSelector((state) => state.user.user);
 
@@ -45,14 +45,14 @@ const CheckoutForm: React.FC<Props> = ({ amountToCharge }) => {
         if (!eventUid || !user || !paymentIntent) return;
         setStatus("succeeded");
         setErrors(null);
-        const payment = await addCardPayment(
+        const transaction = await addCardPayment(
           apiUrl,
           amountToCharge,
           eventUid,
           user?.uid,
           paymentIntent?.id
         );
-        setPayments((prev) => [...prev, payment]);
+        setTransactions((prev) => [...prev, transaction]);
         setOpenModal(null);
         addToast(
           "Success",

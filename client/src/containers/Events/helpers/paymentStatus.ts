@@ -1,20 +1,20 @@
-import type { Payment } from "../types/Event";
+import type { Transaction } from "../types/Event";
 import TAG_COLOR_MAP from "../../../config/TAG_COLOR_MAP";
 
 type TagColor = keyof typeof TAG_COLOR_MAP;
 
-export const paymentStatus = (payments: Payment[], total: number) => {
-  const paymentsTotal = payments.reduce((sum, p) => sum + p.amount, 0);
+export const paymentStatus = (transactions: Transaction[], total: number) => {
+  const transactionsTotal = transactions.reduce((sum, p) => sum + p.amount, 0);
 
-  if (total === 0 && paymentsTotal === 0) {
+  if (total === 0 && transactionsTotal === 0) {
     return { label: "No Balance", color: "gray" as TagColor };
   }
 
-  if (paymentsTotal === total) {
+  if (transactionsTotal === total) {
     return { label: "Paid", color: "green" as TagColor };
   }
 
-  if (paymentsTotal > total) {
+  if (transactionsTotal > total) {
     return { label: "Overpaid", color: "blue" as TagColor };
   }
 

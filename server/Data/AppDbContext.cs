@@ -29,7 +29,7 @@ public class AppDbContext : DbContext
   public DbSet<Package> Packages => Set<Package>();
   public DbSet<PackageItem> PackageItems => Set<PackageItem>();
   public DbSet<TaxJurisdiction> TaxJurisdictions => Set<TaxJurisdiction>();
-  public DbSet<Payment> Payments => Set<Payment>();
+  public DbSet<Transaction> Transactions => Set<Transaction>();
   public DbSet<Discount> Discounts => Set<Discount>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -129,12 +129,16 @@ public class AppDbContext : DbContext
       .HasIndex(a => a.Uid)
       .IsUnique();
 
-    modelBuilder.Entity<Payment>()
-      .Property(p => p.Method)
+    modelBuilder.Entity<Transaction>()
+      .Property(t => t.Method)
       .HasConversion<string>();
 
-    modelBuilder.Entity<Payment>()
-      .HasIndex(p => p.Uid)
+    modelBuilder.Entity<Transaction>()
+      .Property(t => t.Type)
+      .HasConversion<string>();
+
+    modelBuilder.Entity<Transaction>()
+      .HasIndex(t => t.Uid)
       .IsUnique();
 
     modelBuilder.Entity<Event>()
@@ -142,9 +146,9 @@ public class AppDbContext : DbContext
       .HasConversion<string>();
 
     modelBuilder.Entity<Event>()
-      .HasMany(e => e.Payments)
-      .WithOne(p => p.Event)
-      .HasForeignKey(p => p.EventId)
+      .HasMany(e => e.Transactions)
+      .WithOne(t => t.Event)
+      .HasForeignKey(t => t.EventId)
       .OnDelete(DeleteBehavior.Cascade);
 
     modelBuilder.Entity<Event>()

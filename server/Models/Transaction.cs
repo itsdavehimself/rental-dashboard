@@ -1,23 +1,31 @@
 using server.Models.Event;
 using server.Models.User;
-public class Payment
+
+public class Transaction
 {
   public int Id { get; set; }
   public Guid Uid { get; set; } = Guid.NewGuid();
   public int EventId { get; set; }
   public Event Event { get; set; } = null!;
   public decimal Amount { get; set; }
+  public TransactionType Type { get; set; }
   public PaymentMethod Method { get; set; }
-  public DateTime ReceivedAt { get; set; }
-  public string? TransactionId { get; set; }
-  public bool Refunded { get; set; }
-  public decimal RefundedAmount { get; set; }
-  public DateTime? RefundedAt { get; set; }
-  public string? RefundReason { get; set; }
-  public int CollectedById { get; set; }
-  public User CollectedBy { get; set; } = null!;
+  public DateTime OccurredAt { get; set; }
+  public string? ExternalTransactionId { get; set; }
+  public int? RelatedTransactionId { get; set; }
+  public Transaction? RelatedTransaction { get; set; }
+  public int ProcessedById { get; set; }
+  public User ProcessedBy { get; set; } = null!;
   public string? Notes { get; set; }
 }
+
+public enum TransactionType
+{
+  Payment,
+  Refund,
+  Adjustment
+}
+
 public enum PaymentMethod
 {
   Cash,

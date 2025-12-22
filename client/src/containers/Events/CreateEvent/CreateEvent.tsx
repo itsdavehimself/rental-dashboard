@@ -19,13 +19,14 @@ import { useCreateEvent } from "../hooks/useCreateEvent";
 import SearchClients from "../../Clients/components/SearchClients";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
 import { upsertEventDraft } from "../services/eventService";
-import PaymentForm from "./components/PaymentForm";
+import PaymentForm from "./components/PaymentModal";
 import { useFetchClient } from "../hooks/useFetchClient";
 import { useFetchEvent } from "../hooks/useFetchEvent";
 import { mapItemResToEvent } from "../helpers/mapItemResToEvent";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { mapAddressResToEvent } from "../helpers/mapAddressResToEvent";
 import { useFetchAvailability } from "../hooks/useFetchAvailability";
+import type { ClientDetail } from "../../Clients/types/Client";
 
 export type CreateEventModalType =
   | null
@@ -88,7 +89,7 @@ const CreateEvent: React.FC = () => {
     eventBilling,
     eventDelivery,
     setEventUid,
-    setPayments,
+    setTransactions,
     clearContext,
   } = useCreateEvent();
 
@@ -156,7 +157,7 @@ const CreateEvent: React.FC = () => {
     }
   }, [client]);
 
-  function setPrimaryAddressesFromClient(client) {
+  function setPrimaryAddressesFromClient(client: ClientDetail) {
     if (client.billingAddresses?.length) {
       const primaryBilling =
         client.billingAddresses.find((a) => a.isPrimary) ??
@@ -183,7 +184,7 @@ const CreateEvent: React.FC = () => {
     setValue("internalNotes", fetchedEvent?.internalNotes);
     setValue("eventType", fetchedEvent?.eventType);
     setEventUid(fetchedEvent?.uid);
-    setPayments(fetchedEvent.payments);
+    setTransactions(fetchedEvent.transactions);
     const mappedAddresses = mapAddressResToEvent(fetchedEvent);
     setEventBilling(mappedAddresses.billing);
     setEventDelivery(mappedAddresses.delivery);
@@ -284,7 +285,9 @@ const CreateEvent: React.FC = () => {
       )}
       {openModal === "addPayment" && <EditModal children={<PaymentForm />} />}
       <div className="flex justify-between">
-        <h2 className="text-2xl font-semibold">Create Event</h2>
+        <h2 className="text-2xl font-semibold">
+          {eventUid ? "Edit Event" : "Create Event"}
+        </h2>
         <div className="flex gap-4 w-fit">
           <ActionButton
             label="Save Draft"

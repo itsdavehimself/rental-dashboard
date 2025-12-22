@@ -15,10 +15,10 @@ const EventTotals: React.FC = () => {
     totalPayments,
     amountDue,
     discounts,
-    payments,
+    transactions,
   } = useCreateEvent();
 
-  const status = paymentStatus(payments, total);
+  const status = paymentStatus(transactions, total);
 
   return (
     <div className="flex flex-col flex-grow gap-6 border-1 border-gray-200 rounded-lg py-4 px-6 overflow-hidden">

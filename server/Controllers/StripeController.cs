@@ -31,14 +31,27 @@ public class StripeController : ControllerBase
       {
         Title = "Bad Request",
         Detail = "Amount must be provided.",
-        Status = StatusCodes.Status404NotFound
+        Status = StatusCodes.Status400BadRequest
       })
       {
-        StatusCode = StatusCodes.Status404NotFound
+        StatusCode = StatusCodes.Status400BadRequest
       };
     }
 
-    var checkoutTotal = (long)(req.Amount * 100);
+    if (req.EventId == null )
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Bad Request",
+        Detail = "Event ID must be provided.",
+        Status = StatusCodes.Status400BadRequest
+      })
+      {
+        StatusCode = StatusCodes.Status400BadRequest
+      };
+    }
+
+    var checkoutTotal = (long)req.Amount;
 
     var options = new Stripe.PaymentIntentCreateOptions
     {
@@ -50,7 +63,7 @@ public class StripeController : ControllerBase
             "card"
         },
 
-        Description = "AD Rentals Payment",
+        Description = $"AD Rentals Payment | Event ID: {req.EventId}",
         Metadata = new Dictionary<string, string>
         {
             { "customerEmail", req.Email },

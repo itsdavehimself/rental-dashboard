@@ -1,23 +1,46 @@
+import { createPortal } from "react-dom";
 import type { LucideIcon } from "lucide-react";
 
 interface PopOverProps {
-  buttons: { icon: LucideIcon; label: string; onClick?: (e) => void }[];
+  buttons: {
+    icon: LucideIcon;
+    label: string;
+    onClick?: () => void;
+  }[];
+  anchorRect: DOMRect;
+  onClose: () => void;
 }
 
-const PopOver: React.FC<PopOverProps> = ({ buttons }) => {
-  return (
-    <div className="shadow-md rounded-xl bg-white border-1 border-gray-200 overflow-hidden">
-      {buttons.map((b, i) => (
-        <button
-          key={i}
-          onClick={b.onClick}
-          className="grid grid-cols-[1.2rem_1fr] items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 w-full text-left hover:cursor-pointer whitespace-nowrap hover:text-primary transition-all duration-200"
-        >
-          <b.icon className="h-4 w-4" />
-          {b.label}
-        </button>
-      ))}
-    </div>
+const PopOver: React.FC<PopOverProps> = ({ buttons, anchorRect, onClose }) => {
+  return createPortal(
+    <div
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      className="fixed z-50"
+      style={{
+        top: anchorRect.bottom + 8,
+        left: anchorRect.right,
+        transform: "translateX(-100%)",
+      }}
+    >
+      <div className="shadow-md rounded-xl bg-white border border-gray-200 overflow-hidden">
+        {buttons.map((b, i) => (
+          <button
+            key={i}
+            onClick={(e) => {
+              e.stopPropagation();
+              b.onClick?.();
+              onClose();
+            }}
+            className="grid grid-cols-[1.2rem_auto] items-center gap-2 px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 w-full text-left hover:text-primary hover:cursor-pointer transition whitespace-nowrap"
+          >
+            <b.icon className="h-4 w-4" />
+            {b.label}
+          </button>
+        ))}
+      </div>
+    </div>,
+    document.getElementById("portal-root")!
   );
 };
 

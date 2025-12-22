@@ -19,10 +19,10 @@ public class EventProfile : Profile
 
     CreateMap<Discount, DiscountResponseDto>();
 
-    CreateMap<Payment, PaymentResponseDto>()
+    CreateMap<Transaction, TransactionResponseDto>()
       .ForMember(
-        dest => dest.CollectedBy,
-        opt => opt.MapFrom(src => $"{src.CollectedBy.FirstName} {src.CollectedBy.LastName}")
+        dest => dest.ProcessedBy,
+        opt => opt.MapFrom(src => $"{src.ProcessedBy.FirstName} {src.ProcessedBy.LastName}")
       )
        .ForMember(
         dest => dest.EventUid,
