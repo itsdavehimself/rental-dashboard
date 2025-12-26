@@ -8,18 +8,36 @@ import {
   BanknoteArrowDown,
   NotebookText,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PopOver from "./PopOver";
+import { useCreateEvent } from "../../containers/Events/hooks/useCreateEvent";
 
 interface TransactionRowProps {
   transaction: Transaction;
+  setView: React.Dispatch<
+    React.SetStateAction<"add" | "view" | "refund" | "details" | null>
+  >;
+  setSelectedTransaction: React.Dispatch<
+    React.SetStateAction<Transaction | null>
+  >;
 }
 
 const capitalize = (s?: string) =>
   s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 
-const TransactionRow: React.FC<TransactionRowProps> = ({ transaction }) => {
+const TransactionRow: React.FC<TransactionRowProps> = ({
+  transaction,
+  setView,
+  setSelectedTransaction,
+}) => {
   const user = useAppSelector((state) => state.user.user);
+  const { transactions } = useCreateEvent();
+
+  const totalRefunded = transactions
+    .filter((t) => t.relatedTransactionUid === transaction.uid)
+    .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+  const isFullyRefunded = totalRefunded >= transaction.amount;
 
   const popOverRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -58,8 +76,6 @@ const TransactionRow: React.FC<TransactionRowProps> = ({ transaction }) => {
       window.removeEventListener("scroll", handleScroll, true);
     };
   }, [popOverOpen]);
-
-  console.log(transaction.occurredAt);
 
   return (
     <div className="flex justify-between items-end">
@@ -117,23 +133,29 @@ const TransactionRow: React.FC<TransactionRowProps> = ({ transaction }) => {
             anchorRect={anchorRect}
             onClose={() => setPopOverOpen(false)}
             buttons={[
-              ...(transaction.notes
+              {
+                icon: NotebookText,
+                label: "View Details",
+                onClick: () => {
+                  setSelectedTransaction(transaction);
+                  setView("details");
+                },
+              },
+              ...(transaction.type !== "Refund" && !isFullyRefunded
                 ? [
                     {
-                      icon: NotebookText,
-                      label: "View Notes",
-                      onClick: () => console.log("viewing notes"),
+                      icon: BanknoteArrowDown,
+                      label:
+                        transaction.method === "Cash"
+                          ? "Record Cash Refund"
+                          : "Refund",
+                      onClick: () => {
+                        setSelectedTransaction(transaction);
+                        setView("refund");
+                      },
                     },
                   ]
                 : []),
-              {
-                icon: BanknoteArrowDown,
-                label:
-                  transaction.method === "Cash"
-                    ? "Record Cash Refund"
-                    : "Refund",
-                onClick: () => console.log("refund"),
-              },
             ]}
           />
         )}

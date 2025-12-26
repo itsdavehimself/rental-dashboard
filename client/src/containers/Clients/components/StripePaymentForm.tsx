@@ -10,7 +10,7 @@ import { createPaymentIntent } from "../../Events/services/stripeService";
 import { handleError } from "../../../helpers/handleError";
 import { useToast } from "../../../hooks/useToast";
 import CheckoutForm from "./CheckoutForm";
-import { type PaymentInputs } from "../../Events/CreateEvent/components/PaymentModal";
+import { type PaymentInputs } from "../../Events/CreateEvent/components/TransactionModal";
 import { type UseFormSetValue } from "react-hook-form";
 
 const stripePromise = loadStripe(

@@ -9,8 +9,9 @@ import { useCreateEvent } from "../../Events/hooks/useCreateEvent";
 import { useToast } from "../../../hooks/useToast";
 import { handleError } from "../../../helpers/handleError";
 import { type ErrorsState } from "../../../helpers/handleError";
-import { addCardPayment } from "../../Events/services/paymentService";
+import { addCardPayment } from "../../Events/services/transactionService";
 import { useAppSelector } from "../../../app/hooks";
+import sortTransactions from "../../Events/helpers/sortTransactions";
 
 interface Props {
   amountToCharge: number;
@@ -52,7 +53,7 @@ const CheckoutForm: React.FC<Props> = ({ amountToCharge }) => {
           user?.uid,
           paymentIntent?.id
         );
-        setTransactions((prev) => [...prev, transaction]);
+        setTransactions((prev) => sortTransactions([...prev, transaction]));
         setOpenModal(null);
         addToast(
           "Success",

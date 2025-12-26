@@ -8,13 +8,14 @@ import type {
   UseFormSetValue,
   SubmitHandler,
 } from "react-hook-form";
-import type { PaymentInputs } from "./PaymentModal";
+import type { PaymentInputs } from "./TransactionModal";
 import { handleError, type ErrorsState } from "../../../../helpers/handleError";
 import { useState } from "react";
 import { useToast } from "../../../../hooks/useToast";
-import { addCashPayment } from "../../services/paymentService";
+import { addCashPayment } from "../../services/transactionService";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
 import { useAppSelector } from "../../../../app/hooks";
+import sortTransactions from "../../helpers/sortTransactions";
 
 interface CashPaymentFormProps {
   handleSubmit: UseFormHandleSubmit<PaymentInputs, PaymentInputs>;
@@ -48,7 +49,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         eventUid,
         user?.uid
       );
-      setTransactions((prev) => [...prev, transaction]);
+      setTransactions((prev) => sortTransactions([...prev, transaction]));
       addToast(
         "Success",
         `$${(amount / 100).toFixed(2)} cash payment successfully added.`

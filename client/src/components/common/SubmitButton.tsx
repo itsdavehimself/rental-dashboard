@@ -5,6 +5,7 @@ interface SubmitButtonProps {
   disabled?: boolean;
   full?: boolean;
   loading?: boolean;
+  destructive?: boolean;
 }
 
 const SubmitButton: React.FC<SubmitButtonProps> = ({
@@ -12,8 +13,19 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
   disabled = false,
   full = true,
   loading = false,
+  destructive = false,
 }) => {
   const isDisabled = disabled || loading;
+
+  const getVariantClasses = () => {
+    if (disabled) {
+      return "bg-gray-400 ring-gray-400 cursor-not-allowed";
+    }
+    if (destructive) {
+      return "bg-red-600 ring-red-600 hover:bg-red-700";
+    }
+    return "bg-primary ring-primary hover:bg-primary-hover";
+  };
 
   return (
     <button
@@ -23,11 +35,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
         ${full ? "w-full" : "w-fit"}
         px-8 h-10 rounded-lg text-sm font-semibold ring-1 text-white
         transition-all duration-200 flex justify-center items-center
-        ${
-          disabled
-            ? "bg-gray-400 ring-gray-400 cursor-not-allowed"
-            : "bg-primary ring-primary hover:bg-primary-hover"
-        }
+        ${getVariantClasses()}
         ${loading ? "pointer-events-none" : "cursor-pointer"}
       `}
     >

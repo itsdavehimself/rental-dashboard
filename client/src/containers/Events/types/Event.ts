@@ -1,4 +1,5 @@
 import type { ItemBasics } from "../CreateEvent/CreateEvent";
+import type { PaymentMethod } from "./PaymentType";
 
 type Event = {
   uid: string;
@@ -57,17 +58,6 @@ type ItemType = "AlaCarte" | "Package";
 
 type LogisticsTaskType = "Delivery" | "Pickup" | "Setup" | "Teardown";
 
-type PaymentMethod =
-  | "Cash"
-  | "Card"
-  | "Zelle"
-  | "Check"
-  | "BankTransfer"
-  | "Square"
-  | "Stripe"
-  | "Venmo"
-  | "PayPal";
-
 type DiscountType = "FlatAmount" | "Percentage";
 
 type EventItem = {
@@ -104,7 +94,7 @@ export type Transaction = {
   method: PaymentMethod;
   occurredAt: string;
   externalTransactionId?: string;
-  relatedTransactionUId?: string;
+  relatedTransactionUid?: string;
   processedBy?: string;
   notes?: string;
   cardBrand: string;

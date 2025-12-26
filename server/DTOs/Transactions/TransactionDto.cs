@@ -7,5 +7,4 @@ public class TransactionDto
   public string? Notes { get; set; }
   public Guid ProcessedByUid { get; set; } = Guid.NewGuid();
   public TransactionType Type { get; set; }
-  public Guid? RelatedTransactionUid { get; set; }
 }

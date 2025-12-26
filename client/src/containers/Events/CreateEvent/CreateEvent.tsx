@@ -19,7 +19,7 @@ import { useCreateEvent } from "../hooks/useCreateEvent";
 import SearchClients from "../../Clients/components/SearchClients";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
 import { upsertEventDraft } from "../services/eventService";
-import PaymentForm from "./components/PaymentModal";
+import PaymentForm from "./components/TransactionModal";
 import { useFetchClient } from "../hooks/useFetchClient";
 import { useFetchEvent } from "../hooks/useFetchEvent";
 import { mapItemResToEvent } from "../helpers/mapItemResToEvent";
@@ -184,7 +184,11 @@ const CreateEvent: React.FC = () => {
     setValue("internalNotes", fetchedEvent?.internalNotes);
     setValue("eventType", fetchedEvent?.eventType);
     setEventUid(fetchedEvent?.uid);
-    setTransactions(fetchedEvent.transactions);
+    setTransactions(
+      fetchedEvent.transactions.sort((a, b) =>
+        b.occurredAt.localeCompare(a.occurredAt)
+      )
+    );
     const mappedAddresses = mapAddressResToEvent(fetchedEvent);
     setEventBilling(mappedAddresses.billing);
     setEventDelivery(mappedAddresses.delivery);

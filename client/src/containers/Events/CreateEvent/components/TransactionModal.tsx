@@ -9,6 +9,10 @@ import { useForm } from "react-hook-form";
 import CashPaymentForm from "./CashPaymentForm";
 import StripePaymentForm from "../../../Clients/components/StripePaymentForm";
 import TransactionRow from "../../../../components/common/TransactionRow";
+import { ArrowLeft } from "lucide-react";
+import type { Transaction } from "../../types/Event";
+import TransactionDetails from "./TransactionDetails";
+import RefundForm from "./RefundForm";
 
 export type PaymentInputs = {
   paymentMethod: string;
@@ -18,7 +22,7 @@ export type PaymentInputs = {
   amountToCharge: number;
 };
 
-const PaymentModal: React.FC = () => {
+const TransactionModal: React.FC = () => {
   const {
     handleSubmit,
     register,
@@ -35,7 +39,26 @@ const PaymentModal: React.FC = () => {
   const { setOpenModal, amountDue, transactions } = useCreateEvent();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [errors, setErrors] = useState<ErrorsState | null>(null);
-  const [view, setView] = useState<"add" | "view" | null>("add");
+  const [view, setView] = useState<
+    "add" | "view" | "refund" | "details" | null
+  >("add");
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+  const [relatedRefunds, setRelatedRefunds] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    const relatedRefunds = transactions.filter(
+      (t) => t.relatedTransactionUid === selectedTransaction?.uid
+    );
+    setRelatedRefunds(relatedRefunds);
+  }, [transactions, selectedTransaction]);
+
+  useEffect(() => {
+    const relatedRefunds = transactions.filter(
+      (t) => t.relatedTransactionUid === selectedTransaction?.uid
+    );
+    setRelatedRefunds(relatedRefunds);
+  }, [transactions, selectedTransaction]);
 
   const paymentMethod = watch("paymentMethod");
   const amount = watch("amount");
@@ -54,6 +77,13 @@ const PaymentModal: React.FC = () => {
     if (amountDue === 0) setView("view");
   }, []);
 
+  const modalTitle = (view: "add" | "view" | "refund" | "details" | null) => {
+    if (view === "add") return "Add Payment";
+    if (view === "view") return "View Payments";
+    if (view === "refund") return "Refund Payment";
+    if (view === "details") return "Transaction Details";
+  };
+
   return (
     <section
       ref={modalRef}
@@ -61,20 +91,29 @@ const PaymentModal: React.FC = () => {
     >
       <div className="flex justify-between items-center pl-6 pr-4 mb-4">
         <div className="flex justify-center gap-6 items-baseline">
-          <h4 className="text-lg font-semibold">
-            {view === "add" ? "Add Payment" : "View Payments"}
-          </h4>
-          <button
-            onClick={toggleView}
-            className="text-xs text-gray-400 font-semibold hover:cursor-pointer hover:text-primary transition-all duration-200"
-          >
-            {view === "add" ? "View Payments" : "Add Payment"}
-          </button>
+          <h4 className="text-lg font-semibold">{modalTitle(view)}</h4>
+          {view !== "refund" && view !== "details" && (
+            <button
+              onClick={toggleView}
+              className="text-xs text-gray-400 font-semibold hover:cursor-pointer hover:text-primary transition-all duration-200"
+            >
+              {view === "add" ? "View Payments" : "Add Payment"}
+            </button>
+          )}
         </div>
-        <XButton setIsModalOpen={setOpenModal} setErrors={setErrors} />
+        {view === "refund" || view === "details" ? (
+          <button
+            className="text-gray-400 hover:text-primary hover:cursor-pointer transition-all duration-200 p-2"
+            onClick={() => setView("view")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        ) : (
+          <XButton setIsModalOpen={setOpenModal} setErrors={setErrors} />
+        )}
       </div>
       {view === "view" && (
-        <div className="flex flex-col px-8 gap-6 mb-4 max-h-100 overflow-scroll">
+        <div className="flex flex-col px-6 gap-6 mb-2 max-h-100 overflow-scroll">
           {transactions.length === 0 && (
             <p className="self-center text-sm text-gray-400">
               There are no payments related to this event.
@@ -87,7 +126,12 @@ const PaymentModal: React.FC = () => {
                 new Date(a.occurredAt).getTime()
             )
             .map((t) => (
-              <TransactionRow key={t.uid} transaction={t} />
+              <TransactionRow
+                key={t.uid}
+                transaction={t}
+                setView={setView}
+                setSelectedTransaction={setSelectedTransaction}
+              />
             ))}
         </div>
       )}
@@ -124,8 +168,29 @@ const PaymentModal: React.FC = () => {
           )}
         </div>
       )}
+      {view === "refund" && (
+        <div className="flex flex-col gap-8 px-6">
+          <TransactionDetails
+            selectedTransaction={selectedTransaction}
+            relatedRefunds={relatedRefunds}
+          />
+          <RefundForm
+            selectedTransaction={selectedTransaction}
+            setView={setView}
+            relatedRefunds={relatedRefunds}
+          />
+        </div>
+      )}
+      {view === "details" && (
+        <div className="flex flex-col gap-8 px-6 mb-2">
+          <TransactionDetails
+            selectedTransaction={selectedTransaction}
+            relatedRefunds={relatedRefunds}
+          />
+        </div>
+      )}
     </section>
   );
 };
 
-export default PaymentModal;
+export default TransactionModal;
