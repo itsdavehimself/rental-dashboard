@@ -10,7 +10,7 @@ import type {
 } from "react-hook-form";
 import type { PaymentInputs } from "./TransactionModal";
 import { handleError, type ErrorsState } from "../../../../helpers/handleError";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "../../../../hooks/useToast";
 import { addCashPayment } from "../../services/transactionService";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
@@ -21,12 +21,12 @@ interface CashPaymentFormProps {
   handleSubmit: UseFormHandleSubmit<PaymentInputs, PaymentInputs>;
   register: UseFormRegister<PaymentInputs>;
   setValue: UseFormSetValue<PaymentInputs>;
-  amount: number;
+  amountToCharge: number;
   date: Date;
 }
 
 const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
-  amount,
+  amountToCharge,
   date,
   register,
   setValue,
@@ -52,7 +52,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
       setTransactions((prev) => sortTransactions([...prev, transaction]));
       addToast(
         "Success",
-        `$${(amount / 100).toFixed(2)} cash payment successfully added.`
+        `$${(amountToCharge / 100).toFixed(2)} cash payment successfully added.`
       );
       setOpenModal(null);
     } catch (err) {
@@ -60,12 +60,18 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (!amountToCharge) {
+      setValue("amountToCharge", amountDue * 100);
+    }
+  }, [amountDue]);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <CurrencyInput
         label="Amount"
-        value={amount}
-        onValueChange={(val) => setValue("amount", val)}
+        value={amountToCharge}
+        onValueChange={(val) => setValue("amountToCharge", val)}
       />
       <DatePicker
         label="Payment Date"
@@ -78,7 +84,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         register={register("notes")}
         optional={true}
       />
-      {amount / 100 > amountDue && (
+      {amountToCharge / 100 > amountDue && (
         <p className="self-center text-red-500 text-sm">
           Amount cannot exceed amount due.
         </p>
@@ -87,7 +93,9 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         <SubmitButton
           label="Add Payment"
           disabled={
-            amount === 0 || amount === undefined || amount / 100 > amountDue
+            amountToCharge === 0 ||
+            amountToCharge === undefined ||
+            amountToCharge / 100 > amountDue
           }
         />
       </div>

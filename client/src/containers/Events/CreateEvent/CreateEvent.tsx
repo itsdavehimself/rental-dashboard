@@ -10,7 +10,7 @@ import EventTotals from "./components/EventTotals";
 import ActionButton from "../../../components/common/ActionButton";
 import { Save, CalendarCheck } from "lucide-react";
 import { useNavigate } from "react-router";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler, FormProvider } from "react-hook-form";
 import EditModal from "../../../components/common/EditModal";
 import EditClientNotes from "./components/EditClientNotes";
 import EditAddresses from "./components/EditAddresses";
@@ -18,7 +18,7 @@ import EventInternalNotes from "./components/EventInternalNotes";
 import { useCreateEvent } from "../hooks/useCreateEvent";
 import SearchClients from "../../Clients/components/SearchClients";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
-import { upsertEventDraft } from "../services/eventService";
+import { saveEvent } from "../services/eventService";
 import PaymentForm from "./components/TransactionModal";
 import { useFetchClient } from "../hooks/useFetchClient";
 import { useFetchEvent } from "../hooks/useFetchEvent";
@@ -66,16 +66,10 @@ const CreateEvent: React.FC = () => {
   const params = new URLSearchParams(location.search);
   const clientUid = params.get("clientId");
   const eventUid = params.get("eventId");
+  const methods = useForm<CreateEventInputs>({});
 
-  const {
-    handleSubmit,
-    register,
-    watch,
-    setValue,
-    setError,
-    clearErrors,
-    formState: { errors: formErrors },
-  } = useForm<CreateEventInputs>({});
+  const { handleSubmit, register, watch, setValue, setError, clearErrors } =
+    methods;
 
   const {
     client,
@@ -218,7 +212,10 @@ const CreateEvent: React.FC = () => {
     setSelectedItems
   );
 
-  const saveDraftSubmit: SubmitHandler<CreateEventInputs> = async (data) => {
+  const onFormSubmit = async (
+    data: CreateEventInputs,
+    action: "draft" | "reserve"
+  ) => {
     if (!client || !eventBilling || !eventDelivery || !datesSelected) return;
 
     try {
@@ -233,16 +230,32 @@ const CreateEvent: React.FC = () => {
         deliveryUid: eventDelivery.uid,
       };
 
-      const event = await upsertEventDraft(apiUrl, data, items, uids, eventUid);
+      const event = await saveEvent(
+        apiUrl,
+        data,
+        items,
+        uids,
+        eventUid,
+        action
+      );
 
-      if (!eventUid) setEventUid(event.uid);
+      if (!eventUid) {
+        setEventUid(event.uid);
+        navigate(`?clientId=${client.uid}&eventId=${event.uid}`, {
+          replace: true,
+        });
+      }
 
       addToast(
         "Success",
-        eventUid ? "Event draft updated." : "Event saved as draft."
+        action === "reserve" ? "Event reserved." : "Draft saved."
       );
-    } catch (err) {
-      console.log("error", err);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        addToast("Error", err.message);
+      } else {
+        addToast("Error", String(err));
+      }
     }
   };
 
@@ -263,76 +276,71 @@ const CreateEvent: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {openModal === "searchClient" && (
-        <SearchClients<CreateEventModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
-          setErrors={setErrors}
-          title="Change Client"
-          label="Update Client"
-          mode="update"
-        />
-      )}
-      {openModal === "editClientNotes" && (
-        <EditModal children={<EditClientNotes title="Edit client notes" />} />
-      )}
-      {openModal === "editClientBilling" && client?.billingAddresses && (
-        <EditModal
-          children={<EditAddresses type="billing" setErrors={setErrors} />}
-        />
-      )}
-      {openModal === "editClientDelivery" && client?.deliveryAddresses && (
-        <EditModal
-          children={<EditAddresses type="delivery" setErrors={setErrors} />}
-        />
-      )}
-      {openModal === "addPayment" && <EditModal children={<PaymentForm />} />}
-      <div className="flex justify-between">
-        <h2 className="text-2xl font-semibold">
-          {eventUid ? "Edit Event" : "Create Event"}
-        </h2>
-        <div className="flex gap-4 w-fit">
-          <ActionButton
-            label="Save Draft"
-            onClick={handleSubmit(saveDraftSubmit)}
-            style="outline"
-            icon={Save}
-            disabled={!canSaveDraft}
+    <FormProvider {...methods}>
+      <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
+        {openModal === "searchClient" && (
+          <SearchClients<CreateEventModalType>
+            openModal={openModal}
+            setOpenModal={setOpenModal}
+            setErrors={setErrors}
+            title="Change Client"
+            label="Update Client"
+            mode="update"
           />
-          <ActionButton
-            label="Reserve"
-            onClick={() => console.log("reserve")}
-            style="filled"
-            icon={CalendarCheck}
-            disabled={!canSaveDraft}
+        )}
+        {openModal === "editClientNotes" && (
+          <EditModal children={<EditClientNotes title="Edit client notes" />} />
+        )}
+        {openModal === "editClientBilling" && client?.billingAddresses && (
+          <EditModal
+            children={<EditAddresses type="billing" setErrors={setErrors} />}
           />
-        </div>
-      </div>
-      <div className="grid grid-cols-[1fr_.2fr] gap-8 h-full">
-        <div className="flex flex-col gap-8">
-          <div className="grid grid-cols-[1.8fr_1fr] gap-8 h-fit w-full">
-            <div className="flex flex-col gap-8 h-full">
-              <EventScheduleSection
-                deliveryDate={deliveryDate}
-                deliveryTime={deliveryTime}
-                pickUpDate={pickUpDate}
-                pickUpTime={pickUpTime}
-                setValue={setValue}
-                formErrors={formErrors}
-              />
-              <EventInternalNotes register={register} />
-            </div>
-            <EventDetailsSection register={register} />
+        )}
+        {openModal === "editClientDelivery" && client?.deliveryAddresses && (
+          <EditModal
+            children={<EditAddresses type="delivery" setErrors={setErrors} />}
+          />
+        )}
+        {openModal === "addPayment" && <EditModal children={<PaymentForm />} />}
+        <div className="flex justify-between">
+          <h2 className="text-2xl font-semibold">
+            {eventUid ? "Edit Event" : "Create Event"}
+          </h2>
+          <div className="flex gap-4 w-fit">
+            <ActionButton
+              label="Save Draft"
+              onClick={handleSubmit((data) => onFormSubmit(data, "draft"))}
+              style="outline"
+              icon={Save}
+              disabled={!canSaveDraft}
+            />
+            <ActionButton
+              label="Reserve"
+              onClick={handleSubmit((data) => onFormSubmit(data, "reserve"))}
+              style="filled"
+              icon={CalendarCheck}
+              disabled={!canSaveDraft || !eventUid}
+            />
           </div>
-          <ItemsAndServices />
         </div>
-        <div className="flex flex-col gap-8 h-full flex-grow">
-          <ResidentialClientInfo />
-          <EventTotals />
+        <div className="grid grid-cols-[1fr_.2fr] gap-8 h-full">
+          <div className="flex flex-col gap-8">
+            <div className="grid grid-cols-[1.8fr_1fr] gap-8 h-fit w-full">
+              <div className="flex flex-col gap-8 h-full">
+                <EventScheduleSection />
+                <EventInternalNotes register={register} />
+              </div>
+              <EventDetailsSection register={register} />
+            </div>
+            <ItemsAndServices />
+          </div>
+          <div className="flex flex-col gap-8 h-full flex-grow">
+            <ResidentialClientInfo />
+            <EventTotals />
+          </div>
         </div>
       </div>
-    </div>
+    </FormProvider>
   );
 };
 

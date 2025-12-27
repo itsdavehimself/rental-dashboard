@@ -16,7 +16,6 @@ import RefundForm from "./RefundForm";
 
 export type PaymentInputs = {
   paymentMethod: string;
-  amount: number;
   date: Date;
   notes: string;
   amountToCharge: number;
@@ -61,7 +60,6 @@ const TransactionModal: React.FC = () => {
   }, [transactions, selectedTransaction]);
 
   const paymentMethod = watch("paymentMethod");
-  const amount = watch("amount");
   const date = watch("date");
   const amountToCharge = watch("amountToCharge");
 
@@ -156,7 +154,7 @@ const TransactionModal: React.FC = () => {
               handleSubmit={handleSubmit}
               register={register}
               setValue={setValue}
-              amount={amount}
+              amountToCharge={amountToCharge}
               date={date}
             />
           )}

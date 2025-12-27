@@ -43,25 +43,32 @@ const getEventDetails = async (apiUrl: string, uid: string): Promise<Event> => {
   return await response.json();
 };
 
-const upsertEventDraft = async (
+const saveEvent = async (
   apiUrl: string,
   data: CreateEventInputs,
   items: ItemBasics[],
   uids: { clientUid: string; billingUid: string; deliveryUid: string },
-  eventUid: string | null
+  eventUid: string | null,
+  action: "draft" | "reserve"
 ): Promise<EventDraftResponse> => {
-  const method = eventUid ? "PATCH" : "POST";
-  const url = eventUid
-    ? `${apiUrl}/api/events/save-draft/${eventUid}`
-    : `${apiUrl}/api/events/save-draft`;
+  let url = "";
+  let method = eventUid ? "PATCH" : "POST";
+
+  if (action === "reserve") {
+    url = `${apiUrl}/api/events/reserve`;
+    method = "POST";
+  } else {
+    url = eventUid
+      ? `${apiUrl}/api/events/save-draft/${eventUid}`
+      : `${apiUrl}/api/events/save-draft`;
+  }
 
   const response = await fetch(url, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify({
+      eventUid,
       clientUid: uids.clientUid,
       eventName: data.eventName,
       deliveryDate: data.deliveryDate,
@@ -79,13 +86,10 @@ const upsertEventDraft = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new CustomError(
-      eventUid ? "Updating event draft failed." : "Saving event draft failed.",
-      errorData
-    );
+    throw new Error(errorData.detail || "Saving event failed");
   }
 
   return await response.json();
 };
 
-export { fetchEvents, upsertEventDraft, getEventDetails };
+export { fetchEvents, saveEvent, getEventDetails };

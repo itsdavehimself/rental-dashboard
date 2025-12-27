@@ -33,6 +33,8 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     setEventBilling(null);
     setEventDelivery(null);
     setEventUid(null);
+    setTransactions([]);
+    setTaxRate(0);
   };
 
   const apiUrl = import.meta.env.VITE_API_BASE_URL;

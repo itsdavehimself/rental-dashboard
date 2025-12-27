@@ -91,9 +91,6 @@ public class TransactionsController : ControllerBase
       Type = TransactionType.Payment
     };
 
-    _context.Transactions.Add(newTransaction);
-    await _context.SaveChangesAsync();
-
     string? cardBrand = null;
     string? last4 = null;
 
@@ -120,10 +117,13 @@ public class TransactionsController : ControllerBase
       }
     }
 
-    var dto = _mapper.Map<TransactionResponseDto>(newTransaction);
+    newTransaction.CardBrand = cardBrand;
+    newTransaction.Last4 = last4;
 
-    dto.CardBrand = cardBrand;
-    dto.Last4 = last4;
+     _context.Transactions.Add(newTransaction);
+    await _context.SaveChangesAsync();
+
+    var dto = _mapper.Map<TransactionResponseDto>(newTransaction);
 
     return Ok(dto);
   }
@@ -226,29 +226,10 @@ public class TransactionsController : ControllerBase
           };  
       }
 
-
-      string? cardBrand = null;
-      string? last4 = null;
       string? stripeRefundId = null;
 
       if (paymentMethod == PaymentMethod.Card && transaction.ExternalTransactionId != null)
       {
-          var chargeService = new ChargeService();
-          var charges = await chargeService.ListAsync(new ChargeListOptions
-          {
-              PaymentIntent = transaction.ExternalTransactionId,
-              Limit = 5
-          });
-
-          var charge = charges.Data.FirstOrDefault(c => c.Status == "succeeded");
-          var card = charge?.PaymentMethodDetails?.Card;
-
-          if (card != null)
-          {
-              cardBrand = card.Brand;
-              last4 = card.Last4;
-          }
-
           var options = new RefundCreateOptions 
           { 
               PaymentIntent = transaction.ExternalTransactionId, 
@@ -272,16 +253,15 @@ public class TransactionsController : ControllerBase
           ProcessedById = user.Id,
           Notes = request.Notes != "" ? request.Notes : null,
           Type = TransactionType.Refund,
-          RelatedTransactionId = transaction.Id
+          RelatedTransactionId = transaction.Id,
+          Last4 = transaction.Last4,
+          CardBrand = transaction.CardBrand
       };
 
       _context.Transactions.Add(newTransaction);
       await _context.SaveChangesAsync();
 
       var dto = _mapper.Map<TransactionResponseDto>(newTransaction);
-      dto.CardBrand = cardBrand;
-      dto.Last4 = last4;
-      dto.EventUid = eventObject.Uid;
 
       return Ok(dto);
   }

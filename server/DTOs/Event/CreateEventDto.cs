@@ -14,4 +14,5 @@ public class CreateEventDto
   public string? Notes { get; set; }
   public string? InternalNotes { get; set; }
   public List<EventItemDto> Items { get; set; } = [];
+  public Guid? EventUid { get; set; } = Guid.NewGuid();
 }

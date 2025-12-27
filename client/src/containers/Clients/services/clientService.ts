@@ -110,6 +110,7 @@ const createClient = async (
       email: data.email,
       phoneNumber: data.phoneNumber.replaceAll("-", ""),
       notes: data.notes,
+      isLegacy: data.isLegacy,
       address: {
         addressLine1: data.address.addressLine1,
         addressLine2: data.address.addressLine2,

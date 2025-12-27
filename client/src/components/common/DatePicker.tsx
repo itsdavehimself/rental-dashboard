@@ -41,6 +41,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
     };
   }, [openDatePicker]);
 
+  const today = new Date();
+  const twoYearsFromNow = new Date(today.getFullYear() + 2, 11);
+
   return (
     <div ref={ref} className="flex flex-col gap-1 relative">
       <label className="text-sm font-semibold">{label}</label>
@@ -79,6 +82,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
               selected={date}
               onSelect={onSelect}
               captionLayout="dropdown"
+              endMonth={twoYearsFromNow}
               classNames={{
                 selected: `flex justify-center item-center bg-primary text-white rounded-3xl font-semibold`,
                 root: `${defaultClassNames.root} shadow-lg p-5 w-full flex justify-center focus:outline-1 focus:outline-primary`,

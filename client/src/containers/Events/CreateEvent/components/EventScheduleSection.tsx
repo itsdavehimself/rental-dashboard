@@ -3,27 +3,11 @@ import Dropdown from "../../../../components/common/Dropdown";
 import { timeSlots } from "../../../../config/TIMES";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { type UseFormSetValue, type FieldErrors } from "react-hook-form";
-import { type CreateEventInputs } from "../CreateEvent";
+import { useFormContext } from "react-hook-form";
 import { useRef, useEffect } from "react";
+import type { CreateEventInputs } from "../CreateEvent";
 
-interface EventScheduleSectionProps {
-  deliveryDate: Date;
-  deliveryTime: string;
-  pickUpDate: Date;
-  pickUpTime: string;
-  setValue: UseFormSetValue<CreateEventInputs>;
-  formErrors: FieldErrors<CreateEventInputs>;
-}
-
-const EventScheduleSection: React.FC<EventScheduleSectionProps> = ({
-  deliveryDate,
-  deliveryTime,
-  pickUpDate,
-  pickUpTime,
-  setValue,
-  formErrors,
-}) => {
+const EventScheduleSection: React.FC = () => {
   const [openDropDown, setOpenDropDown] = useState<string | null>(null);
   const deliveryTimeRef = useRef<HTMLDivElement>(null);
   const pickUpTimeRef = useRef<HTMLDivElement>(null);
@@ -42,6 +26,17 @@ const EventScheduleSection: React.FC<EventScheduleSectionProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropDown]);
+
+  const {
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext<CreateEventInputs>();
+
+  const deliveryDate = watch("deliveryDate");
+  const deliveryTime = watch("deliveryTime");
+  const pickUpDate = watch("pickUpDate");
+  const pickUpTime = watch("pickUpTime");
 
   return (
     <>
@@ -67,7 +62,7 @@ const EventScheduleSection: React.FC<EventScheduleSectionProps> = ({
               options={timeSlots()}
               value={deliveryTime}
               onChange={(val) => setValue("deliveryTime", val as string)}
-              error={formErrors.deliveryTime?.message}
+              error={errors.deliveryTime?.message?.toString()}
             />
           </div>
           <div className="flex justify-center mt-5">
@@ -93,7 +88,7 @@ const EventScheduleSection: React.FC<EventScheduleSectionProps> = ({
               options={timeSlots()}
               value={pickUpTime}
               onChange={(val) => setValue("pickUpTime", val as string)}
-              error={formErrors.pickUpTime?.message}
+              error={errors.pickUpTime?.message?.toString()}
             />
           </div>
         </div>

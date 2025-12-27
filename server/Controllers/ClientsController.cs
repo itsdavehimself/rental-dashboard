@@ -61,6 +61,7 @@ public class ClientsController : ControllerBase
               PhoneNumber = c.PhoneNumber,
               Notes = c.Notes,
               CreatedAt = c.CreatedAt,
+              IsLegacy = c.IsLegacy,
               BillingAddress = c.ClientAddresses
                   .Where(p => p.Type == ClientAddressType.Billing && p.IsPrimary)
                   .Select(p => new AddressDto
@@ -150,6 +151,7 @@ public class ClientsController : ControllerBase
               LastName = c.LastName,
               Email = c.Email,
               PhoneNumber = c.PhoneNumber,
+              IsLegacy = c.IsLegacy,
               BillingAddresses = c.ClientAddresses
                   .Where(a => a.Type == ClientAddressType.Billing)
                   .OrderByDescending(a => a.IsPrimary)
@@ -253,6 +255,7 @@ public class ClientsController : ControllerBase
               PhoneNumber = c.PhoneNumber,
               Notes = c.Notes,
               CreatedAt = c.CreatedAt,
+              IsLegacy = c.IsLegacy,
               BillingAddress = c.ClientAddresses
                   .Where(p => p.Type == ClientAddressType.Billing && p.IsPrimary)
                   .Select(p => new AddressDto
@@ -332,6 +335,7 @@ public class ClientsController : ControllerBase
       LastName = client.LastName,
       Email = client.Email,
       PhoneNumber = client.PhoneNumber,
+      IsLegacy = client.IsLegacy,
       BillingAddresses = client.ClientAddresses
         .Where(p => p.Type == ClientAddressType.Billing)
         .OrderByDescending(p => p.IsPrimary)
@@ -424,7 +428,8 @@ public class ClientsController : ControllerBase
       ClientAddresses = new List<ClientAddress>
       {
        billingAddress, deliveryAddress
-      }
+      },
+      IsLegacy = request.IsLegacy
     };
 
     _context.Clients.Add(client);
@@ -439,6 +444,7 @@ public class ClientsController : ControllerBase
       PhoneNumber = client.PhoneNumber,
       Notes = client.Notes,
       CreatedAt = client.CreatedAt,
+      IsLegacy = client.IsLegacy,
       BillingAddress = client
         .ClientAddresses
         .Where(p => p.Type == ClientAddressType.Billing && p.IsPrimary)
@@ -496,6 +502,7 @@ public class ClientsController : ControllerBase
       LastName = client.LastName,
       Email = client.Email,
       PhoneNumber = client.PhoneNumber,
+      IsLegacy = client.IsLegacy,
 
       BillingAddresses = client.ClientAddresses
         .Where(p => p.Type == ClientAddressType.Billing)

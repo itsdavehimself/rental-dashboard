@@ -22,4 +22,5 @@ public class CreateClientResponseDto
 
   public AddressDto? BillingAddress { get; set; }
   public AddressDto? DeliveryAddress { get; set; }
+  public bool? IsLegacy { get; set; }
 }

@@ -6,6 +6,7 @@ using server.DTOs.Event;
 using server.Models.Event;
 using server.DTOs;
 using Stripe;
+using RentalEvent = server.Models.Event.Event;
 
 namespace server.Controllers;
 
@@ -200,7 +201,7 @@ public class EventsController : ControllerBase
   }
 
   [HttpPost("save-draft")]
-  public async Task<IActionResult> CreateEvent(CreateEventDto request)
+  public async Task<IActionResult> CreateEventDraft(CreateEventDto request)
   {
     if (!ModelState.IsValid)
     {
@@ -214,7 +215,7 @@ public class EventsController : ControllerBase
       return new ObjectResult(new ProblemDetails
       {
         Title = "Not Found",
-        Detail = "User not found.",
+        Detail = "Client not found.",
         Status = StatusCodes.Status404NotFound
       })
       {
@@ -479,6 +480,206 @@ public class EventsController : ControllerBase
     eventDraft.InternalNotes = request.InternalNotes;
     eventDraft.LogisticsTasks.Clear();
     eventDraft.UpdatedAt = DateTime.UtcNow;
+
+    var oldItems = await _context.EventItems
+      .Where(ei => ei.EventId == eventDraft.Id)
+      .ToListAsync();
+
+    _context.EventItems.RemoveRange(oldItems);
+
+    var itemList = new List<EventItem>();
+
+    foreach (var item in request.Items)
+    {
+      var inventory = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == item.InventoryItemUid);
+      // var package = _context.Packages.FirstOrDefaultAsync(p => p.Uid == item.PackageUid);
+
+      if (inventory == null)
+        return new ObjectResult(new ProblemDetails
+        {
+          Title = "Not Found",
+          Detail = "Iventory item not found.",
+          Status = StatusCodes.Status404NotFound
+        })
+        {
+          StatusCode = StatusCodes.Status404NotFound
+        };
+
+      var eventItem = new EventItem
+      {
+        EventId = eventDraft.Id,
+        InventoryItemId = inventory.Id,
+        Quantity = item.Quantity,
+        UnitPrice = inventory.UnitPrice,
+        Type = ItemType.AlaCarte,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+      };
+
+      _context.EventItems.Add(eventItem);
+      itemList.Add(eventItem);
+    }
+
+    await _context.SaveChangesAsync();
+
+    var subtotal = await _context.EventItems
+      .Where(ei => ei.EventId == eventDraft.Id)
+      .SumAsync(ei => ei.Quantity * ei.UnitPrice);
+
+    var taxRate = await _context.TaxJurisdictions
+      .Where(t => t.ZipCode == eventDraft.DeliveryZipCode)
+      .Select(t => t.HighRate)
+      .FirstOrDefaultAsync();
+
+    var taxAmount = subtotal * taxRate/100;
+
+    eventDraft.Subtotal = subtotal;
+    eventDraft.TaxAmount = taxAmount;
+    eventDraft.Total = subtotal + taxAmount;
+
+    await _context.SaveChangesAsync();
+
+    return Ok(new
+    {
+      uid = eventDraft.Uid,
+      status = eventDraft.Status.ToString(),
+      clientFirstName = eventDraft.ClientFirstName,
+      clientLastName = eventDraft.ClientLastName,
+      total = eventDraft.Total
+    });
+  }
+
+  [HttpPost("reserve")]
+  public async Task<IActionResult> ReserveEvent(CreateEventDto request)
+  {
+    if (!ModelState.IsValid)
+    {
+      return BadRequest(ModelState);
+    }
+
+    var eventDraft = await _context.Events.FirstOrDefaultAsync(e => e.Uid == request.EventUid);
+
+    if (eventDraft == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Event draft not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    var client = await _context.Clients.FirstOrDefaultAsync(c => c.Uid == request.ClientUid);
+
+    if (client == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Client not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+
+    var totalTransactionAmount = await _context.Transactions
+      .Where(t => t.EventId == eventDraft.Id)
+      .SumAsync(t => t.Amount);
+
+    if (eventDraft.Total > 0 && (totalTransactionAmount / eventDraft.Total) < 0.2m && client.IsLegacy == false)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Bad Request",
+        Detail = "Cannot reserve event with less than 20% deposit.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    var billingDetails = await _context.ClientAddresses.FirstOrDefaultAsync(a => a.Uid == request.BillingAddress);
+    var deliveryDetails = await _context.ClientAddresses.FirstOrDefaultAsync(a => a.Uid == request.DeliveryAddress);
+
+    if (billingDetails == null)
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Billing address not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+
+    if (deliveryDetails == null)
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Delivery address not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+
+    var localDeliveryDateTime = DateTime.SpecifyKind(
+        request.DeliveryDate.Date.Add(DateTime.Parse(request.DeliveryTime).TimeOfDay),
+        DateTimeKind.Unspecified
+    );
+
+    var centralZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
+    var deliveryDateTime = TimeZoneInfo.ConvertTimeToUtc(localDeliveryDateTime, centralZone);
+
+    var localPickupDateTime = DateTime.SpecifyKind(
+        request.PickUpDate.Date.Add(DateTime.Parse(request.PickUpTime).TimeOfDay),
+        DateTimeKind.Unspecified
+    );
+
+    var pickupDateTime = TimeZoneInfo.ConvertTimeToUtc(localPickupDateTime, centralZone);
+
+    eventDraft.ClientId = client.Id;
+    eventDraft.ClientUid = client.Uid;
+    eventDraft.ClientFirstName = client.FirstName;
+    eventDraft.ClientLastName = client.LastName;
+    eventDraft.ClientPhone = client.PhoneNumber;
+    eventDraft.ClientEmail = client.Email ?? "";
+    eventDraft.EventName = request.EventName;
+    eventDraft.EventStart = deliveryDateTime;
+    eventDraft.EventEnd = pickupDateTime;
+    eventDraft.BillingAddressEntryUid = request.BillingAddress;
+    eventDraft.BillingFirstName = billingDetails.FirstName;
+    eventDraft.BillingLastName =  billingDetails.LastName;
+    eventDraft.BillingAddressLine1 = billingDetails.AddressLine1;
+    eventDraft.BillingAddressLine2 = billingDetails.AddressLine2;
+    eventDraft.BillingCity = billingDetails.City;
+    eventDraft.BillingState = billingDetails.State;
+    eventDraft.BillingZipCode = billingDetails.ZipCode;
+    eventDraft.BillingPhone = billingDetails.PhoneNumber;
+    eventDraft.BillingEmail = billingDetails.Email;
+    eventDraft.DeliveryAddressEntryUid = request.DeliveryAddress;
+    eventDraft.DeliveryFirstName = deliveryDetails.FirstName;
+    eventDraft.DeliveryLastName = deliveryDetails.LastName;
+    eventDraft.DeliveryAddressLine1 = deliveryDetails.AddressLine1;
+    eventDraft.DeliveryAddressLine2 = deliveryDetails.AddressLine2;
+    eventDraft.DeliveryCity = deliveryDetails.City;
+    eventDraft.DeliveryState = deliveryDetails.State;
+    eventDraft.DeliveryZipCode = deliveryDetails.ZipCode;
+    eventDraft.DeliveryPhone = deliveryDetails.PhoneNumber;
+    eventDraft.DeliveryEmail = deliveryDetails.Email;
+    eventDraft.Notes = request.Notes;
+    eventDraft.EventType = request.EventType;
+    eventDraft.InternalNotes = request.InternalNotes;
+    eventDraft.LogisticsTasks.Clear();
+    eventDraft.UpdatedAt = DateTime.UtcNow;
+    eventDraft.Status = EventStatus.Confirmed;
 
     var oldItems = await _context.EventItems
       .Where(ei => ei.EventId == eventDraft.Id)

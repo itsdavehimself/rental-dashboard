@@ -1,14 +1,18 @@
 import ActionButton from "../../../../components/common/ActionButton";
 import { DollarSign } from "lucide-react";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
-
 import ChipTag from "../../../../components/common/ChipTag";
 import { paymentStatus } from "../../helpers/paymentStatus";
+import { saveEvent } from "../../services/eventService";
+import { useNavigate } from "react-router";
+import { useFormContext } from "react-hook-form";
+import type { CreateEventInputs } from "../CreateEvent";
 
 const EventTotals: React.FC = () => {
   const {
     setOpenModal,
     eventUid,
+    setEventUid,
     subTotal,
     total,
     taxes,
@@ -16,9 +20,64 @@ const EventTotals: React.FC = () => {
     amountDue,
     discounts,
     transactions,
+    client,
+    eventBilling,
+    eventDelivery,
+    selectedItems,
   } = useCreateEvent();
 
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const status = paymentStatus(transactions, total);
+  const navigate = useNavigate();
+  const { watch, getValues } = useFormContext<CreateEventInputs>();
+
+  const deliveryDate = watch("deliveryDate");
+  const deliveryTime = watch("deliveryTime");
+  const pickUpDate = watch("pickUpDate");
+  const pickUpTime = watch("pickUpTime");
+
+  const datesSelected = !!(
+    deliveryDate &&
+    deliveryTime &&
+    pickUpDate &&
+    pickUpTime
+  );
+
+  const backgroundSaveEvent = async () => {
+    if (!client || !eventBilling || !eventDelivery || !datesSelected) return;
+
+    try {
+      const items = selectedItems.map((i) => ({
+        inventoryItemUid: i.uid,
+        quantity: i.count,
+      }));
+
+      const uids = {
+        clientUid: client.uid,
+        billingUid: eventBilling.uid,
+        deliveryUid: eventDelivery.uid,
+      };
+
+      const data = getValues();
+      const event = await saveEvent(
+        apiUrl,
+        data,
+        items,
+        uids,
+        eventUid,
+        "draft"
+      );
+
+      if (!eventUid) {
+        setEventUid(event.uid);
+        navigate(`?clientId=${client.uid}&eventId=${event.uid}`, {
+          replace: true,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="flex flex-col flex-grow gap-6 border-1 border-gray-200 rounded-lg py-4 px-6 overflow-hidden">
@@ -63,9 +122,12 @@ const EventTotals: React.FC = () => {
           label="Payments"
           icon={DollarSign}
           style={amountDue === 0 ? "outline" : "filled"}
-          onClick={() => setOpenModal("addPayment")}
+          onClick={() => {
+            backgroundSaveEvent();
+            setOpenModal("addPayment");
+          }}
           full={true}
-          disabled={!eventUid || amountDue === undefined}
+          disabled={amountDue === undefined}
         />
       </div>
     </div>

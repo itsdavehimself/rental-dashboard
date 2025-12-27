@@ -22,4 +22,5 @@ public class CreateClientDto
   public string PhoneNumber { get; set; } = string.Empty;
   public AddressDto Address { get; set; } = new();
   public string? Notes { get; set; }
+  public bool? IsLegacy { get; set; } = false;
 }

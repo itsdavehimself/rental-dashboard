@@ -1,4 +1,4 @@
-import type { Address, AddressEntry } from "./Address";
+import type { Address, AddressEntry } from "../../../types/Address";
 
 type Client = {
   uid: string;
@@ -12,6 +12,7 @@ type Client = {
   deliveryAddress: Address;
   businessName?: string;
   isTaxExempt: boolean;
+  isLegacy: boolean;
 };
 
 type CreateClient = {
@@ -22,6 +23,7 @@ type CreateClient = {
   notes?: string;
   address: Omit<Address, "isPrimary">;
   isTaxExempt: boolean;
+  isLegacy: boolean;
   businessName?: string;
   type: "Residential" | "Business";
 };
@@ -42,6 +44,7 @@ type ClientDetail = {
   // Both
   billingAddresses: AddressEntry[];
   deliveryAddresses: AddressEntry[];
+  isLegacy: boolean;
 };
 
 export const CLIENT_TYPES = {

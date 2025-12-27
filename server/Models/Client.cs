@@ -18,4 +18,5 @@ public class Client
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public bool? IsTaxExempt { get; set; } = false;
     public List<ClientAddress> ClientAddresses { get; set; } = new();
+    public bool? IsLegacy { get; set; } = false;
 }

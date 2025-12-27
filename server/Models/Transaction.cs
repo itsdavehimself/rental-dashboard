@@ -17,6 +17,8 @@ public class Transaction
   public int ProcessedById { get; set; }
   public User ProcessedBy { get; set; } = null!;
   public string? Notes { get; set; }
+  public string? CardBrand { get; set; }
+  public string? Last4 { get; set; }
 }
 
 public enum TransactionType

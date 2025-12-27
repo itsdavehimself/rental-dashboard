@@ -13,4 +13,5 @@ public class ClientSearchResultDto
   public string? Notes { get; set; }
   public DateTime CreatedAt { get; set; }
   public AddressDto BillingAddress { get; set; } = new();
+  public bool? IsLegacy { get; set; }
 }

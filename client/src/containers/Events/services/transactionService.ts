@@ -19,7 +19,7 @@ const addCashPayment = async (
       eventUid,
       date: data.date,
       notes: data.notes,
-      amount: data.amount ? data.amount / 100 : 0,
+      amount: data.amountToCharge ? data.amountToCharge / 100 : 0,
       paymentMethod: "Cash",
       processedByUid: userUid,
     }),
@@ -40,13 +40,14 @@ const addCardPayment = async (
   userUid: string,
   externalTransactionId: string
 ): Promise<Transaction> => {
-  const response = await fetch(`${apiUrl}/api/events/${eventUid}/payment`, {
+  const response = await fetch(`${apiUrl}/api/transactions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     credentials: "include",
     body: JSON.stringify({
+      eventUid,
       date: new Date(),
       amount: amount ? amount / 100 : 0,
       notes: null,

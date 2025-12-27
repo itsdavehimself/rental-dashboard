@@ -36,6 +36,7 @@ export type ClientInputs = {
   type: "Business" | "Residential";
   businessName?: string;
   isTaxExempt: boolean;
+  isLegacy: boolean;
 };
 
 interface ClientFormProps {
@@ -74,6 +75,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
   const state = watch("address.state");
   const type = watch("type");
   const isTaxExempt = watch("isTaxExempt");
+  const isLegacyClient = watch("isLegacy");
   const ref = useRef<HTMLDivElement>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -284,6 +286,12 @@ const ClientForm: React.FC<ClientFormProps> = ({
         register={register("notes")}
         optional={true}
       />
+      <BooleanCheckbox
+        label="Legacy Client"
+        checked={isLegacyClient}
+        onChange={(val) => setValue("isLegacy", val)}
+      />
+
       <div className="self-center w-1/4">
         <SubmitButton label="Add" />
       </div>
