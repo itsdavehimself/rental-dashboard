@@ -7,6 +7,7 @@ import { saveEvent } from "../../services/eventService";
 import { useNavigate } from "react-router";
 import { useFormContext } from "react-hook-form";
 import type { CreateEventInputs } from "../CreateEvent";
+import formatToUTC from "../../../../helpers/formatToUTC";
 
 const EventTotals: React.FC = () => {
   const {
@@ -31,20 +32,26 @@ const EventTotals: React.FC = () => {
   const navigate = useNavigate();
   const { watch, getValues } = useFormContext<CreateEventInputs>();
 
-  const deliveryDate = watch("deliveryDate");
-  const deliveryTime = watch("deliveryTime");
-  const pickUpDate = watch("pickUpDate");
-  const pickUpTime = watch("pickUpTime");
+  const startDate = watch("startDate");
+  const startTime = watch("startTime");
+  const endDate = watch("endDate");
+  const endTime = watch("endTime");
 
-  const datesSelected = !!(
-    deliveryDate &&
-    deliveryTime &&
-    pickUpDate &&
-    pickUpTime
-  );
+  const datesSelected = !!(startDate && startTime && endDate && endTime);
+
+  const formattedStartDateTime = formatToUTC(startDate, startTime);
+  const formattedEndDateTime = formatToUTC(endDate, endTime);
 
   const backgroundSaveEvent = async () => {
-    if (!client || !eventBilling || !eventDelivery || !datesSelected) return;
+    if (
+      !client ||
+      !eventBilling ||
+      !eventDelivery ||
+      !datesSelected ||
+      !formattedStartDateTime ||
+      !formattedEndDateTime
+    )
+      return;
 
     try {
       const items = selectedItems.map((i) => ({
@@ -59,16 +66,18 @@ const EventTotals: React.FC = () => {
       };
 
       const data = getValues();
-      const event = await saveEvent(
-        apiUrl,
-        data,
-        items,
-        uids,
-        eventUid,
-        "draft"
-      );
 
       if (!eventUid) {
+        const event = await saveEvent(
+          apiUrl,
+          data,
+          formattedStartDateTime,
+          formattedEndDateTime,
+          items,
+          uids,
+          eventUid,
+          "draft",
+        );
         setEventUid(event.uid);
         navigate(`?clientId=${client.uid}&eventId=${event.uid}`, {
           replace: true,
@@ -80,21 +89,21 @@ const EventTotals: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col flex-grow gap-6 border-1 border-gray-200 rounded-lg py-4 px-6 overflow-hidden">
+    <div className="flex flex-col flex-grow gap-6 border-1 border-gray-200 rounded-lg py-4 px-6 overflow-hidden w-full">
       <div className="flex justify-between">
         <h4 className="font-semibold text-lg">Totals & Payment</h4>
         <div>
           <ChipTag label={status.label} color={status.color} />
         </div>
       </div>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col 3xl:gap-3 4xl:gap-8">
         <div className="grid grid-cols-[1fr_.4fr] text-sm">
           <h6 className="font-semibold">Subtotal</h6>
           <p className="text-right">${subTotal.toFixed(2)}</p>
         </div>
-        <button className="text-left text-xs font-semibold text-gray-500 hover:text-primary hover:cursor-pointer transition-all duration-200">
+        {/* <button className="text-left text-xs font-semibold text-gray-500 hover:text-primary hover:cursor-pointer transition-all duration-200">
           Add a discount/coupon
-        </button>
+        </button> */}
         <div className="grid grid-cols-[1fr_.4fr] text-sm">
           <h6 className="font-semibold">Discounts</h6>
           <p className="text-right">${discounts.toFixed(2)}</p>
@@ -117,7 +126,7 @@ const EventTotals: React.FC = () => {
           <p className="font-semibold text-right">${amountDue.toFixed(2)}</p>
         </div>
       </div>
-      <div className="flex flex-col gap-4 justify-center h-full w-full items-center">
+      <div className="flex flex-col gap-4 justify-center 4xl:h-full 4xl:w-full items-center">
         <ActionButton
           label="Payments"
           icon={DollarSign}

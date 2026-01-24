@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace server.Models.Event;
 public class Event
 {
@@ -39,7 +37,7 @@ public class Event
   public string EventType { get; set; } = "";
   public string? Notes { get; set; }
   public string? InternalNotes { get; set; }
-  public List<LogisticsTask> LogisticsTasks { get; set; } = [];
+  public List<LogisticsTrip> LogisticsTrips { get; set; } = [];
   public List<EventItem> Items { get; set; } = [];
   public decimal Subtotal { get; set; }
   public decimal TaxAmount { get; set; }

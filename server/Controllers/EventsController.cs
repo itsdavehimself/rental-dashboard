@@ -6,7 +6,6 @@ using server.DTOs.Event;
 using server.Models.Event;
 using server.DTOs;
 using Stripe;
-using RentalEvent = server.Models.Event.Event;
 
 namespace server.Controllers;
 
@@ -32,7 +31,7 @@ public class EventsController : ControllerBase
   {
     var query = _context.Events
       .Include(e => e.Transactions).ThenInclude(p => p.ProcessedBy)
-      .Include(e => e.LogisticsTasks)
+      .Include(e => e.LogisticsTrips)
       .Include(e => e.Items).ThenInclude(i => i.InventoryItem)
       .Include(e => e.Items).ThenInclude(i => i.Package)
       .Include(e => e.Discounts)
@@ -86,14 +85,23 @@ public class EventsController : ControllerBase
       Status = e.Status,
       Notes = e.Notes,
       InternalNotes = e.InternalNotes,
-      LogisticsTasks = e.LogisticsTasks.Select(l => new LogisticsTaskResponseDto
+      LogisticsTrips = e.LogisticsTrips.Select(l => new LogisticsTripResponseDto
       {
         Uid = l.Uid,
-        Type = l.Type,
-        StartTime = l.StartTime,
-        EndTime = l.EndTime,
-        CrewLead = $"{l.CrewLead?.FirstName} {l.CrewLead?.LastName}".Trim(),
-        Notes = l.Notes
+        Status = l.Status.ToString(),
+        ScheduledStart = l.ScheduledStart,
+        ScheduledEnd = l.ScheduledEnd,
+        ActualArrival = l.ActualArrival,
+        ActualStart = l.ActualStart,
+        CompletedAt = l.CompletedAt,
+        Crew = l.Crew.Select(ca => new LogisticsAssignmentResponseDto
+            {
+                Uid = ca.Uid,
+                UserUid = ca.User.Uid,
+                FullName = $"{ca.User.FirstName} {ca.User.LastName}".Trim(),
+                IsLead = ca.IsLead,
+                RoleNotes = ca.RoleNotes,
+            }).ToList(),
       }).ToList(),
       Items = e.Items.Select(i => new EventItemResponseDto
       {
@@ -149,7 +157,10 @@ public class EventsController : ControllerBase
   {
     var eventObject = await _context.Events
       .Include(e => e.Transactions).ThenInclude(p => p.ProcessedBy)
-      .Include(e => e.LogisticsTasks)
+      .Include(e => e.LogisticsTrips).ThenInclude(l => l.Crew)
+        .ThenInclude(a => a.User)
+      .Include(e => e.LogisticsTrips).ThenInclude(l => l.WorkItems)
+      .Include(e => e.LogisticsTrips).ThenInclude(l => l.Truck)
       .Include(e => e.Items).ThenInclude(i => i.InventoryItem)
       .Include(e => e.Items).ThenInclude(i => i.Package)
       .Include(e => e.Discounts).FirstOrDefaultAsync(e => e.Uid == uid);
@@ -248,21 +259,6 @@ public class EventsController : ControllerBase
         StatusCode = StatusCodes.Status404NotFound
       };
 
-    var localDeliveryDateTime = DateTime.SpecifyKind(
-        request.DeliveryDate.Date.Add(DateTime.Parse(request.DeliveryTime).TimeOfDay),
-        DateTimeKind.Unspecified
-    );
-
-    var centralZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
-    var deliveryDateTime = TimeZoneInfo.ConvertTimeToUtc(localDeliveryDateTime, centralZone);
-
-    var localPickupDateTime = DateTime.SpecifyKind(
-        request.PickUpDate.Date.Add(DateTime.Parse(request.PickUpTime).TimeOfDay),
-        DateTimeKind.Unspecified
-    );
-
-    var pickupDateTime = TimeZoneInfo.ConvertTimeToUtc(localPickupDateTime, centralZone);
-
     var newEvent = new Models.Event.Event
     {
       ClientId = client.Id,
@@ -272,8 +268,8 @@ public class EventsController : ControllerBase
       ClientPhone = client.PhoneNumber,
       ClientEmail = client.Email ?? "",
       EventName = request.EventName,
-      EventStart = deliveryDateTime,
-      EventEnd = pickupDateTime,
+      EventStart = request.EventStart,
+      EventEnd = request.EventEnd,
       BillingAddressEntryUid = billingDetails.Uid,
       BillingFirstName = billingDetails.FirstName,
       BillingLastName =  billingDetails.LastName,
@@ -298,7 +294,7 @@ public class EventsController : ControllerBase
       Notes = request.Notes,
       EventType = request.EventType,
       InternalNotes = request.InternalNotes,
-      LogisticsTasks = [],
+      LogisticsTrips = [],
       CreatedAt = DateTime.UtcNow,
       UpdatedAt = DateTime.UtcNow
     };
@@ -368,7 +364,7 @@ public class EventsController : ControllerBase
     });
   }
 
-  [HttpPatch("save-draft/{uid}")]
+  [HttpPatch("update/{uid}")]
   public async Task<IActionResult> UpdateEventDraft(CreateEventDto request, Guid uid)
   {
     if (!ModelState.IsValid)
@@ -431,21 +427,6 @@ public class EventsController : ControllerBase
         StatusCode = StatusCodes.Status404NotFound
       };
 
-    var localDeliveryDateTime = DateTime.SpecifyKind(
-        request.DeliveryDate.Date.Add(DateTime.Parse(request.DeliveryTime).TimeOfDay),
-        DateTimeKind.Unspecified
-    );
-
-    var centralZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
-    var deliveryDateTime = TimeZoneInfo.ConvertTimeToUtc(localDeliveryDateTime, centralZone);
-
-    var localPickupDateTime = DateTime.SpecifyKind(
-        request.PickUpDate.Date.Add(DateTime.Parse(request.PickUpTime).TimeOfDay),
-        DateTimeKind.Unspecified
-    );
-
-    var pickupDateTime = TimeZoneInfo.ConvertTimeToUtc(localPickupDateTime, centralZone);
-
     eventDraft.ClientId = client.Id;
     eventDraft.ClientUid = client.Uid;
     eventDraft.ClientFirstName = client.FirstName;
@@ -453,8 +434,8 @@ public class EventsController : ControllerBase
     eventDraft.ClientPhone = client.PhoneNumber;
     eventDraft.ClientEmail = client.Email ?? "";
     eventDraft.EventName = request.EventName;
-    eventDraft.EventStart = deliveryDateTime;
-    eventDraft.EventEnd = pickupDateTime;
+    eventDraft.EventStart = request.EventStart;
+    eventDraft.EventEnd = request.EventEnd;
     eventDraft.BillingAddressEntryUid = request.BillingAddress;
     eventDraft.BillingFirstName = billingDetails.FirstName;
     eventDraft.BillingLastName =  billingDetails.LastName;
@@ -478,7 +459,6 @@ public class EventsController : ControllerBase
     eventDraft.Notes = request.Notes;
     eventDraft.EventType = request.EventType;
     eventDraft.InternalNotes = request.InternalNotes;
-    eventDraft.LogisticsTasks.Clear();
     eventDraft.UpdatedAt = DateTime.UtcNow;
 
     var oldItems = await _context.EventItems
@@ -630,21 +610,6 @@ public class EventsController : ControllerBase
         StatusCode = StatusCodes.Status404NotFound
       };
 
-    var localDeliveryDateTime = DateTime.SpecifyKind(
-        request.DeliveryDate.Date.Add(DateTime.Parse(request.DeliveryTime).TimeOfDay),
-        DateTimeKind.Unspecified
-    );
-
-    var centralZone = TimeZoneInfo.FindSystemTimeZoneById("America/Chicago");
-    var deliveryDateTime = TimeZoneInfo.ConvertTimeToUtc(localDeliveryDateTime, centralZone);
-
-    var localPickupDateTime = DateTime.SpecifyKind(
-        request.PickUpDate.Date.Add(DateTime.Parse(request.PickUpTime).TimeOfDay),
-        DateTimeKind.Unspecified
-    );
-
-    var pickupDateTime = TimeZoneInfo.ConvertTimeToUtc(localPickupDateTime, centralZone);
-
     eventDraft.ClientId = client.Id;
     eventDraft.ClientUid = client.Uid;
     eventDraft.ClientFirstName = client.FirstName;
@@ -652,8 +617,8 @@ public class EventsController : ControllerBase
     eventDraft.ClientPhone = client.PhoneNumber;
     eventDraft.ClientEmail = client.Email ?? "";
     eventDraft.EventName = request.EventName;
-    eventDraft.EventStart = deliveryDateTime;
-    eventDraft.EventEnd = pickupDateTime;
+    eventDraft.EventStart = request.EventStart;
+    eventDraft.EventEnd = request.EventEnd;
     eventDraft.BillingAddressEntryUid = request.BillingAddress;
     eventDraft.BillingFirstName = billingDetails.FirstName;
     eventDraft.BillingLastName =  billingDetails.LastName;
@@ -677,7 +642,6 @@ public class EventsController : ControllerBase
     eventDraft.Notes = request.Notes;
     eventDraft.EventType = request.EventType;
     eventDraft.InternalNotes = request.InternalNotes;
-    eventDraft.LogisticsTasks.Clear();
     eventDraft.UpdatedAt = DateTime.UtcNow;
     eventDraft.Status = EventStatus.Confirmed;
 

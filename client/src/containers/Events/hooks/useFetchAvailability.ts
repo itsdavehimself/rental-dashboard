@@ -9,7 +9,8 @@ export const useFetchAvailability = (
   deliveryTime: string | null,
   pickUpDate: Date | null,
   pickUpTime: string | null,
-  setSelectedItems: React.Dispatch<React.SetStateAction<EventLineItem[]>>
+  setSelectedItems: React.Dispatch<React.SetStateAction<EventLineItem[]>>,
+  eventUid: string | null
 ) => {
   const selectedUids = useMemo(
     () => selectedItems.map((i) => i.uid).join(","),
@@ -39,7 +40,8 @@ export const useFetchAvailability = (
           deliveryDate,
           deliveryTime,
           pickUpDate,
-          pickUpTime
+          pickUpTime,
+          eventUid
         );
 
         setSelectedItems((prev) =>
@@ -69,5 +71,6 @@ export const useFetchAvailability = (
     pickUpDate,
     pickUpTime,
     setSelectedItems,
+    eventUid,
   ]);
 };

@@ -140,7 +140,8 @@ const checkAvailability = async (
   startDate: Date,
   startTime: string,
   endDate: Date,
-  endTime: string
+  endTime: string,
+  eventUid: string | null
 ): Promise<InventoryAvailability[]> => {
   const response = await fetch(`${apiUrl}/api/inventory/availability`, {
     method: "POST",
@@ -154,6 +155,7 @@ const checkAvailability = async (
       startTime,
       endDate,
       endTime,
+      eventUid,
     }),
   });
 

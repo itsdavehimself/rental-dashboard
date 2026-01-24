@@ -11,7 +11,7 @@ import NavBtn from "./NavBtn";
 
 const Sidebar: React.FC = () => {
   return (
-    <div className="flex flex-col w-1/3 md:max-w-80 px-4">
+    <div className="flex flex-col w-1/4 md:max-w-60 px-4">
       <div className="flex h-18 px-4 items-center gap-3 mb-6">
         <div className="text-white bg-black p-2 rounded-xl">
           <PartyPopper fill="white" />

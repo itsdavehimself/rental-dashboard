@@ -1,3 +1,5 @@
+using server.Migrations;
+
 namespace server.DTOs.Inventory;
 
 public class CheckAvailabilityDto
@@ -7,4 +9,5 @@ public class CheckAvailabilityDto
   public string StartTime { get; set; } = "";
   public DateTime EndDate { get; set; } = DateTime.UtcNow;
   public string EndTime { get; set; } = "";
+  public Guid? EventUid { get; set; }
 }

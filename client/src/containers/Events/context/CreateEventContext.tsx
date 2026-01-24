@@ -3,7 +3,7 @@ import type { ClientDetail } from "../../Clients/types/Client";
 import type { EventLineItem } from "../CreateEvent/CreateEvent";
 import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
 import type { AddressEntry } from "../../../types/Address";
-import type { Transaction } from "../types/Event";
+import type { EventStatus, Transaction } from "../types/Event";
 
 export interface CreateEventContextType {
   client: ClientDetail | null;
@@ -29,6 +29,15 @@ export interface CreateEventContextType {
   taxRate: number;
   setTaxRate: React.Dispatch<React.SetStateAction<number>>;
   clearContext: () => void;
+  eventStatus: EventStatus | null;
+  setEventStatus: React.Dispatch<React.SetStateAction<EventStatus | null>>;
+  isLoading: boolean;
+  eventName: string | null;
+  internalNotes: string | null;
+  eventNotes: string | null;
+  eventType: string | null;
+  eventStart: { date: Date; time: string } | null;
+  eventEnd: { date: Date; time: string } | null;
 }
 
 export const CreateEventContext = createContext<

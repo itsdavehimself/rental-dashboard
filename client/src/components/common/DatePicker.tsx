@@ -8,7 +8,7 @@ interface DatePickerProps {
   date: Date;
   onSelect: (val: Date) => void;
   disablePastDates: boolean;
-  deliveryDate?: Date;
+  startDate?: Date;
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({
@@ -16,7 +16,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   date,
   onSelect,
   disablePastDates,
-  deliveryDate,
+  startDate,
 }) => {
   const [openDatePicker, setOpenDatePicker] = useState<boolean>(false);
 
@@ -45,7 +45,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const twoYearsFromNow = new Date(today.getFullYear() + 2, 11);
 
   return (
-    <div ref={ref} className="flex flex-col gap-1 relative">
+    <div ref={ref} className="flex flex-col gap-1 relative w-full">
       <label className="text-sm font-semibold">{label}</label>
 
       <div className="relative">
@@ -72,8 +72,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <DayPicker
               animate
               disabled={{
-                before: deliveryDate
-                  ? new Date(deliveryDate.setHours(0, 0, 0, 0))
+                before: startDate
+                  ? new Date(startDate.setHours(0, 0, 0, 0))
                   : disablePastDates
                   ? new Date(new Date().setHours(0, 0, 0, 0))
                   : undefined,

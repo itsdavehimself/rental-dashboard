@@ -1,7 +1,6 @@
 import type { UseFormRegisterReturn } from "react-hook-form";
 
-interface TextAreaInputProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaInputProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   register?: UseFormRegisterReturn;
   label: string;
   placeholder?: string;

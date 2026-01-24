@@ -2,8 +2,19 @@
 @import "tailwindcss";
 
 @theme {
+  /* colors */
   --color-primary: #0d0d0d;
   --color-primary-hover: #1e1e1e;
+
+  /* breakpoints */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 1920px;
+  --breakpoint-4xl: 2560px;
 }
 
 body {

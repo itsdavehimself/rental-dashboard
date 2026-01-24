@@ -1,6 +1,6 @@
 type Address = {
   addressLine1: string;
-  addressLine2?: string;
+  addressLine2: string | null;
   city: string;
   state: string;
   zipCode: string;
@@ -13,7 +13,7 @@ type AddressEntry = {
   phoneNumber: string;
   email: string;
   addressLine1: string;
-  addressLine2?: string;
+  addressLine2: string | null;
   city: string;
   state: string;
   zipCode: string;
@@ -26,7 +26,7 @@ type CreateAddressEntry = {
   phoneNumber: string;
   email: string;
   addressLine1: string;
-  addressLine2?: string;
+  addressLine2: string | null;
   city: string;
   state: string;
   zipCode: string;

@@ -16,6 +16,8 @@ import Library from "./containers/Library/Library";
 import Vendors from "./containers/Vendors/Vendors";
 import CreateEvent from "./containers/Events/CreateEvent/CreateEvent";
 import { CreateEventProvider } from "./containers/Events/context/CreateEventProvider";
+import EventDetails from "./containers/Events/EventDetails/EventDetails";
+import { EventDetailsProvider } from "./containers/Events/context/EventDetailsProvider";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -26,7 +28,6 @@ function App() {
 
   return (
     <ToastProvider>
-      {" "}
       <Routes>
         <Route index element={<Login />} />
         <Route
@@ -48,6 +49,14 @@ function App() {
           >
             <Route index element={<Events />} />
             <Route path="create" element={<CreateEvent />} />
+            <Route
+              path=":eventUid"
+              element={
+                <EventDetailsProvider>
+                  <EventDetails />
+                </EventDetailsProvider>
+              }
+            />
           </Route>
           <Route path="/clients">
             <Route index element={<Clients />} />

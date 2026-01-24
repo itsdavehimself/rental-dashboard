@@ -7,37 +7,45 @@ import { type Event } from "../types/Event";
 import splitDateTime from "../helpers/splitDateTime";
 
 export function useFetchEvent(eventUid: string | null) {
-  const [event, setEvent] = useState<Event | null>(null);
   const [errors, setErrors] = useState<ErrorsState | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [eventStart, setEventStart] = useState<{
-    date: Date;
-    time: string;
-  } | null>(null);
-  const [eventEnd, setEventEnd] = useState<{
-    date: Date;
-    time: string;
-  } | null>(null);
+  const [state, setState] = useState<{
+    event: Event | null;
+    eventStart: { date: Date; time: string } | null;
+    eventEnd: { date: Date; time: string } | null;
+    loading: boolean;
+  }>({
+    event: null,
+    eventStart: null,
+    eventEnd: null,
+    loading: true,
+  });
 
   const { addToast } = useToast();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const fetchEvent = useCallback(async () => {
+    setState((prev) => ({ ...prev, loading: true }));
     if (!eventUid) {
-      setLoading(false);
+      setState((prev) => ({ ...prev, loading: false }));
       return;
     }
 
     try {
       const data = await getEventDetails(apiUrl, eventUid);
-      setEvent(data);
-      setEventStart(splitDateTime(new Date(data.eventStart)));
-      setEventEnd(splitDateTime(new Date(data.eventEnd)));
-    } catch (err) {
+      setState({
+        event: data,
+        eventStart: splitDateTime(new Date(data.eventStart)),
+        eventEnd: splitDateTime(new Date(data.eventEnd)),
+        loading: false,
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        addToast("Error", err.message);
+      } else {
+        addToast("Error", String(err));
+      }
       handleError(err, setErrors);
-      addToast("Error", "There was a problem fetching event data.");
-    } finally {
-      setLoading(false);
+      setState((prev) => ({ ...prev, loading: false }));
     }
   }, [apiUrl, eventUid]);
 
@@ -45,14 +53,5 @@ export function useFetchEvent(eventUid: string | null) {
     fetchEvent();
   }, [fetchEvent]);
 
-  return {
-    event,
-    setEvent,
-    errors,
-    setErrors,
-    loading,
-    fetchEvent,
-    eventStart,
-    eventEnd,
-  };
+  return { ...state, fetchEvent };
 }

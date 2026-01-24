@@ -22,6 +22,12 @@ const StyledInput: React.FC<StyledInputProps> = ({
   defaultText,
   ...rest
 }) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.currentTarget.blur();
+    }
+  };
+
   return (
     <div className="flex flex-col w-full">
       <div className="flex flex-col gap-1">
@@ -38,6 +44,7 @@ const StyledInput: React.FC<StyledInputProps> = ({
           placeholder={placeholder}
           disabled={disabled}
           defaultValue={defaultText}
+          onKeyDown={handleKeyDown}
           className={`text-sm outline-1 w-full rounded-lg h-10 pl-2 transition-all duration-200 outline-gray-200 ${
             error
               ? "outline-red-500 hover:outline-red-500 focus:outline-red-500"

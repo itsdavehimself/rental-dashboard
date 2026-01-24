@@ -20,10 +20,10 @@ const Events: React.FC = () => {
     "Location",
     "Paid",
     "Status",
-    "Notes",
   ];
+
   const columnTemplate =
-    "[grid-template-columns:1fr_1fr_.7fr_.7fr_1.5fr_.4fr_.4fr_1fr]";
+    "[grid-template-columns:1fr_1fr_.7fr_.7fr_1.5fr_.4fr_.4fr]";
 
   const [page, setPage] = useState<number>(1);
   const [openModal, setOpenModal] = useState<EventModalType>(null);

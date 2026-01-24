@@ -15,18 +15,14 @@ public class EventProfile : Profile
                     ? src.InventoryItem.Description 
                     : ""));
 
-    CreateMap<LogisticsTask, LogisticsTaskResponseDto>();
-
     CreateMap<Discount, DiscountResponseDto>();
 
     CreateMap<Transaction, TransactionResponseDto>()
-      .ForMember(
-        dest => dest.ProcessedBy,
-        opt => opt.MapFrom(src => $"{src.ProcessedBy.FirstName} {src.ProcessedBy.LastName}")
-      )
-       .ForMember(
-        dest => dest.EventUid,
-        opt => opt.MapFrom(src => src.Event.Uid)
-      );
+      .ForMember(dest => dest.ProcessedBy,
+        opt => opt.MapFrom(src => src.ProcessedBy != null 
+            ? $"{src.ProcessedBy.FirstName} {src.ProcessedBy.LastName}" 
+            : "Unknown"))
+       .ForMember(dest => dest.EventUid,
+        opt => opt.MapFrom(src => src.Event.Uid));
   }
 }

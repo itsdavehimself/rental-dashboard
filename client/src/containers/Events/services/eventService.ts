@@ -37,7 +37,7 @@ const getEventDetails = async (apiUrl: string, uid: string): Promise<Event> => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new CustomError("Getting event failed.", errorData);
+    throw new Error(errorData.detail || "Getting event failed");
   }
 
   return await response.json();
@@ -46,10 +46,12 @@ const getEventDetails = async (apiUrl: string, uid: string): Promise<Event> => {
 const saveEvent = async (
   apiUrl: string,
   data: CreateEventInputs,
+  formattedStartDateTime: string,
+  formattedEndDateTime: string,
   items: ItemBasics[],
   uids: { clientUid: string; billingUid: string; deliveryUid: string },
   eventUid: string | null,
-  action: "draft" | "reserve"
+  action: "draft" | "reserve" | "update"
 ): Promise<EventDraftResponse> => {
   let url = "";
   let method = eventUid ? "PATCH" : "POST";
@@ -57,10 +59,12 @@ const saveEvent = async (
   if (action === "reserve") {
     url = `${apiUrl}/api/events/reserve`;
     method = "POST";
+  } else if (action === "update") {
+    url = `${apiUrl}/api/events/update/${eventUid}`;
+    method = "PATCH";
   } else {
-    url = eventUid
-      ? `${apiUrl}/api/events/save-draft/${eventUid}`
-      : `${apiUrl}/api/events/save-draft`;
+    url = `${apiUrl}/api/events/save-draft`;
+    method = "POST";
   }
 
   const response = await fetch(url, {
@@ -71,10 +75,8 @@ const saveEvent = async (
       eventUid,
       clientUid: uids.clientUid,
       eventName: data.eventName,
-      deliveryDate: data.deliveryDate,
-      deliveryTime: data.deliveryTime,
-      pickupDate: data.pickUpDate,
-      pickupTime: data.pickUpTime,
+      eventStart: formattedStartDateTime,
+      eventEnd: formattedEndDateTime,
       billingAddress: uids.billingUid,
       deliveryAddress: uids.deliveryUid,
       eventType: data.eventType,

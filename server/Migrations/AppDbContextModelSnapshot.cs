@@ -159,6 +159,63 @@ namespace server.Migrations
                     b.ToTable("ClientAddresses");
                 });
 
+            modelBuilder.Entity("CrewPreset", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LeadId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<int>("TruckId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("Uid")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeadId");
+
+                    b.HasIndex("TruckId");
+
+                    b.HasIndex("Uid")
+                        .IsUnique();
+
+                    b.ToTable("CrewPresets");
+                });
+
+            modelBuilder.Entity("CrewPresetUser", b =>
+                {
+                    b.Property<int>("CrewId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CrewPresetId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CrewId", "CrewPresetId");
+
+                    b.HasIndex("CrewPresetId");
+
+                    b.ToTable("CrewPresetMembers", (string)null);
+                });
+
             modelBuilder.Entity("Discount", b =>
                 {
                     b.Property<int>("Id")
@@ -242,7 +299,7 @@ namespace server.Migrations
                     b.ToTable("EventItems");
                 });
 
-            modelBuilder.Entity("LogisticsTask", b =>
+            modelBuilder.Entity("LogisticsAssignment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -250,34 +307,137 @@ namespace server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CrewLeadId")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsLead")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("LogisticsTripId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("EndTime")
+                    b.Property<string>("RoleNotes")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Uid")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LogisticsTripId");
+
+                    b.HasIndex("Uid")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("LogisticsAssignments");
+                });
+
+            modelBuilder.Entity("LogisticsTrip", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActualArrival")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ActualStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("EventId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Notes")
+                    b.Property<string>("InternalNotes")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("StartTime")
+                    b.Property<DateTime>("ScheduledEnd")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Type")
+                    b.Property<DateTime>("ScheduledStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TruckId")
                         .HasColumnType("integer");
 
                     b.Property<Guid>("Uid")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasIndex("CrewLeadId");
+                    b.HasKey("Id");
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("LogisticsTasks");
+                    b.HasIndex("Uid")
+                        .IsUnique();
+
+                    b.HasIndex("TruckId", "ScheduledStart", "ScheduledEnd");
+
+                    b.ToTable("LogisticsTrips");
+                });
+
+            modelBuilder.Entity("LogisticsWorkItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("LogisticsTripId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SpecificNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Uid")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LogisticsTripId");
+
+                    b.HasIndex("Uid")
+                        .IsUnique();
+
+                    b.ToTable("LogisticsWorkItems");
                 });
 
             modelBuilder.Entity("Package", b =>
@@ -409,6 +569,41 @@ namespace server.Migrations
                         .IsUnique();
 
                     b.ToTable("Transactions");
+                });
+
+            modelBuilder.Entity("Truck", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CapacityCubicFeet")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Uid")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("WeightLimit")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Trucks");
                 });
 
             modelBuilder.Entity("server.Models.Event.Event", b =>
@@ -1231,6 +1426,38 @@ namespace server.Migrations
                     b.Navigation("Client");
                 });
 
+            modelBuilder.Entity("CrewPreset", b =>
+                {
+                    b.HasOne("server.Models.User.User", null)
+                        .WithMany()
+                        .HasForeignKey("LeadId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Truck", "Truck")
+                        .WithMany()
+                        .HasForeignKey("TruckId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Truck");
+                });
+
+            modelBuilder.Entity("CrewPresetUser", b =>
+                {
+                    b.HasOne("server.Models.User.User", null)
+                        .WithMany()
+                        .HasForeignKey("CrewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CrewPreset", null)
+                        .WithMany()
+                        .HasForeignKey("CrewPresetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Discount", b =>
                 {
                     b.HasOne("server.Models.Event.Event", null)
@@ -1263,21 +1490,53 @@ namespace server.Migrations
                     b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("LogisticsTask", b =>
+            modelBuilder.Entity("LogisticsAssignment", b =>
                 {
-                    b.HasOne("server.Models.User.User", "CrewLead")
-                        .WithMany()
-                        .HasForeignKey("CrewLeadId");
+                    b.HasOne("LogisticsTrip", "LogisticsTrip")
+                        .WithMany("Crew")
+                        .HasForeignKey("LogisticsTripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
+                    b.HasOne("server.Models.User.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LogisticsTrip");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LogisticsTrip", b =>
+                {
                     b.HasOne("server.Models.Event.Event", "Event")
-                        .WithMany("LogisticsTasks")
+                        .WithMany("LogisticsTrips")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CrewLead");
+                    b.HasOne("Truck", "Truck")
+                        .WithMany("Trips")
+                        .HasForeignKey("TruckId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Event");
+
+                    b.Navigation("Truck");
+                });
+
+            modelBuilder.Entity("LogisticsWorkItem", b =>
+                {
+                    b.HasOne("LogisticsTrip", "LogisticsTrip")
+                        .WithMany("WorkItems")
+                        .HasForeignKey("LogisticsTripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LogisticsTrip");
                 });
 
             modelBuilder.Entity("PackageItem", b =>
@@ -1472,9 +1731,21 @@ namespace server.Migrations
                     b.Navigation("ClientAddresses");
                 });
 
+            modelBuilder.Entity("LogisticsTrip", b =>
+                {
+                    b.Navigation("Crew");
+
+                    b.Navigation("WorkItems");
+                });
+
             modelBuilder.Entity("Package", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Truck", b =>
+                {
+                    b.Navigation("Trips");
                 });
 
             modelBuilder.Entity("server.Models.Event.Event", b =>
@@ -1483,7 +1754,7 @@ namespace server.Migrations
 
                     b.Navigation("Items");
 
-                    b.Navigation("LogisticsTasks");
+                    b.Navigation("LogisticsTrips");
 
                     b.Navigation("Transactions");
                 });

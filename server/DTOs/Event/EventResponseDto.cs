@@ -38,7 +38,7 @@ public class EventResponseDto
   public string EventType { get; set; } = "";
   public string? Notes { get; set; }
   public string? InternalNotes { get; set; }
-  public List<LogisticsTaskResponseDto> LogisticsTasks { get; set; } = [];
+  public List<LogisticsTripResponseDto> LogisticsTrips { get; set; } = [];
   public List<EventItemResponseDto> Items { get; set; } = [];
   public decimal Subtotal { get; set; }
   public decimal TaxAmount { get; set; }

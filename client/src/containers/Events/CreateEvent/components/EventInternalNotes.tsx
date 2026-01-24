@@ -10,9 +10,9 @@ const EventInternalNotes: React.FC<EventInternalNotesProps> = ({
   register,
 }) => {
   return (
-    <div className="flex flex-col gap-4 border-1 border-gray-200 rounded-lg py-4 px-6">
+    <div className="flex flex-col gap-4 border-1 border-gray-200 rounded-lg py-4 px-6 w-full h-full">
       <h4 className="font-semibold text-lg">Internal Notes</h4>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 h-full">
         <TextAreaInput
           label="Notes"
           placeholder="Client pays cash on delivery."

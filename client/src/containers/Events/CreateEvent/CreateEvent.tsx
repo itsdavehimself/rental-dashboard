@@ -1,5 +1,4 @@
-import { useLocation } from "react-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "../../../hooks/useToast";
 import { type ErrorsState, handleError } from "../../../helpers/handleError";
 import ResidentialClientInfo from "./components/ResidentialClientInfo";
@@ -20,13 +19,9 @@ import SearchClients from "../../Clients/components/SearchClients";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
 import { saveEvent } from "../services/eventService";
 import PaymentForm from "./components/TransactionModal";
-import { useFetchClient } from "../hooks/useFetchClient";
-import { useFetchEvent } from "../hooks/useFetchEvent";
-import { mapItemResToEvent } from "../helpers/mapItemResToEvent";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
-import { mapAddressResToEvent } from "../helpers/mapAddressResToEvent";
 import { useFetchAvailability } from "../hooks/useFetchAvailability";
-import type { ClientDetail } from "../../Clients/types/Client";
+import formatToUTC from "../../../helpers/formatToUTC";
 
 export type CreateEventModalType =
   | null
@@ -51,172 +46,146 @@ export type ItemBasics = Omit<
 > & { inventoryItemUid: string };
 
 export type CreateEventInputs = {
-  deliveryDate: Date;
-  deliveryTime: string;
-  pickUpDate: Date;
-  pickUpTime: string;
-  eventName?: string;
-  eventType: string;
-  eventNotes?: string;
-  internalNotes?: string;
+  startDate: Date;
+  startTime: string;
+  endDate: Date;
+  endTime: string;
+  eventName: string | null;
+  eventType: string | null;
+  eventNotes: string | null;
+  internalNotes: string | null;
 };
 
 const CreateEvent: React.FC = () => {
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const clientUid = params.get("clientId");
-  const eventUid = params.get("eventId");
-  const methods = useForm<CreateEventInputs>({});
-
-  const { handleSubmit, register, watch, setValue, setError, clearErrors } =
-    methods;
-
   const {
     client,
-    setClient,
     openModal,
     setOpenModal,
     selectedItems,
     setSelectedItems,
-    setEventBilling,
-    setEventDelivery,
     eventBilling,
     eventDelivery,
     setEventUid,
-    setTransactions,
     clearContext,
-  } = useCreateEvent();
-
-  const {
-    client: fetchedClient,
-    loading: loadingClient,
-    fetchClient,
-  } = useFetchClient(clientUid);
-
-  const {
-    event: fetchedEvent,
-    loading: loadingEvent,
-    fetchEvent,
+    eventStatus,
+    eventName,
+    eventNotes,
+    internalNotes,
+    eventType,
+    isLoading,
+    eventUid,
     eventStart,
     eventEnd,
-  } = useFetchEvent(eventUid);
+  } = useCreateEvent();
+
+  const methods = useForm<CreateEventInputs>();
+
+  const { handleSubmit, register, watch, setValue, setError, clearErrors } =
+    methods;
 
   const [errors, setErrors] = useState<ErrorsState>(null);
 
   const { addToast } = useToast();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
-  const deliveryDate = watch("deliveryDate");
-  const deliveryTime = watch("deliveryTime");
-  const pickUpDate = watch("pickUpDate");
-  const pickUpTime = watch("pickUpTime");
+  const startDate = watch("startDate");
+  const startTime = watch("startTime");
+  const endDate = watch("endDate");
+  const endTime = watch("endTime");
 
-  const datesSelected = !!(
-    deliveryDate &&
-    deliveryTime &&
-    pickUpDate &&
-    pickUpTime
-  );
+  const [availabilityParams, setAvailabilityParams] = useState({
+    startD: startDate,
+    startT: startTime,
+    endD: endDate,
+    endT: endTime,
+  });
+
+  const datesSelected = !!(startDate && startTime && endDate && endTime);
 
   const canSaveDraft = client && eventBilling && eventDelivery && datesSelected;
 
-  useEffect(() => {
-    if (!fetchedClient) return;
-    setClient(fetchedClient);
-  }, [fetchedClient, setClient]);
+  const isDraft = eventStatus === "Draft";
+  const isNew = !eventUid;
 
-  const previousClientUid = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!client) return;
-
-    const isInitialClientLoad = previousClientUid.current === null;
-    const isClientChangedByUser =
-      previousClientUid.current !== null &&
-      previousClientUid.current !== client.uid;
-
-    previousClientUid.current = client.uid;
-
-    if (eventUid && isInitialClientLoad) {
-      return;
-    }
-
-    if (!eventUid && isInitialClientLoad) {
-      setPrimaryAddressesFromClient(client);
-      return;
-    }
-
-    if (isClientChangedByUser) {
-      setPrimaryAddressesFromClient(client);
-    }
-  }, [client]);
-
-  function setPrimaryAddressesFromClient(client: ClientDetail) {
-    if (client.billingAddresses?.length) {
-      const primaryBilling =
-        client.billingAddresses.find((a) => a.isPrimary) ??
-        client.billingAddresses[0];
-      setEventBilling(primaryBilling);
-    }
-
-    if (client.deliveryAddresses?.length) {
-      const primaryDelivery =
-        client.deliveryAddresses.find((a) => a.isPrimary) ??
-        client.deliveryAddresses[0];
-      setEventDelivery(primaryDelivery);
-    }
-  }
+  const saveAction = isNew ? "draft" : "update";
+  const saveLabel = isDraft ? "Save Draft" : "Update Event";
 
   useEffect(() => {
-    if (!fetchedEvent || !eventStart || !eventEnd) return;
-    setValue("deliveryDate", eventStart.date);
-    setValue("deliveryTime", eventStart.time);
-    setValue("pickUpDate", eventEnd.date);
-    setValue("pickUpTime", eventEnd.time);
-    setValue("eventName", fetchedEvent?.eventName);
-    setValue("eventNotes", fetchedEvent?.notes);
-    setValue("internalNotes", fetchedEvent?.internalNotes);
-    setValue("eventType", fetchedEvent?.eventType);
-    setEventUid(fetchedEvent?.uid);
-    setTransactions(
-      fetchedEvent.transactions.sort((a, b) =>
-        b.occurredAt.localeCompare(a.occurredAt)
-      )
-    );
-    const mappedAddresses = mapAddressResToEvent(fetchedEvent);
-    setEventBilling(mappedAddresses.billing);
-    setEventDelivery(mappedAddresses.delivery);
-    const eventItems = mapItemResToEvent(fetchedEvent?.items);
-    setSelectedItems(eventItems);
-  }, [fetchedEvent, eventStart, eventEnd, setValue]);
+    if (!eventUid || !eventStart || !eventEnd) return;
+    setValue("startDate", eventStart.date);
+    setValue("startTime", eventStart.time);
+    setValue("endDate", eventEnd.date);
+    setValue("endTime", eventEnd.time);
+    setValue("eventName", eventName);
+    setValue("eventNotes", eventNotes);
+    setValue("internalNotes", internalNotes);
+    setValue("eventType", eventType);
+    if (!eventName) {
+      setValue("eventName", `${client?.firstName}'s Event`);
+    }
+  }, [
+    eventStart,
+    eventEnd,
+    setValue,
+    eventNotes,
+    eventName,
+    internalNotes,
+    eventType,
+    eventUid,
+    client,
+  ]);
 
   useEffect(() => {
-    if (clientUid === "") {
-      navigate("/dashboard");
+    if (endDate < startDate) {
+      setValue("endDate", startDate);
     }
-  }, []);
-
-  useEffect(() => {
-    if (pickUpDate < deliveryDate) {
-      setValue("pickUpDate", deliveryDate);
-    }
-  }, [deliveryDate]);
+  }, [startDate]);
 
   useFetchAvailability(
     apiUrl,
     selectedItems,
-    deliveryDate,
-    deliveryTime,
-    pickUpDate,
-    pickUpTime,
-    setSelectedItems
+    availabilityParams.startD,
+    availabilityParams.startT,
+    availabilityParams.endD,
+    availabilityParams.endT,
+    setSelectedItems,
+    eventUid,
   );
+
+  useEffect(() => {
+    const timeRegex = /^\d{1,2}:\d{2}(am|pm)$/;
+
+    if (
+      startDate &&
+      endDate &&
+      timeRegex.test(startTime) &&
+      timeRegex.test(endTime)
+    ) {
+      setAvailabilityParams({
+        startD: startDate,
+        startT: startTime,
+        endD: endDate,
+        endT: endTime,
+      });
+    }
+  }, [startDate, startTime, endDate, endTime]);
+
+  const formattedStartDateTime = formatToUTC(startDate, startTime);
+  const formattedEndDateTime = formatToUTC(endDate, endTime);
 
   const onFormSubmit = async (
     data: CreateEventInputs,
-    action: "draft" | "reserve"
+    action: "draft" | "reserve" | "update",
   ) => {
-    if (!client || !eventBilling || !eventDelivery || !datesSelected) return;
+    if (
+      !client ||
+      !eventBilling ||
+      !eventDelivery ||
+      !datesSelected ||
+      !formattedStartDateTime ||
+      !formattedEndDateTime
+    )
+      return;
 
     try {
       const items = selectedItems.map((i) => ({
@@ -233,10 +202,12 @@ const CreateEvent: React.FC = () => {
       const event = await saveEvent(
         apiUrl,
         data,
+        formattedStartDateTime,
+        formattedEndDateTime,
         items,
         uids,
         eventUid,
-        action
+        action,
       );
 
       if (!eventUid) {
@@ -246,10 +217,17 @@ const CreateEvent: React.FC = () => {
         });
       }
 
-      addToast(
-        "Success",
-        action === "reserve" ? "Event reserved." : "Draft saved."
-      );
+      if (action === "reserve") {
+        addToast("Success", "Event reserved.");
+      } else if (action === "draft") {
+        addToast("Success", "Draft saved.");
+      } else {
+        addToast("Success", "Event updated.");
+      }
+
+      if (action === "reserve") {
+        navigate(`/events/${eventUid}`);
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         addToast("Error", err.message);
@@ -265,7 +243,7 @@ const CreateEvent: React.FC = () => {
     };
   }, []);
 
-  if (loadingEvent || loadingClient) {
+  if (isLoading) {
     return (
       <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6 justify-center items-center">
         <div className="flex justify-center items-center w-full text-sm text-gray-400 h-10">
@@ -277,7 +255,7 @@ const CreateEvent: React.FC = () => {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
+      <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 3xl:gap-4 4xl:gap-6">
         {openModal === "searchClient" && (
           <SearchClients<CreateEventModalType>
             openModal={openModal}
@@ -306,35 +284,69 @@ const CreateEvent: React.FC = () => {
           <h2 className="text-2xl font-semibold">
             {eventUid ? "Edit Event" : "Create Event"}
           </h2>
-          <div className="flex gap-4 w-fit">
-            <ActionButton
-              label="Save Draft"
-              onClick={handleSubmit((data) => onFormSubmit(data, "draft"))}
-              style="outline"
-              icon={Save}
-              disabled={!canSaveDraft}
-            />
-            <ActionButton
-              label="Reserve"
-              onClick={handleSubmit((data) => onFormSubmit(data, "reserve"))}
-              style="filled"
-              icon={CalendarCheck}
-              disabled={!canSaveDraft || !eventUid}
-            />
+          <div className="flex gap-4 items-center justify-center">
+            {eventStatus === "Draft" ? (
+              <>
+                {/* LEFT BUTTON: Save or Update Draft */}
+                <ActionButton
+                  label="Save Draft"
+                  onClick={handleSubmit((data) =>
+                    onFormSubmit(data, eventUid ? "update" : "draft"),
+                  )}
+                  style="outline"
+                  icon={Save}
+                  disabled={!canSaveDraft}
+                />
+                {/* RIGHT BUTTON: Reserve */}
+                <ActionButton
+                  label="Reserve"
+                  onClick={handleSubmit((data) =>
+                    onFormSubmit(data, "reserve"),
+                  )}
+                  style="filled"
+                  icon={CalendarCheck}
+                  disabled={!canSaveDraft || !eventUid}
+                />
+              </>
+            ) : (
+              <div className="flex gap-8 justify-center items-center">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/events/${eventUid}`)}
+                  className="text-sm font-semibold text-gray-500 hover:text-primary transition-colors duration-200 hover:cursor-pointer"
+                >
+                  Back to Event Details
+                </button>
+                <ActionButton
+                  label="Update Event"
+                  onClick={handleSubmit((data) => onFormSubmit(data, "update"))}
+                  style="filled"
+                  icon={CalendarCheck}
+                  disabled={!canSaveDraft || !eventUid}
+                />
+              </div>
+            )}
           </div>
         </div>
-        <div className="grid grid-cols-[1fr_.2fr] gap-8 h-full">
-          <div className="flex flex-col gap-8">
-            <div className="grid grid-cols-[1.8fr_1fr] gap-8 h-fit w-full">
-              <div className="flex flex-col gap-8 h-full">
+        <div className="flex flex-col 4xl:grid 4xl:grid-cols-[1fr_400px] 3xl:gap-4 4xl:gap-8 h-full">
+          <div className="flex 3xl:flex-row 4xl:flex-col 3xl:gap-4 4xl:gap-8 w-full">
+            <div className="3xl:flex 3xl:flex-col 4xl:grid 4xl:grid-cols-[1.8fr_1fr] 3xl:gap-4 4xl:gap-8 h-fit 3xl:w-1/2 4xl:w-full">
+              <div className="flex flex-col 3xl:gap-4 4xl:gap-8 h-full">
                 <EventScheduleSection />
-                <EventInternalNotes register={register} />
+                <div className="3xl:hidden 4xl:inline">
+                  <EventInternalNotes register={register} />
+                </div>
               </div>
               <EventDetailsSection register={register} />
             </div>
             <ItemsAndServices />
           </div>
-          <div className="flex flex-col gap-8 h-full flex-grow">
+          <div className="grid grid-cols-3 gap-4 4xl:hidden">
+            <ResidentialClientInfo />
+            <EventInternalNotes register={register} />
+            <EventTotals />
+          </div>
+          <div className="flex flex-col 3xl:gap-4 4xl:gap-8 h-full flex-grow 3xl:hidden 4xl:flex">
             <ResidentialClientInfo />
             <EventTotals />
           </div>

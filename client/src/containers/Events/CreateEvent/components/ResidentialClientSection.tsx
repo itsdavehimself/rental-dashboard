@@ -4,6 +4,7 @@ interface ResidentialClientSectionProps<T extends string | null> {
   title: string;
   children: React.ReactNode;
   lastItem?: boolean;
+  hideDividerOnLarge?: boolean;
   setOpenModal: React.Dispatch<React.SetStateAction<T>>;
   modalKey: T;
   minHeight?: number;
@@ -13,14 +14,15 @@ const ResidentialClientSection = <T extends string | null>({
   title,
   children,
   lastItem,
+  hideDividerOnLarge,
   setOpenModal,
   modalKey,
   minHeight,
 }: ResidentialClientSectionProps<T>) => {
   return (
-    <>
+    <div>
       <div className="flex justify-between items-end">
-        <h5 className="font-semibold mt-4">{title}</h5>
+        <h5 className="font-semibold 3xl:mt-2 4xl:mt-4">{title}</h5>
         <button
           onClick={() => setOpenModal(modalKey)}
           className="flex justify-center items-center text-gray-500 hover:text-primary hover:cursor-pointer transition-all duration-200"
@@ -30,13 +32,17 @@ const ResidentialClientSection = <T extends string | null>({
       </div>
 
       <div
-        className={`flex flex-col text-sm mt-2 ${!lastItem && "mb-4"}`}
+        className={`flex flex-col text-sm mt-2 ${!lastItem && "4xl:mb-4"}`}
         style={{ minHeight: minHeight ? `${minHeight}rem` : undefined }}
       >
         {children}
       </div>
-      {!lastItem && <hr className="text-gray-200" />}
-    </>
+      {!lastItem && (
+        <hr
+          className={`text-gray-200 ${hideDividerOnLarge ? "3xl:hidden 4xl:block" : "block"}`}
+        />
+      )}
+    </div>
   );
 };
 

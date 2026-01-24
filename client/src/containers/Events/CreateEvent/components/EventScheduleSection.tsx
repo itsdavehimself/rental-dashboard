@@ -1,23 +1,23 @@
 import DatePicker from "../../../../components/common/DatePicker";
-import Dropdown from "../../../../components/common/Dropdown";
-import { timeSlots } from "../../../../config/TIMES";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { useRef, useEffect } from "react";
 import type { CreateEventInputs } from "../CreateEvent";
+import StyledInput from "../../../../components/common/StyledInput";
+import normalizeTime from "../../../../helpers/normalizeTime";
 
 const EventScheduleSection: React.FC = () => {
   const [openDropDown, setOpenDropDown] = useState<string | null>(null);
-  const deliveryTimeRef = useRef<HTMLDivElement>(null);
-  const pickUpTimeRef = useRef<HTMLDivElement>(null);
+  const startTimeRef = useRef<HTMLDivElement>(null);
+  const endTimeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
         openDropDown &&
-        !deliveryTimeRef.current?.contains(e.target as Node) &&
-        !pickUpTimeRef.current?.contains(e.target as Node)
+        !startTimeRef.current?.contains(e.target as Node) &&
+        !endTimeRef.current?.contains(e.target as Node)
       ) {
         setOpenDropDown(null);
       }
@@ -30,65 +30,68 @@ const EventScheduleSection: React.FC = () => {
   const {
     watch,
     setValue,
+    register,
     formState: { errors },
   } = useFormContext<CreateEventInputs>();
 
-  const deliveryDate = watch("deliveryDate");
-  const deliveryTime = watch("deliveryTime");
-  const pickUpDate = watch("pickUpDate");
-  const pickUpTime = watch("pickUpTime");
+  const startDate = watch("startDate");
+  const endDate = watch("endDate");
+
+  const handleTimeBlur =
+    (fieldName: keyof CreateEventInputs) =>
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const rawValue = e.target.value;
+      if (!rawValue) return;
+
+      const normalized = normalizeTime(rawValue);
+
+      if (normalized.wasParsed) {
+        setValue(fieldName, normalized.text, { shouldValidate: true });
+      } else {
+        e.target.value = "";
+        setValue(fieldName, "" as any, { shouldValidate: true });
+      }
+    };
 
   return (
     <>
       <div className="flex flex-col gap-4 border-1 border-gray-200 rounded-lg py-4 px-6">
         <h4 className="font-semibold text-lg">Scheduling</h4>
         <div className="grid grid-cols-[1fr_6rem_1fr] items-center">
-          <div className="grid grid-cols-[2fr_0.75fr] gap-4 items-center">
+          <div className="grid grid-cols-[2fr_90px] gap-4 items-center w-full">
             <DatePicker
               label="Delivery Date"
-              date={deliveryDate}
+              date={startDate}
               disablePastDates={true}
-              onSelect={(val) => setValue("deliveryDate", val)}
+              onSelect={(val) => setValue("startDate", val)}
             />
-            <Dropdown
-              ref={deliveryTimeRef}
-              label="Delivery Time"
-              openDropdown={openDropDown}
-              setOpenDropdown={setOpenDropDown}
-              selectedLabel={
-                timeSlots().find((t) => t.value === deliveryTime)?.label ??
-                "Select a time"
-              }
-              options={timeSlots()}
-              value={deliveryTime}
-              onChange={(val) => setValue("deliveryTime", val as string)}
-              error={errors.deliveryTime?.message?.toString()}
+            <StyledInput
+              label="Start Time"
+              placeholder="2:00pm"
+              error={errors.startTime?.message}
+              register={register("startTime", {
+                onBlur: handleTimeBlur("startTime"),
+              })}
             />
           </div>
-          <div className="flex justify-center mt-5">
+          <div className="justify-center mt-5 3xl:flex">
             <ArrowRight />
           </div>
-          <div className="grid grid-cols-[2fr_0.75fr] gap-4 items-center">
+          <div className="grid grid-cols-[2fr_90px] gap-4 items-center w-full">
             <DatePicker
               label="Pickup Date"
-              date={pickUpDate}
-              onSelect={(val) => setValue("pickUpDate", val)}
+              date={endDate}
+              onSelect={(val) => setValue("endDate", val)}
               disablePastDates={true}
-              deliveryDate={deliveryDate}
+              startDate={startDate}
             />
-            <Dropdown
-              ref={pickUpTimeRef}
-              label="Pickup Time"
-              openDropdown={openDropDown}
-              setOpenDropdown={setOpenDropDown}
-              selectedLabel={
-                timeSlots().find((t) => t.value === pickUpTime)?.label ??
-                "Select a time"
-              }
-              options={timeSlots()}
-              value={pickUpTime}
-              onChange={(val) => setValue("pickUpTime", val as string)}
-              error={errors.pickUpTime?.message?.toString()}
+            <StyledInput
+              label="End Time"
+              placeholder="3:00pm"
+              error={errors.endTime?.message}
+              register={register("endTime", {
+                onBlur: handleTimeBlur("endTime"),
+              })}
             />
           </div>
         </div>

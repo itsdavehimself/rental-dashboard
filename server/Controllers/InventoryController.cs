@@ -371,6 +371,7 @@ public async Task<IActionResult> GetInventory(
     var events = _context.Events
     .Include(e => e.Items)
     .Where(e => e.Status != EventStatus.Draft
+        && e.Uid != request.EventUid
         && e.EventStart <= pickupDateTime 
         && e.EventEnd >= deliveryDateTime);
 

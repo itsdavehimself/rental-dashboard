@@ -12,7 +12,7 @@ const fetchUsers = async (apiUrl: string, url: string): Promise<User[]> => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new CustomError("Registration failed.", errorData);
+    throw new CustomError("Fetching users failed.", errorData);
   }
 
   return await response.json();

@@ -2,10 +2,10 @@ import { useNavigate } from "react-router";
 import type { Event } from "../../types/Event";
 import { useState, useEffect } from "react";
 import { formatAddress } from "../../../../helpers/formatAddress";
-import { format } from "date-fns";
 import ChipTag from "../../../../components/common/ChipTag";
 import TAG_COLOR_MAP from "../../../../config/TAG_COLOR_MAP";
 import { paymentStatus } from "../../helpers/paymentStatus";
+import { formatEventDateTime } from "../../helpers/formatWithLowerAmPm";
 
 interface EventRowProps {
   item: Event;
@@ -37,6 +37,12 @@ const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
     return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
+  const { date: dateStart, time: timeStart } = formatEventDateTime(
+    item.eventStart,
+  );
+
+  const { date: dateEnd, time: timeEnd } = formatEventDateTime(item.eventEnd);
+
   return (
     <div
       onClick={(e) => {
@@ -47,13 +53,13 @@ const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
         }
         if (item.status === "Draft") {
           navigate(
-            `/events/create?clientId=${item.clientUid}&eventId=${item.uid}`
+            `/events/create?clientId=${item.clientUid}&eventId=${item.uid}`,
           );
         } else {
           navigate(`${item.uid}`);
         }
       }}
-      className={`relative grid ${columnTemplate} items-center w-full gap-${gap} px-8 py-4 text-sm transition-all duration-200
+      className={`relative grid ${columnTemplate} items-center w-full gap-${gap} px-8 py-4 text-sm transition-all duration-200 
     ${isLast ? "rounded-b-xl" : "border-b border-gray-200"}
     ${popoverOpen ? "" : "hover:bg-gray-50 hover:cursor-pointer"}
   `}
@@ -62,8 +68,14 @@ const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
         {item.clientFirstName} {item.clientLastName}
       </p>
       <p>{item.eventName ?? ""}</p>
-      <p>{format(new Date(item.eventStart), "Pp")}</p>
-      <p>{format(new Date(item.eventEnd), "Pp")}</p>
+      <div className="flex flex-col">
+        <span className="font-semibold text-sm">{dateStart}</span>
+        <span>{timeStart}</span>
+      </div>
+      <div className="flex flex-col">
+        <span className="font-semibold text-sm">{dateEnd}</span>
+        <span>{timeEnd}</span>
+      </div>
       <p>
         {formatAddress({
           addressLine1: item.deliveryAddressLine1,
@@ -81,7 +93,6 @@ const EventRow = ({ item, isLast, columnTemplate, gap }: EventRowProps) => {
         label={statusMap[item.status].label}
         color={statusMap[item.status].color}
       />
-      <p>{item.internalNotes ?? ""}</p>
     </div>
   );
 };

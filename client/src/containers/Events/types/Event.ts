@@ -6,17 +6,17 @@ type Event = {
   clientUid: string;
   clientFirstName: string;
   clientLastName: string;
-  businessName?: string;
+  businessName: string | null;
   clientPhone: string;
   clientEmail: string;
-  eventName?: string;
+  eventName: string | null;
   eventStart: string;
   eventEnd: string;
   billingAddressEntryUid: string;
   billingFirstName: string;
   billingLastName: string;
   billingAddressLine1: string;
-  billingAddressLine2?: string;
+  billingAddressLine2: string | null;
   billingCity: string;
   billingState: string;
   billingZipCode: string;
@@ -26,17 +26,17 @@ type Event = {
   deliveryFirstName: string;
   deliveryLastName: string;
   deliveryAddressLine1: string;
-  deliveryAddressLine2?: string;
+  deliveryAddressLine2: string | null;
   deliveryCity: string;
   deliveryState: string;
   deliveryZipCode: string;
   deliveryPhone: string;
   deliveryEmail: string;
   status: EventStatus;
-  notes?: string;
+  notes: string | null;
   eventType: string;
-  internalNotes?: string;
-  logisticsTasks: LogisticsTask[];
+  internalNotes: string | null;
+  logisticsTrips: LogisticsTrip[];
   items: EventItem[];
   subtotal: number;
   taxAmount: number;
@@ -56,8 +56,6 @@ type EventStatus =
 
 type ItemType = "AlaCarte" | "Package";
 
-type LogisticsTaskType = "Delivery" | "Pickup" | "Setup" | "Teardown";
-
 type DiscountType = "FlatAmount" | "Percentage";
 
 type EventItem = {
@@ -73,15 +71,36 @@ type EventItem = {
   updatedAt: string;
 };
 
-type LogisticsTask = {
-  id: number;
+export type LogisticsTrip = {
   uid: string;
-  eventId: number;
-  type: LogisticsTaskType;
-  startTime: string;
-  endTime: string;
-  crewLeadId?: number;
-  notes?: string;
+  actualArrival: string;
+  actualStart: string;
+  completedAt: string;
+  crew: CrewMember[];
+  crewLeadName: string;
+  scheduledEnd: string;
+  scheduledStart: string;
+  status: string;
+  tripSummary: string;
+  truckUid: string;
+  truckName: string;
+  workItems: WorkItem[];
+};
+
+type CrewMember = {
+  fullName: string;
+  isLead: boolean;
+  roleNotes: string;
+  uid: string;
+  userUid: string;
+};
+
+type WorkItem = {
+  completedAt: Date;
+  isCompleted: boolean;
+  notes: string;
+  type: string;
+  uid: string;
 };
 
 type TransactionType = "Payment" | "Refund" | "Adjustment";
@@ -93,10 +112,10 @@ export type Transaction = {
   type: TransactionType;
   method: PaymentMethod;
   occurredAt: string;
-  externalTransactionId?: string;
-  relatedTransactionUid?: string;
-  processedBy?: string;
-  notes?: string;
+  externalTransactionId: string | null;
+  relatedTransactionUid: string | null;
+  processedBy: string | null;
+  notes: string | null;
   cardBrand: string;
   last4: string;
 };
@@ -106,7 +125,7 @@ type EventDiscount = {
   eventId: number;
   type: DiscountType;
   amount: number;
-  reason?: string;
+  reason: string | null;
   createdAt: string;
 };
 
@@ -136,6 +155,9 @@ export type {
   EventDiscount,
   EventDraft,
   EventItem,
-  EventStatus,
   EventDraftResponse,
+  EventStatus,
+  LogisticsTrip,
+  WorkItem,
+  CrewMember,
 };
