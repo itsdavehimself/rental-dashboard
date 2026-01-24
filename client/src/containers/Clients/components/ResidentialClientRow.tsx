@@ -24,8 +24,9 @@ const ResidentialClientRow: React.FC<ResidentialClientRowProps> = ({
       }`}
       onClick={() => navigate(`${item.uid}`)}
     >
-      <p>{item.lastName}</p>
-      <p>{item.firstName} </p>
+      <p>
+        {item.firstName} {item.lastName}
+      </p>
       <p>{formatPhoneNumber(item.phoneNumber)}</p>
       <p>{formatAddress(item.billingAddress)}</p>
     </div>

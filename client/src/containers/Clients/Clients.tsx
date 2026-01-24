@@ -16,13 +16,8 @@ const Clients: React.FC = () => {
 
   const { clients, setClients, errors, setErrors } = useClients(page);
 
-  const headers = [
-    "Last Name",
-    "First Name",
-    "Phone Number",
-    "Billing Address",
-  ];
-  const columnTemplate = "[grid-template-columns:1fr_1fr_0.75fr_2fr]";
+  const headers = ["Name", "Phone Number", "Billing Address"];
+  const columnTemplate = "[grid-template-columns:1fr_0.75fr_2fr]";
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
       {openModal === "addClient" && (
