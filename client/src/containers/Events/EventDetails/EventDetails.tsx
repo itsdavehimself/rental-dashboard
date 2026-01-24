@@ -15,11 +15,13 @@ import { getCrewPresets } from "../services/crewService";
 import AddModal from "../../../components/common/AddModal";
 import SplitTaskModal from "./components/SplitTaskModal";
 import DeleteTaskModal from "./components/DeleteTaskModal";
+import type { LogisticsTrip } from "../types/Event";
 
 export type EditEventModalType =
   | "addTask"
   | "confirmSplit"
   | "deleteTask"
+  | "editTask"
   | null;
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -30,6 +32,7 @@ const EventDetails: React.FC = () => {
   const [taskType, setTaskType] = useState<string | null>(null);
   const [crewPresets, setCrewPresets] = useState<CrewPreset[]>([]);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [taskDetails, setTaskDetails] = useState<LogisticsTrip | null>(null);
 
   const fetchCrewPresets = async () => {
     try {
@@ -67,13 +70,28 @@ const EventDetails: React.FC = () => {
         <LogisticsModal<EditEventModalType>
           openModal={openModal}
           setOpenModal={setOpenModal}
-          title={`Add ${taskType} Crew`}
+          title={`Add ${taskType} Task`}
           modalKey="addTask"
         >
           <AddTaskForm
             taskType={taskType}
             crewPresets={crewPresets}
             setOpenModal={setOpenModal}
+          />
+        </LogisticsModal>
+      )}
+      {openModal === "editTask" && (
+        <LogisticsModal<EditEventModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          title={`Edit ${taskType} Task`}
+          modalKey="editTask"
+        >
+          <AddTaskForm
+            taskType={taskType}
+            crewPresets={crewPresets}
+            setOpenModal={setOpenModal}
+            taskDetails={taskDetails}
           />
         </LogisticsModal>
       )}
@@ -131,6 +149,7 @@ const EventDetails: React.FC = () => {
             setOpenModal={setOpenModal}
             setTaskType={setTaskType}
             setSelectedTask={setSelectedTask}
+            setTaskDetails={setTaskDetails}
           />
         </div>
       </section>

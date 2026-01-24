@@ -47,7 +47,37 @@ const createLogistics = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new CustomError("Saving crew failed.", errorData);
+    throw new CustomError("Saving task failed.", errorData);
+  }
+
+  return await response.json();
+};
+
+const updateLogistics = async (
+  apiUrl: string,
+  taskUid: string,
+  data: TaskInputs,
+  startUtc: string,
+  endUtc: string,
+): Promise<LogisticsTrip> => {
+  const response = await fetch(`${apiUrl}/api/logistics/${taskUid}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      startTime: startUtc,
+      endTime: endUtc,
+      crewLead: data.lead,
+      crew: data.crew,
+      truckUid: data.truck,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Updating task failed.", errorData);
   }
 
   return await response.json();
@@ -105,4 +135,10 @@ const deleteLogistics = async (
   }
 };
 
-export { getActiveTrucks, createLogistics, splitLogistics, deleteLogistics };
+export {
+  getActiveTrucks,
+  createLogistics,
+  updateLogistics,
+  splitLogistics,
+  deleteLogistics,
+};

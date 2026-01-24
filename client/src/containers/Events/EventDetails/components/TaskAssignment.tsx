@@ -2,17 +2,20 @@ import React, { useState, useMemo, useEffect } from "react";
 import CrewSection from "./CrewSection";
 import { useEventDetails } from "../../hooks/useEventDetails";
 import type { EditEventModalType } from "../EventDetails";
+import type { LogisticsTrip } from "../../types/Event";
 
 interface TaskAssignmentProps {
   setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
   setTaskType: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedTask: React.Dispatch<React.SetStateAction<string | null>>;
+  setTaskDetails: React.Dispatch<React.SetStateAction<LogisticsTrip | null>>;
 }
 
 const TaskAssignment: React.FC<TaskAssignmentProps> = ({
   setOpenModal,
   setTaskType,
   setSelectedTask,
+  setTaskDetails,
 }) => {
   const [deliverySplit, setDeliverySplit] = useState(false);
   const [pickUpSplit, setPickUpSplit] = useState(false);
@@ -135,6 +138,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
               setOpenModal={setOpenModal}
               setTaskType={setTaskType}
               setSelectedTask={setSelectedTask}
+              setTaskDetails={setTaskDetails}
               trip={
                 deliverySplit
                   ? preEventData.deliveryOnly
@@ -148,6 +152,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
                 setTaskType={setTaskType}
                 trip={preEventData.setupOnly}
                 setSelectedTask={setSelectedTask}
+                setTaskDetails={setTaskDetails}
               />
             )}
           </div>
@@ -174,6 +179,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
               setOpenModal={setOpenModal}
               setTaskType={setTaskType}
               setSelectedTask={setSelectedTask}
+              setTaskDetails={setTaskDetails}
               trip={
                 pickUpSplit
                   ? postEventData.teardownOnly
@@ -187,6 +193,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
                 setTaskType={setTaskType}
                 trip={postEventData.pickupOnly}
                 setSelectedTask={setSelectedTask}
+                setTaskDetails={setTaskDetails}
               />
             )}
           </div>

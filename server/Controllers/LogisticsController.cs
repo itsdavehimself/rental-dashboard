@@ -186,6 +186,126 @@ public class LogisticsController : ControllerBase
     return Ok(dto);
   }
 
+  [HttpPatch("{uid}")]
+  public async Task<IActionResult> UpdateTrip(Guid uid, LogisticsTripUpdateRequestDto request)
+  {
+    var trip = await _context.LogisticsTrips.FirstOrDefaultAsync(l => l.Uid == uid);
+
+    if (trip == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Logistics trip not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    var truck = await _context.Trucks.FirstOrDefaultAsync(t => t.Uid == request.TruckUid);
+
+    if (truck == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Truck not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    var crewLead = await _context.Users.FirstOrDefaultAsync(c => c.Uid == request.CrewLead);
+
+    if (crewLead == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Lead user not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    if (request.Crew != null && request.Crew.Any())
+    {
+        var distinctCrewIds = request.Crew.Distinct().ToList();
+
+        var validCrewCount = await _context.Users
+            .CountAsync(u => distinctCrewIds.Contains(u.Uid));
+
+        if (validCrewCount != distinctCrewIds.Count)
+        {
+            return new ObjectResult(new ProblemDetails
+            {
+                Title = "Bad Request",
+                Detail = "One or more crew members do not exist.",
+                Status = StatusCodes.Status400BadRequest
+            }) { StatusCode = StatusCodes.Status400BadRequest };
+        }
+    }
+
+    trip.ScheduledStart = request.StartTime;
+    trip.ScheduledEnd = request.EndTime;
+    trip.TruckId = truck.Id;
+    await _context.Entry(trip).Collection(t => t.Crew).LoadAsync();
+
+    trip.Crew.Clear();
+
+    var assignments = new List<LogisticsAssignment>
+    {
+        new LogisticsAssignment
+        {
+            UserId = crewLead.Id,
+            IsLead = true
+        }
+    };
+
+    if (request.Crew != null && request.Crew.Any())
+    {
+        var distinctCrewUids = request.Crew.Distinct().ToList();
+        
+        var crewMemberIds = await _context.Users
+            .Where(u => distinctCrewUids.Contains(u.Uid))
+            .Select(u => u.Id)
+            .ToListAsync();
+
+        foreach (var memberId in crewMemberIds)
+        {
+            if (memberId != crewLead.Id)
+            {
+                assignments.Add(new LogisticsAssignment
+                {
+                    UserId = memberId,
+                    IsLead = false
+                });
+            }
+        }
+    }
+
+    trip.Crew = assignments;
+
+    await _context.SaveChangesAsync();
+
+    var responseTrip = await _context.LogisticsTrips
+        .Include(t => t.Truck)
+        .Include(t => t.WorkItems)
+        .Include(t => t.Crew)
+            .ThenInclude(a => a.User)
+        .FirstOrDefaultAsync(t => t.Id == trip.Id);
+
+    var dto = _mapper.Map<LogisticsTripResponseDto>(responseTrip);
+
+    return Ok(dto);
+  }
+
   [HttpPost("split/{uid}")]
   public async Task<IActionResult> SplitTrip(Guid uid)
   {
@@ -282,5 +402,29 @@ public class LogisticsController : ControllerBase
         original = _mapper.Map<LogisticsTripResponseDto>(originalTripUpdated), 
         split = _mapper.Map<LogisticsTripResponseDto>(newTripUpdated) 
     });
+  }
+
+  [HttpDelete("{uid}")]
+  public async Task<IActionResult> DeleteTrip(Guid uid)
+  {
+    var trip = await _context.LogisticsTrips.FirstOrDefaultAsync(l => l.Uid == uid);
+
+    if (trip == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Logistics trip not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    _context.LogisticsTrips.Remove(trip);
+    await _context.SaveChangesAsync();
+
+    return NoContent();
   }
 }

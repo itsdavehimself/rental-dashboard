@@ -5,6 +5,7 @@ import React, { useMemo, useEffect, useRef, useState } from "react";
 import {
   createLogistics,
   getActiveTrucks,
+  updateLogistics,
 } from "../../services/logisticsService";
 import type { Truck } from "../../types/Logistics";
 import { useEventDetails } from "../../hooks/useEventDetails";
@@ -18,6 +19,8 @@ import normalizeTime from "../../../../helpers/normalizeTime";
 import formatToUTC from "../../../../helpers/formatToUTC";
 import type { CrewPreset } from "../../types/CrewPreset";
 import type { EditEventModalType } from "../EventDetails";
+import type { CrewMember, LogisticsTrip } from "../../types/Event";
+import { format } from "date-fns";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -25,6 +28,7 @@ interface AddTaskFormProps {
   taskType: string | null;
   crewPresets: CrewPreset[];
   setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
+  taskDetails?: LogisticsTrip;
 }
 
 export type TaskInputs = {
@@ -41,12 +45,14 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   taskType,
   crewPresets,
   setOpenModal,
+  taskDetails,
 }) => {
   const {
     handleSubmit,
     watch,
     setValue,
     register,
+    reset,
     formState: { errors },
   } = useForm<TaskInputs>({
     defaultValues: {
@@ -68,6 +74,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   const leadRef = useRef<HTMLDivElement>(null);
   const crewRef = useRef<HTMLDivElement>(null);
 
+  const { fetchEvent } = useEventDetails();
+
   const taskStartDate = watch("taskStartDate");
   const truck = watch("truck");
   const lead = watch("lead");
@@ -76,7 +84,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   const { addToast } = useToast();
 
   const onSubmit: SubmitHandler<TaskInputs> = async (data) => {
-    if (fetchedEvent && taskType) {
+    if (fetchedEvent && (taskType || taskDetails)) {
       const startUtc = formatToUTC(data.taskStartDate, data.taskStartTime);
       const endUtc = formatToUTC(data.taskStartDate, data.taskEndTime);
 
@@ -87,20 +95,33 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
 
       try {
         // setErrors(null);
-        const savedLogistics = await createLogistics(
-          apiUrl,
-          fetchedEvent?.uid,
-          data,
-          startUtc,
-          endUtc,
-          taskType,
-        );
+        if (taskDetails) {
+          await updateLogistics(
+            apiUrl,
+            taskDetails.uid,
+            data,
+            startUtc,
+            endUtc,
+          );
+          addToast("Success", "Trip updated successfully.");
+          fetchEvent();
+        } else {
+          const savedLogistics = await createLogistics(
+            apiUrl,
+            fetchedEvent?.uid,
+            data,
+            startUtc,
+            endUtc,
+            taskType!,
+          );
 
-        if (savedLogistics) {
-          addLogisticsTrip(savedLogistics);
+          if (savedLogistics) {
+            addLogisticsTrip(savedLogistics);
+          }
+
+          addToast("Success", `Trip successfully added.`);
         }
 
-        addToast("Success", `Trip successfully added.`);
         setOpenModal(null);
       } catch (err) {
         // handleError(err, setErrors);
@@ -119,6 +140,29 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
 
   useEffect(() => {
     fetchActiveTrucks();
+    if (taskDetails && users.length > 0) {
+      const start = new Date(taskDetails.scheduledStart);
+      const end = new Date(taskDetails.scheduledEnd);
+
+      const lead = users.find(
+        (u) => `${u.firstName} ${u.lastName}` === taskDetails.crewLeadName,
+      );
+
+      reset({
+        taskStartDate: start,
+        taskEndDate: end,
+        taskStartTime: format(start, "h:mma").toLowerCase(),
+        taskEndTime: format(end, "h:mma").toLowerCase(),
+        truck: taskDetails.truckUid,
+        lead: lead ? lead.uid : "",
+        crew: taskDetails.crew
+          ? taskDetails.crew.map((c: CrewMember) => c.userUid)
+          : [],
+      });
+
+      return;
+    }
+
     if (fetchedEvent && taskType) {
       const isStartType = ["Delivery/Setup", "Delivery", "Setup"].includes(
         taskType,
@@ -136,7 +180,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
         : new Date();
       setValue("taskStartDate", defaultDate);
     }
-  }, [fetchedEvent, setValue, taskType]);
+  }, [fetchedEvent, setValue, taskType, users, reset, taskDetails]);
 
   const activeTruckOptions = useMemo(() => {
     return trucks

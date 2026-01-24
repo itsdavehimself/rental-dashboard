@@ -20,6 +20,7 @@ interface CrewSectionProps {
   setTaskType: React.Dispatch<React.SetStateAction<string | null>>;
   trip?: LogisticsTrip;
   setSelectedTask: React.Dispatch<React.SetStateAction<string | null>>;
+  setTaskDetails: React.Dispatch<React.SetStateAction<LogisticsTrip | null>>;
 }
 
 const CrewSection: React.FC<CrewSectionProps> = ({
@@ -31,6 +32,7 @@ const CrewSection: React.FC<CrewSectionProps> = ({
   setTaskType,
   trip,
   setSelectedTask,
+  setTaskDetails,
 }) => {
   const taskName = isSplit ? (splitLabel ?? label) : (combinedLabel ?? label);
 
@@ -103,7 +105,14 @@ const CrewSection: React.FC<CrewSectionProps> = ({
             </div>
             <div className="flex gap-2">
               <button className="text-gray-500 hover:text-primary transition-all duration-200 hover:cursor-pointer">
-                <PenSquare className="h-4 w-4" />
+                <PenSquare
+                  onClick={() => {
+                    setSelectedTask(trip.uid);
+                    setTaskDetails(trip);
+                    setOpenModal("editTask");
+                  }}
+                  className="h-4 w-4"
+                />
               </button>
               <button
                 onClick={() => {
