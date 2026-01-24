@@ -9,17 +9,17 @@ import {
 } from "lucide-react";
 import type { LogisticsTrip } from "../../types/Event";
 import { formatDate } from "date-fns";
+import type { EditEventModalType } from "../EventDetails";
 
 interface CrewSectionProps {
   label: string;
   isSplit?: boolean;
   splitLabel?: string;
   combinedLabel?: string;
-  setOpenModal: React.Dispatch<
-    React.SetStateAction<"addTask" | "confirmSplit" | null>
-  >;
+  setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
   setTaskType: React.Dispatch<React.SetStateAction<string | null>>;
   trip?: LogisticsTrip;
+  setSelectedTask: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const CrewSection: React.FC<CrewSectionProps> = ({
@@ -30,8 +30,9 @@ const CrewSection: React.FC<CrewSectionProps> = ({
   setOpenModal,
   setTaskType,
   trip,
+  setSelectedTask,
 }) => {
-  const taskName = isSplit ? splitLabel ?? label : combinedLabel ?? label;
+  const taskName = isSplit ? (splitLabel ?? label) : (combinedLabel ?? label);
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -104,7 +105,13 @@ const CrewSection: React.FC<CrewSectionProps> = ({
               <button className="text-gray-500 hover:text-primary transition-all duration-200 hover:cursor-pointer">
                 <PenSquare className="h-4 w-4" />
               </button>
-              <button className="text-gray-500 hover:text-primary transition-all duration-200 hover:cursor-pointer">
+              <button
+                onClick={() => {
+                  setSelectedTask(trip.uid);
+                  setOpenModal("deleteTask");
+                }}
+                className="text-gray-500 hover:text-primary transition-all duration-200 hover:cursor-pointer"
+              >
                 <Trash className="h-4 w-4" />
               </button>
             </div>

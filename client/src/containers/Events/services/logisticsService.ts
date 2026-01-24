@@ -72,5 +72,37 @@ const splitLogistics = async (
 
   return await response.json();
 };
+const deleteLogistics = async (
+  apiUrl: string,
+  taskUid: string,
+): Promise<void> => {
+  const response = await fetch(`${apiUrl}/api/logistics/${taskUid}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
 
-export { getActiveTrucks, createLogistics, splitLogistics };
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: "Unknown error" }));
+    throw new CustomError("Delete task failed.", errorData);
+  }
+
+  if (
+    response.status === 204 ||
+    response.headers.get("Content-Length") === "0"
+  ) {
+    return;
+  }
+
+  try {
+    return await response.json();
+  } catch (e) {
+    return;
+  }
+};
+
+export { getActiveTrucks, createLogistics, splitLogistics, deleteLogistics };

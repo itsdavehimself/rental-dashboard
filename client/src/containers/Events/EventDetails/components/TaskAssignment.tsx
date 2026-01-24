@@ -1,19 +1,18 @@
 import React, { useState, useMemo, useEffect } from "react";
 import CrewSection from "./CrewSection";
 import { useEventDetails } from "../../hooks/useEventDetails";
+import type { EditEventModalType } from "../EventDetails";
 
 interface TaskAssignmentProps {
-  setOpenModal: React.Dispatch<
-    React.SetStateAction<"addTask" | "confirmSplit" | null>
-  >;
+  setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
   setTaskType: React.Dispatch<React.SetStateAction<string | null>>;
-  setTaskToSplit: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedTask: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const TaskAssignment: React.FC<TaskAssignmentProps> = ({
   setOpenModal,
   setTaskType,
-  setTaskToSplit,
+  setSelectedTask,
 }) => {
   const [deliverySplit, setDeliverySplit] = useState(false);
   const [pickUpSplit, setPickUpSplit] = useState(false);
@@ -87,7 +86,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
     if (preEventData.combined) {
       setTaskType("PreEvent");
       setOpenModal("confirmSplit");
-      setTaskToSplit(preEventData.combined.uid);
+      setSelectedTask(preEventData.combined.uid);
     } else {
       setDeliverySplit(!deliverySplit);
     }
@@ -97,7 +96,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
     if (postEventData.combined) {
       setTaskType("PostEvent");
       setOpenModal("confirmSplit");
-      setTaskToSplit(postEventData.combined.uid);
+      setSelectedTask(postEventData.combined.uid);
     } else {
       setPickUpSplit(!pickUpSplit);
     }
@@ -135,6 +134,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
               label={deliverySplit ? "Delivery" : "Delivery/Setup"}
               setOpenModal={setOpenModal}
               setTaskType={setTaskType}
+              setSelectedTask={setSelectedTask}
               trip={
                 deliverySplit
                   ? preEventData.deliveryOnly
@@ -147,6 +147,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
                 setOpenModal={setOpenModal}
                 setTaskType={setTaskType}
                 trip={preEventData.setupOnly}
+                setSelectedTask={setSelectedTask}
               />
             )}
           </div>
@@ -172,6 +173,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
               label={pickUpSplit ? "Teardown" : "Teardown/Pickup"}
               setOpenModal={setOpenModal}
               setTaskType={setTaskType}
+              setSelectedTask={setSelectedTask}
               trip={
                 pickUpSplit
                   ? postEventData.teardownOnly
@@ -184,6 +186,7 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
                 setOpenModal={setOpenModal}
                 setTaskType={setTaskType}
                 trip={postEventData.pickupOnly}
+                setSelectedTask={setSelectedTask}
               />
             )}
           </div>

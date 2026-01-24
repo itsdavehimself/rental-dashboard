@@ -157,7 +157,6 @@ export type {
   EventItem,
   EventDraftResponse,
   EventStatus,
-  LogisticsTrip,
   WorkItem,
   CrewMember,
 };

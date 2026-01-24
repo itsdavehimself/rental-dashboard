@@ -14,8 +14,13 @@ import type { CrewPreset } from "../types/CrewPreset";
 import { getCrewPresets } from "../services/crewService";
 import AddModal from "../../../components/common/AddModal";
 import SplitTaskModal from "./components/SplitTaskModal";
+import DeleteTaskModal from "./components/DeleteTaskModal";
 
-export type EditEventModalType = "addTask" | "confirmSplit" | null;
+export type EditEventModalType =
+  | "addTask"
+  | "confirmSplit"
+  | "deleteTask"
+  | null;
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -24,7 +29,7 @@ const EventDetails: React.FC = () => {
   const [openModal, setOpenModal] = useState<EditEventModalType>(null);
   const [taskType, setTaskType] = useState<string | null>(null);
   const [crewPresets, setCrewPresets] = useState<CrewPreset[]>([]);
-  const [taskToSplit, setTaskToSplit] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
 
   const fetchCrewPresets = async () => {
     try {
@@ -72,6 +77,19 @@ const EventDetails: React.FC = () => {
           />
         </LogisticsModal>
       )}
+      {openModal === "deleteTask" && (
+        <AddModal<EditEventModalType>
+          openModal={openModal}
+          setOpenModal={setOpenModal}
+          title="Delete Task"
+          modalKey="deleteTask"
+        >
+          <DeleteTaskModal
+            taskToDelete={selectedTask}
+            setOpenModal={setOpenModal}
+          />
+        </AddModal>
+      )}
       {openModal === "confirmSplit" && (
         <AddModal<EditEventModalType>
           openModal={openModal}
@@ -80,7 +98,7 @@ const EventDetails: React.FC = () => {
           modalKey="confirmSplit"
         >
           <SplitTaskModal
-            taskToSplit={taskToSplit}
+            taskToSplit={selectedTask}
             setOpenModal={setOpenModal}
           />
         </AddModal>
@@ -112,7 +130,7 @@ const EventDetails: React.FC = () => {
           <TaskAssignment
             setOpenModal={setOpenModal}
             setTaskType={setTaskType}
-            setTaskToSplit={setTaskToSplit}
+            setSelectedTask={setSelectedTask}
           />
         </div>
       </section>
