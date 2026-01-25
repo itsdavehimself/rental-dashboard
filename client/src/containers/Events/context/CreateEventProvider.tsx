@@ -1,18 +1,17 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { CreateEventContext } from "./CreateEventContext";
 import type { ClientDetail } from "../../Clients/types/Client";
 import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
 import type { AddressEntry } from "../../../types/Address";
 import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
 import { type EventStatus, type Transaction } from "../types/Event";
-import { getTaxRate } from "../../../service/taxService";
-import { useToast } from "../../../hooks/useToast";
-import { useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useFetchEvent } from "../hooks/useFetchEvent";
 import { useFetchClient } from "../hooks/useFetchClient";
+import { useToast } from "../../../hooks/useToast";
+import { getTaxRate } from "../../../service/taxService";
 import { mapAddressResToEvent } from "../helpers/mapAddressResToEvent";
 import { mapItemResToEvent } from "../helpers/mapItemResToEvent";
-import { useNavigate } from "react-router";
 import {
   calculateAmountDue,
   calculateSubTotal,
@@ -30,32 +29,35 @@ type EventLineItem = Omit<InventoryListItem, "quantityTotal"> & {
 export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  // --- States ---
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [selectedItems, setSelectedItems] = useState<EventLineItem[]>([]);
   const [openModal, setOpenModal] = useState<CreateEventModalType>(null);
   const [eventBilling, setEventBilling] = useState<AddressEntry | null>(null);
   const [eventDelivery, setEventDelivery] = useState<AddressEntry | null>(null);
   const [eventUid, setEventUid] = useState<string | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [taxRate, setTaxRate] = useState(0);
   const [eventName, setEventName] = useState<string | null>(null);
   const [eventNotes, setEventNotes] = useState<string | null>(null);
   const [internalNotes, setInternalNotes] = useState<string | null>(null);
   const [eventType, setEventType] = useState<string | null>(null);
   const [eventStatus, setEventStatus] = useState<EventStatus | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [taxRate, setTaxRate] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isFormHydrated, setIsFormHydrated] = useState<boolean>(false);
 
+  // --- Router & Params ---
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const clientUid = params.get("clientId");
   const eUid = params.get("eventId");
 
-  const navigate = useNavigate();
+  const { addToast } = useToast();
+  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
+  // --- Data Fetching ---
   const { client: fetchedClient, loading: loadingClient } =
     useFetchClient(clientUid);
-
   const {
     event: fetchedEvent,
     loading: loadingEvent,
@@ -63,11 +65,59 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     eventEnd,
   } = useFetchEvent(eUid);
 
-  useEffect(() => {
-    if (!fetchedClient) return;
-    setClient(fetchedClient);
-  }, [fetchedClient, setClient]);
+  // --- Derived Loading Logic (The Fix) ---
+  const isActuallyLoading = useMemo(() => {
+    if (loadingClient) return true;
+    if (eUid && loadingEvent) return true;
 
+    // If we have an event ID in URL but haven't synced it to state yet, we are still loading
+    if (eUid && eventUid !== eUid) return true;
+
+    return false;
+  }, [loadingClient, loadingEvent, eUid, eventUid]);
+
+  useEffect(() => {
+    setIsLoading(isActuallyLoading);
+  }, [isActuallyLoading]);
+
+  // --- Hydration / Sync Logic ---
+  useEffect(() => {
+    if (loadingClient || (eUid && loadingEvent)) return;
+
+    if (fetchedClient) {
+      setClient(fetchedClient);
+    }
+
+    if (eUid && fetchedEvent && eventUid !== eUid) {
+      setEventName(fetchedEvent.eventName);
+      setInternalNotes(fetchedEvent.internalNotes);
+      setEventNotes(fetchedEvent.notes);
+      setEventType(fetchedEvent.eventType);
+      setEventUid(fetchedEvent.uid);
+      setEventStatus(fetchedEvent.status);
+      setTransactions(
+        [...fetchedEvent.transactions].sort((a, b) =>
+          b.occurredAt.localeCompare(a.occurredAt),
+        ),
+      );
+
+      const mappedAddresses = mapAddressResToEvent(fetchedEvent);
+      setEventBilling(mappedAddresses.billing);
+      setEventDelivery(mappedAddresses.delivery);
+
+      const eventItems = mapItemResToEvent(fetchedEvent.items);
+      setSelectedItems(eventItems);
+    }
+  }, [
+    fetchedClient,
+    fetchedEvent,
+    eUid,
+    loadingClient,
+    loadingEvent,
+    eventUid,
+  ]);
+
+  // --- Address Logic for New Events ---
   const previousClientUid = useRef<string | null>(null);
 
   useEffect(() => {
@@ -80,19 +130,11 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
 
     previousClientUid.current = client.uid;
 
-    if (eventUid && isInitialClientLoad) {
-      return;
-    }
-
-    if (!eventUid && isInitialClientLoad) {
-      setPrimaryAddressesFromClient(client);
-      return;
-    }
-
-    if (isClientChangedByUser) {
+    // Only auto-set addresses if it's a brand new event or the user changed the client manually
+    if (!eUid && (isInitialClientLoad || isClientChangedByUser)) {
       setPrimaryAddressesFromClient(client);
     }
-  }, [client]);
+  }, [client, eUid]);
 
   function setPrimaryAddressesFromClient(client: ClientDetail) {
     if (client.billingAddresses?.length) {
@@ -110,36 +152,50 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }
 
-  useEffect(() => {
-    if (!fetchedEvent) return;
-    setEventName(fetchedEvent.eventName);
-    setInternalNotes(fetchedEvent.internalNotes);
-    setEventNotes(fetchedEvent.notes);
-    setEventType(fetchedEvent.eventType);
-    setEventUid(fetchedEvent?.uid);
-    setEventStatus(fetchedEvent.status);
-    setTransactions(
-      fetchedEvent.transactions.sort((a, b) =>
-        b.occurredAt.localeCompare(a.occurredAt)
-      )
-    );
-    const mappedAddresses = mapAddressResToEvent(fetchedEvent);
-    setEventBilling(mappedAddresses.billing);
-    setEventDelivery(mappedAddresses.delivery);
-    const eventItems = mapItemResToEvent(fetchedEvent?.items);
-    setSelectedItems(eventItems);
-    setIsFormHydrated(true);
-  }, [fetchedEvent, eventStart, eventEnd]);
+  // --- Calculations ---
+  const discounts = 0; // Keeping as 0 per your original snippet
+  const subTotal = useMemo(
+    () => calculateSubTotal(selectedItems),
+    [selectedItems],
+  );
+  const taxes = useMemo(
+    () => calculateTaxes(subTotal, discounts, taxRate),
+    [subTotal, taxRate],
+  );
+  const total = useMemo(
+    () => calculateTotal(subTotal, taxes, discounts),
+    [subTotal, taxes],
+  );
+  const totalPayments = useMemo(
+    () => calculateTotalPayments(transactions),
+    [transactions],
+  );
+  const amountDue = useMemo(
+    () => calculateAmountDue(total, totalPayments),
+    [total, totalPayments],
+  );
 
+  // --- Tax Rate Fetching ---
   useEffect(() => {
-    setIsLoading(loadingClient || loadingEvent || !isFormHydrated);
-  }, [loadingClient, loadingEvent, isFormHydrated]);
+    const fetchTaxRate = async () => {
+      if (eventDelivery?.zipCode) {
+        try {
+          const taxRes = await getTaxRate(apiUrl, eventDelivery.zipCode);
+          setTaxRate(taxRes.taxRate);
+        } catch (err) {
+          addToast("Error", "There was a problem getting the tax rate.");
+        }
+      }
+    };
+    fetchTaxRate();
+  }, [eventDelivery?.zipCode, apiUrl, addToast]);
 
+  // --- Utilities ---
   useEffect(() => {
     if (clientUid === "") {
       navigate("/dashboard");
     }
-  }, []);
+  }, [clientUid, navigate]);
 
   const clearContext = () => {
     setClient(null);
@@ -151,58 +207,11 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     setTransactions([]);
     setTaxRate(0);
     setEventStatus(null);
-    setEventBilling(null);
-    setEventDelivery(null);
     setEventName(null);
     setEventNotes(null);
     setInternalNotes(null);
-    setIsFormHydrated(false);
+    setEventType(null);
   };
-
-  const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
-  const { addToast } = useToast();
-
-  const discounts = 0;
-
-  const subTotal = useMemo(
-    () => calculateSubTotal(selectedItems),
-    [selectedItems]
-  );
-
-  const taxes = useMemo(
-    () => calculateTaxes(subTotal, discounts, taxRate),
-    [subTotal, discounts, taxRate]
-  );
-
-  const total = useMemo(
-    () => calculateTotal(subTotal, taxes, discounts),
-    [subTotal, taxes, discounts]
-  );
-
-  const totalPayments = useMemo(
-    () => calculateTotalPayments(transactions),
-    [transactions]
-  );
-
-  const amountDue = useMemo(
-    () => calculateAmountDue(total, totalPayments),
-    [total, totalPayments]
-  );
-
-  const fetchTaxRate = async () => {
-    if (eventDelivery?.zipCode)
-      try {
-        const taxRes = await getTaxRate(apiUrl, eventDelivery?.zipCode);
-        setTaxRate(taxRes.taxRate);
-      } catch (err) {
-        addToast("Error", "There was a problem getting the tax rate.");
-      }
-  };
-
-  useEffect(() => {
-    fetchTaxRate();
-  }, [eventDelivery?.zipCode]);
 
   const value = {
     client,
