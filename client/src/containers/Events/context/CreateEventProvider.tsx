@@ -29,7 +29,6 @@ type EventLineItem = Omit<InventoryListItem, "quantityTotal"> & {
 export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // --- States ---
   const [client, setClient] = useState<ClientDetail | null>(null);
   const [selectedItems, setSelectedItems] = useState<EventLineItem[]>([]);
   const [openModal, setOpenModal] = useState<CreateEventModalType>(null);
@@ -45,7 +44,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [taxRate, setTaxRate] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // --- Router & Params ---
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
@@ -55,7 +53,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const { addToast } = useToast();
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-  // --- Data Fetching ---
   const { client: fetchedClient, loading: loadingClient } =
     useFetchClient(clientUid);
   const {
@@ -65,12 +62,10 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     eventEnd,
   } = useFetchEvent(eUid);
 
-  // --- Derived Loading Logic (The Fix) ---
   const isActuallyLoading = useMemo(() => {
     if (loadingClient) return true;
     if (eUid && loadingEvent) return true;
 
-    // If we have an event ID in URL but haven't synced it to state yet, we are still loading
     if (eUid && eventUid !== eUid) return true;
 
     return false;
@@ -80,7 +75,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(isActuallyLoading);
   }, [isActuallyLoading]);
 
-  // --- Hydration / Sync Logic ---
   useEffect(() => {
     if (loadingClient || (eUid && loadingEvent)) return;
 
@@ -117,7 +111,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     eventUid,
   ]);
 
-  // --- Address Logic for New Events ---
   const previousClientUid = useRef<string | null>(null);
 
   useEffect(() => {
@@ -130,7 +123,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
 
     previousClientUid.current = client.uid;
 
-    // Only auto-set addresses if it's a brand new event or the user changed the client manually
     if (!eUid && (isInitialClientLoad || isClientChangedByUser)) {
       setPrimaryAddressesFromClient(client);
     }
@@ -152,8 +144,7 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }
 
-  // --- Calculations ---
-  const discounts = 0; // Keeping as 0 per your original snippet
+  const discounts = 0;
   const subTotal = useMemo(
     () => calculateSubTotal(selectedItems),
     [selectedItems],
@@ -175,7 +166,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     [total, totalPayments],
   );
 
-  // --- Tax Rate Fetching ---
   useEffect(() => {
     const fetchTaxRate = async () => {
       if (eventDelivery?.zipCode) {
@@ -190,7 +180,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     fetchTaxRate();
   }, [eventDelivery?.zipCode, apiUrl, addToast]);
 
-  // --- Utilities ---
   useEffect(() => {
     if (clientUid === "") {
       navigate("/dashboard");

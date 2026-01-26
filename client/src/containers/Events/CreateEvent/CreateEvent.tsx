@@ -104,24 +104,25 @@ const CreateEvent: React.FC = () => {
 
   const canSaveDraft = client && eventBilling && eventDelivery && datesSelected;
 
-  const isDraft = eventStatus === "Draft";
   const isNew = !eventUid;
 
   const saveAction = isNew ? "draft" : "update";
-  const saveLabel = isDraft ? "Save Draft" : "Update Event";
+  const saveLabel = isNew ? "Save Draft" : "Update Event";
 
   useEffect(() => {
-    if (!eventUid || !eventStart || !eventEnd) return;
-    setValue("startDate", eventStart.date);
-    setValue("startTime", eventStart.time);
-    setValue("endDate", eventEnd.date);
-    setValue("endTime", eventEnd.time);
-    setValue("eventName", eventName);
-    setValue("eventNotes", eventNotes);
-    setValue("internalNotes", internalNotes);
-    setValue("eventType", eventType);
-    if (!eventName) {
-      setValue("eventName", `${client?.firstName}'s Event`);
+    if (eventUid && eventStart && eventEnd) {
+      setValue("startDate", eventStart.date);
+      setValue("startTime", eventStart.time);
+      setValue("endDate", eventEnd.date);
+      setValue("endTime", eventEnd.time);
+      setValue("eventName", eventName);
+      setValue("eventNotes", eventNotes);
+      setValue("internalNotes", internalNotes);
+      setValue("eventType", eventType);
+    }
+
+    if (!eventName && client?.firstName) {
+      setValue("eventName", `${client.firstName}'s Event`);
     }
   }, [
     eventStart,
@@ -285,13 +286,13 @@ const CreateEvent: React.FC = () => {
             {eventUid ? "Edit Event" : "Create Event"}
           </h2>
           <div className="flex gap-4 items-center justify-center">
-            {eventStatus === "Draft" ? (
+            {eventStatus === "Draft" || !eventUid ? (
               <>
                 {/* LEFT BUTTON: Save or Update Draft */}
                 <ActionButton
-                  label="Save Draft"
+                  label={saveLabel}
                   onClick={handleSubmit((data) =>
-                    onFormSubmit(data, eventUid ? "update" : "draft"),
+                    onFormSubmit(data, saveAction),
                   )}
                   style="outline"
                   icon={Save}

@@ -578,10 +578,10 @@ public class EventsController : ControllerBase
       {
         Title = "Bad Request",
         Detail = "Cannot reserve event with less than 20% deposit.",
-        Status = StatusCodes.Status404NotFound
+        Status = StatusCodes.Status400BadRequest
       })
       {
-        StatusCode = StatusCodes.Status404NotFound
+        StatusCode = StatusCodes.Status400BadRequest
       };
     }
 

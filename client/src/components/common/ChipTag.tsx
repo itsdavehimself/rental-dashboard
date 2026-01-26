@@ -9,7 +9,9 @@ const ChipTag: React.FC<ChipTagProps> = ({ label, color }) => {
   const styles = TAG_COLOR_MAP[color];
 
   return (
-    <div className={`${styles.bg} w-fit py-1 px-2 rounded-xl`}>
+    <div
+      className={`${styles.bg} w-fit py-1 px-2 rounded-xl outline-1 ${styles.outline}`}
+    >
       <p className={`text-xs font-semibold ${styles.text}`}>{label}</p>
     </div>
   );
