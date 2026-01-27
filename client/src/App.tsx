@@ -18,9 +18,12 @@ import CreateEvent from "./containers/Events/CreateEvent/CreateEvent";
 import { CreateEventProvider } from "./containers/Events/context/CreateEventProvider";
 import EventDetails from "./containers/Events/EventDetails/EventDetails";
 import { EventDetailsProvider } from "./containers/Events/context/EventDetailsProvider";
+import { BillingProvider } from "./containers/Events/context/BillingProvider";
+import { useLocation } from "react-router";
 
 function App() {
   const dispatch = useAppDispatch();
+  const location = useLocation();
 
   useEffect(() => {
     dispatch(fetchUser());
@@ -39,22 +42,33 @@ function App() {
         >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
-          <Route
-            path="/events"
-            element={
-              <CreateEventProvider>
-                <Outlet />
-              </CreateEventProvider>
-            }
-          >
-            <Route index element={<Events />} />
-            <Route path="create" element={<CreateEvent />} />
+          <Route path="/events" element={<Outlet />}>
+            <Route
+              index
+              element={
+                <CreateEventProvider>
+                  <Events />
+                </CreateEventProvider>
+              }
+            />
+            <Route
+              path="create"
+              element={
+                <BillingProvider key={location.pathname}>
+                  <CreateEventProvider>
+                    <CreateEvent />
+                  </CreateEventProvider>
+                </BillingProvider>
+              }
+            />
             <Route
               path=":eventUid"
               element={
-                <EventDetailsProvider>
-                  <EventDetails />
-                </EventDetailsProvider>
+                <BillingProvider key={location.pathname}>
+                  <EventDetailsProvider>
+                    <EventDetails />
+                  </EventDetailsProvider>
+                </BillingProvider>
               }
             />
           </Route>

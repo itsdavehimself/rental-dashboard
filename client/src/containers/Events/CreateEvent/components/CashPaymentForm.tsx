@@ -16,6 +16,7 @@ import { addCashPayment } from "../../services/transactionService";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
 import { useAppSelector } from "../../../../app/hooks";
 import sortTransactions from "../../helpers/sortTransactions";
+import { useBilling } from "../../hooks/useBilling";
 
 interface CashPaymentFormProps {
   handleSubmit: UseFormHandleSubmit<PaymentInputs, PaymentInputs>;
@@ -34,8 +35,8 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
 }) => {
   const [errors, setErrors] = useState<ErrorsState | null>(null);
   const { addToast } = useToast();
-  const { eventUid, setTransactions, setOpenModal, amountDue } =
-    useCreateEvent();
+  const { eventUid, setOpenModal } = useCreateEvent();
+  const { setTransactions, amountDue } = useBilling();
   const user = useAppSelector((state) => state.user.user);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -47,12 +48,12 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         apiUrl,
         data,
         eventUid,
-        user?.uid
+        user?.uid,
       );
       setTransactions((prev) => sortTransactions([...prev, transaction]));
       addToast(
         "Success",
-        `$${(amountToCharge / 100).toFixed(2)} cash payment successfully added.`
+        `$${(amountToCharge / 100).toFixed(2)} cash payment successfully added.`,
       );
       setOpenModal(null);
     } catch (err) {

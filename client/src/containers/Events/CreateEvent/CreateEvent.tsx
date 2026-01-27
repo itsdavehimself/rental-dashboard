@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useToast } from "../../../hooks/useToast";
 import { type ErrorsState, handleError } from "../../../helpers/handleError";
 import ResidentialClientInfo from "./components/ResidentialClientInfo";
@@ -22,6 +22,7 @@ import PaymentForm from "./components/TransactionModal";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useFetchAvailability } from "../hooks/useFetchAvailability";
 import formatToUTC from "../../../helpers/formatToUTC";
+import { useBilling } from "../hooks/useBilling";
 
 export type CreateEventModalType =
   | null
@@ -61,8 +62,6 @@ const CreateEvent: React.FC = () => {
     client,
     openModal,
     setOpenModal,
-    selectedItems,
-    setSelectedItems,
     eventBilling,
     eventDelivery,
     setEventUid,
@@ -77,6 +76,12 @@ const CreateEvent: React.FC = () => {
     eventStart,
     eventEnd,
   } = useCreateEvent();
+
+  const {
+    selectedItems,
+    setSelectedItems,
+    clearContext: clearBillingContext,
+  } = useBilling();
 
   const methods = useForm<CreateEventInputs>();
 
@@ -93,12 +98,15 @@ const CreateEvent: React.FC = () => {
   const endDate = watch("endDate");
   const endTime = watch("endTime");
 
-  const [availabilityParams, setAvailabilityParams] = useState({
-    startD: startDate,
-    startT: startTime,
-    endD: endDate,
-    endT: endTime,
-  });
+  const availabilityParams = useMemo(
+    () => ({
+      startD: startDate,
+      startT: startTime,
+      endD: endDate,
+      endT: endTime,
+    }),
+    [startDate, startTime, endDate, endTime],
+  );
 
   const datesSelected = !!(startDate && startTime && endDate && endTime);
 
@@ -152,24 +160,6 @@ const CreateEvent: React.FC = () => {
     setSelectedItems,
     eventUid,
   );
-
-  useEffect(() => {
-    const timeRegex = /^\d{1,2}:\d{2}(am|pm)$/;
-
-    if (
-      startDate &&
-      endDate &&
-      timeRegex.test(startTime) &&
-      timeRegex.test(endTime)
-    ) {
-      setAvailabilityParams({
-        startD: startDate,
-        startT: startTime,
-        endD: endDate,
-        endT: endTime,
-      });
-    }
-  }, [startDate, startTime, endDate, endTime]);
 
   const formattedStartDateTime = formatToUTC(startDate, startTime);
   const formattedEndDateTime = formatToUTC(endDate, endTime);
@@ -241,6 +231,7 @@ const CreateEvent: React.FC = () => {
   useEffect(() => {
     return () => {
       clearContext();
+      clearBillingContext();
     };
   }, []);
 

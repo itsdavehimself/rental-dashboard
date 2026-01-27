@@ -3,7 +3,6 @@ import { CreateEventContext } from "./CreateEventContext";
 import type { ClientDetail } from "../../Clients/types/Client";
 import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
 import type { AddressEntry } from "../../../types/Address";
-import type { InventoryListItem } from "../../Inventory/types/InventoryItem";
 import { type EventStatus, type Transaction } from "../types/Event";
 import { useLocation, useNavigate } from "react-router";
 import { useFetchEvent } from "../hooks/useFetchEvent";
@@ -12,25 +11,11 @@ import { useToast } from "../../../hooks/useToast";
 import { getTaxRate } from "../../../service/taxService";
 import { mapAddressResToEvent } from "../helpers/mapAddressResToEvent";
 import { mapItemResToEvent } from "../helpers/mapItemResToEvent";
-import {
-  calculateAmountDue,
-  calculateSubTotal,
-  calculateTaxes,
-  calculateTotal,
-  calculateTotalPayments,
-} from "../helpers/moneyHelpers";
-
-type EventLineItem = Omit<InventoryListItem, "quantityTotal"> & {
-  count: number;
-  quantityAvailable: number;
-  availabilityChecked: boolean;
-};
 
 export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [client, setClient] = useState<ClientDetail | null>(null);
-  const [selectedItems, setSelectedItems] = useState<EventLineItem[]>([]);
   const [openModal, setOpenModal] = useState<CreateEventModalType>(null);
   const [eventBilling, setEventBilling] = useState<AddressEntry | null>(null);
   const [eventDelivery, setEventDelivery] = useState<AddressEntry | null>(null);
@@ -55,6 +40,7 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const { client: fetchedClient, loading: loadingClient } =
     useFetchClient(clientUid);
+
   const {
     event: fetchedEvent,
     loading: loadingEvent,
@@ -98,9 +84,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
       const mappedAddresses = mapAddressResToEvent(fetchedEvent);
       setEventBilling(mappedAddresses.billing);
       setEventDelivery(mappedAddresses.delivery);
-
-      const eventItems = mapItemResToEvent(fetchedEvent.items);
-      setSelectedItems(eventItems);
     }
   }, [
     fetchedClient,
@@ -144,42 +127,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }
 
-  const discounts = 0;
-  const subTotal = useMemo(
-    () => calculateSubTotal(selectedItems),
-    [selectedItems],
-  );
-  const taxes = useMemo(
-    () => calculateTaxes(subTotal, discounts, taxRate),
-    [subTotal, taxRate],
-  );
-  const total = useMemo(
-    () => calculateTotal(subTotal, taxes, discounts),
-    [subTotal, taxes],
-  );
-  const totalPayments = useMemo(
-    () => calculateTotalPayments(transactions),
-    [transactions],
-  );
-  const amountDue = useMemo(
-    () => calculateAmountDue(total, totalPayments),
-    [total, totalPayments],
-  );
-
-  useEffect(() => {
-    const fetchTaxRate = async () => {
-      if (eventDelivery?.zipCode) {
-        try {
-          const taxRes = await getTaxRate(apiUrl, eventDelivery.zipCode);
-          setTaxRate(taxRes.taxRate);
-        } catch (err) {
-          addToast("Error", "There was a problem getting the tax rate.");
-        }
-      }
-    };
-    fetchTaxRate();
-  }, [eventDelivery?.zipCode, apiUrl, addToast]);
-
   useEffect(() => {
     if (clientUid === "") {
       navigate("/dashboard");
@@ -188,7 +135,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearContext = () => {
     setClient(null);
-    setSelectedItems([]);
     setOpenModal(null);
     setEventBilling(null);
     setEventDelivery(null);
@@ -205,8 +151,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const value = {
     client,
     setClient,
-    selectedItems,
-    setSelectedItems,
     openModal,
     setOpenModal,
     eventBilling,
@@ -218,12 +162,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     setEventUid,
     transactions,
     setTransactions,
-    subTotal,
-    discounts,
-    taxes,
-    total,
-    totalPayments,
-    amountDue,
     taxRate,
     setTaxRate,
     isLoading,

@@ -8,12 +8,20 @@ import { useNavigate } from "react-router";
 import { useFormContext } from "react-hook-form";
 import type { CreateEventInputs } from "../CreateEvent";
 import formatToUTC from "../../../../helpers/formatToUTC";
+import { useBilling } from "../../hooks/useBilling";
 
 const EventTotals: React.FC = () => {
   const {
     setOpenModal,
     eventUid,
     setEventUid,
+    client,
+    eventBilling,
+    eventDelivery,
+  } = useCreateEvent();
+
+  const {
+    selectedItems,
     subTotal,
     total,
     taxes,
@@ -21,11 +29,7 @@ const EventTotals: React.FC = () => {
     amountDue,
     discounts,
     transactions,
-    client,
-    eventBilling,
-    eventDelivery,
-    selectedItems,
-  } = useCreateEvent();
+  } = useBilling();
 
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const status = paymentStatus(transactions, total);

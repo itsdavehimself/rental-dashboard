@@ -3,18 +3,21 @@ import { DollarSign } from "lucide-react";
 import ChipTag from "../../../../components/common/ChipTag";
 import { paymentStatus } from "../../helpers/paymentStatus";
 import { useEventDetails } from "../../hooks/useEventDetails";
+import { useBilling } from "../../hooks/useBilling";
 
 const EventDetailsTotals: React.FC = () => {
+  const { fetchedEvent: event } = useEventDetails();
+
   const {
-    fetchedEvent: event,
+    transactions,
     total,
     totalPayments,
     subTotal,
     amountDue,
     taxes,
     discounts,
-  } = useEventDetails();
-  const transactions = event?.transactions;
+  } = useBilling();
+
   const status = paymentStatus(transactions ?? [], total);
 
   return (

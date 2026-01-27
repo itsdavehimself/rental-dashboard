@@ -12,9 +12,10 @@ import { useToast } from "../../../hooks/useToast";
 import CheckoutForm from "./CheckoutForm";
 import { type PaymentInputs } from "../../Events/CreateEvent/components/TransactionModal";
 import { type UseFormSetValue } from "react-hook-form";
+import { useBilling } from "../../Events/hooks/useBilling";
 
 const stripePromise = loadStripe(
-  "pk_test_51STRZaIcwD9bUrYq0k0heSIBjgcYCwiDiVcuNoMbc0WaBXwchYCGeQq3f19Q9XiVdmMxWiScqkkd2CRvRNoewDa800J6cMQLhU"
+  "pk_test_51STRZaIcwD9bUrYq0k0heSIBjgcYCwiDiVcuNoMbc0WaBXwchYCGeQq3f19Q9XiVdmMxWiScqkkd2CRvRNoewDa800J6cMQLhU",
 );
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -25,7 +26,8 @@ interface Props {
 }
 
 const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
-  const { amountDue, eventBilling, eventUid } = useCreateEvent();
+  const { eventBilling, eventUid } = useCreateEvent();
+  const { amountDue } = useBilling();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Error | null>(null);
@@ -49,7 +51,7 @@ const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
         apiUrl,
         eventUid,
         amountToCharge,
-        eventBilling.email
+        eventBilling.email,
       );
 
       setClientSecret(secret);

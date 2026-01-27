@@ -13,6 +13,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Transaction } from "../../types/Event";
 import TransactionDetails from "./TransactionDetails";
 import RefundForm from "./RefundForm";
+import { useBilling } from "../../hooks/useBilling";
 
 export type PaymentInputs = {
   paymentMethod: string;
@@ -35,7 +36,8 @@ const TransactionModal: React.FC = () => {
   });
   const modalRef = useRef<HTMLDivElement>(null);
   const paymentMethodRef = useRef<HTMLDivElement>(null);
-  const { setOpenModal, amountDue, transactions } = useCreateEvent();
+  const { setOpenModal } = useCreateEvent();
+  const { amountDue, transactions } = useBilling();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [errors, setErrors] = useState<ErrorsState | null>(null);
   const [view, setView] = useState<
@@ -47,14 +49,14 @@ const TransactionModal: React.FC = () => {
 
   useEffect(() => {
     const relatedRefunds = transactions.filter(
-      (t) => t.relatedTransactionUid === selectedTransaction?.uid
+      (t) => t.relatedTransactionUid === selectedTransaction?.uid,
     );
     setRelatedRefunds(relatedRefunds);
   }, [transactions, selectedTransaction]);
 
   useEffect(() => {
     const relatedRefunds = transactions.filter(
-      (t) => t.relatedTransactionUid === selectedTransaction?.uid
+      (t) => t.relatedTransactionUid === selectedTransaction?.uid,
     );
     setRelatedRefunds(relatedRefunds);
   }, [transactions, selectedTransaction]);
@@ -121,7 +123,7 @@ const TransactionModal: React.FC = () => {
             .sort(
               (a, b) =>
                 new Date(b.occurredAt).getTime() -
-                new Date(a.occurredAt).getTime()
+                new Date(a.occurredAt).getTime(),
             )
             .map((t) => (
               <TransactionRow

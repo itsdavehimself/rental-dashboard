@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import type { ErrorsState } from "../../../../helpers/handleError";
 import { useToast } from "../../../../hooks/useToast";
 import { handleError } from "../../../../helpers/handleError";
-import { useCreateEvent } from "../../hooks/useCreateEvent";
+import { useBilling } from "../../hooks/useBilling";
 import sortTransactions from "../../helpers/sortTransactions";
 
 interface RefundFormProps {
@@ -55,7 +55,7 @@ const RefundForm: React.FC<RefundFormProps> = ({
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const user = useAppSelector((state) => state.user.user);
   const { addToast } = useToast();
-  const { setTransactions } = useCreateEvent();
+  const { setTransactions } = useBilling();
 
   const amount = watch("amount");
 
@@ -63,7 +63,7 @@ const RefundForm: React.FC<RefundFormProps> = ({
     if (!selectedTransaction) return 0;
     const refundedSoFar = relatedRefunds.reduce(
       (sum, r) => sum + Math.abs(r.amount),
-      0
+      0,
     );
     return (selectedTransaction.amount - refundedSoFar) * 100;
   };
@@ -89,12 +89,12 @@ const RefundForm: React.FC<RefundFormProps> = ({
         user?.uid,
         amount,
         data.notes,
-        selectedTransaction?.method
+        selectedTransaction?.method,
       );
       setTransactions((prev) => sortTransactions([...prev, transaction]));
       addToast(
         "Success",
-        `$${(amount / 100).toFixed(2)} refund successfully added.`
+        `$${(amount / 100).toFixed(2)} refund successfully added.`,
       );
       setView("view");
     } catch (err) {
