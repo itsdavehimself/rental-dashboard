@@ -11,7 +11,6 @@ import { createClient } from "../services/clientService";
 import { useToast } from "../../../hooks/useToast";
 import { handleError, type ErrorsState } from "../../../helpers/handleError";
 import type { Client } from "../types/Client";
-import type { ClientModalType } from "../Clients";
 import SearchInput from "../../../components/common/SearchInput";
 import { type AddressResult } from "../../../types/Address";
 import { useDebounce } from "../../../hooks/useDebounce";
@@ -19,6 +18,8 @@ import { searchAddress } from "../../../service/addressService";
 import AddressSearchResultRow from "../../../components/Address/AddressSearchResultRow";
 import SegmentedToggle from "../../../components/common/SegmentedToggle";
 import BooleanCheckbox from "../../../components/common/BooleanCheckbox";
+import { useAppDispatch } from "../../../app/hooks";
+import { closeModal } from "../../../app/slices/uiSlice";
 
 export type ClientInputs = {
   firstName: string;
@@ -44,7 +45,6 @@ interface ClientFormProps {
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
   clients: Client[];
   setClients: React.Dispatch<React.SetStateAction<Client[]>>;
-  setOpenModal: React.Dispatch<React.SetStateAction<ClientModalType>>;
 }
 
 const ClientForm: React.FC<ClientFormProps> = ({
@@ -52,7 +52,6 @@ const ClientForm: React.FC<ClientFormProps> = ({
   setErrors,
   clients,
   setClients,
-  setOpenModal,
 }) => {
   const {
     handleSubmit,
@@ -71,6 +70,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
   });
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
+
+  const dispatch = useAppDispatch();
 
   const state = watch("address.state");
   const type = watch("type");
@@ -92,10 +93,10 @@ const ClientForm: React.FC<ClientFormProps> = ({
       });
 
       setClients(updatedUsers);
-      setOpenModal(null);
+      dispatch(closeModal());
       addToast(
         "Success",
-        `${newClient.firstName} ${newClient.lastName} successfully added as a client.`
+        `${newClient.firstName} ${newClient.lastName} successfully added as a client.`,
       );
     } catch (err) {
       handleError(err, setErrors);
@@ -167,7 +168,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
           setOption={(val) =>
             setValue(
               "type",
-              typeof val === "function" ? val(getValues("type")) : val
+              typeof val === "function" ? val(getValues("type")) : val,
             )
           }
           options={["Residential", "Business"]}

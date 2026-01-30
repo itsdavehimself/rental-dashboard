@@ -2,10 +2,11 @@ import { CustomError } from "../../../types/CustomError";
 import type { PaginatedResponse } from "../../../types/PaginatedResponse";
 import type { ClientDetail, CreateClient, Client } from "../types/Client";
 import type { AddressEntry, CreateAddressEntry } from "../../../types/Address";
+import type { ClientInputs } from "../components/ClientForm";
 
 const fetchClients = async (
   apiUrl: string,
-  page: number
+  page: number,
 ): Promise<PaginatedResponse<Client>> => {
   const response = await fetch(
     `${apiUrl}/api/clients?page=${page}&pageSize=25`,
@@ -15,7 +16,7 @@ const fetchClients = async (
         "Content-Type": "application/json",
       },
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -29,7 +30,7 @@ const fetchClients = async (
 const searchClients = async (
   apiUrl: string,
   page: number,
-  query: string
+  query: string,
 ): Promise<PaginatedResponse<ClientDetail>> => {
   const response = await fetch(
     `${apiUrl}/api/clients/fuzzy-search?page=${page}&pageSize=25&query=${query}`,
@@ -39,7 +40,7 @@ const searchClients = async (
         "Content-Type": "application/json",
       },
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -53,7 +54,7 @@ const searchClients = async (
 const updateClient = async (
   apiUrl: string,
   uid: string,
-  note: string
+  note: string,
 ): Promise<Client> => {
   const response = await fetch(`${apiUrl}/api/clients/${uid}`, {
     method: "PATCH",
@@ -76,7 +77,7 @@ const updateClient = async (
 
 const getClientDetails = async (
   apiUrl: string,
-  uid: string
+  uid: string,
 ): Promise<ClientDetail> => {
   const response = await fetch(`${apiUrl}/api/clients/${uid}`, {
     method: "GET",
@@ -96,7 +97,7 @@ const getClientDetails = async (
 
 const createClient = async (
   apiUrl: string,
-  data: CreateClient
+  data: ClientInputs,
 ): Promise<Client> => {
   const response = await fetch(`${apiUrl}/api/clients`, {
     method: "POST",
@@ -138,7 +139,7 @@ const createAddressEntry = async (
   clientUid: string,
   apiUrl: string,
   data: CreateAddressEntry,
-  type: "billing" | "delivery"
+  type: "billing" | "delivery",
 ): Promise<AddressEntry> => {
   const response = await fetch(
     `${apiUrl}/api/clients/${clientUid}/client-addresses`,
@@ -161,7 +162,7 @@ const createAddressEntry = async (
         isPrimary: data.isPrimary,
         type,
       }),
-    }
+    },
   );
 
   if (!response.ok) {
@@ -176,7 +177,7 @@ const updateAddressEntry = async (
   addressUid: string,
   apiUrl: string,
   data: CreateAddressEntry,
-  type: "billing" | "delivery"
+  type: "billing" | "delivery",
 ): Promise<AddressEntry> => {
   const response = await fetch(
     `${apiUrl}/api/clients/client-addresses/${addressUid}`,
@@ -199,7 +200,7 @@ const updateAddressEntry = async (
         isPrimary: data.isPrimary,
         type,
       }),
-    }
+    },
   );
 
   if (!response.ok) {
@@ -213,7 +214,7 @@ const updateAddressEntry = async (
 const setAddressEntryAsPrimary = async (
   apiUrl: string,
   addressUid: string,
-  type: string
+  type: string,
 ): Promise<void> => {
   const response = await fetch(
     `${apiUrl}/api/clients/client-addresses/${addressUid}/${type}`,
@@ -223,7 +224,7 @@ const setAddressEntryAsPrimary = async (
         "Content-Type": "application/json",
       },
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -236,7 +237,7 @@ const setAddressEntryAsPrimary = async (
 
 const deleteAddressEntry = async (
   apiUrl: string,
-  addressUid: string
+  addressUid: string,
 ): Promise<void> => {
   const response = await fetch(
     `${apiUrl}/api/clients/client-addresses/${addressUid}`,
@@ -246,7 +247,7 @@ const deleteAddressEntry = async (
         "Content-Type": "application/json",
       },
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {

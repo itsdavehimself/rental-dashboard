@@ -14,7 +14,6 @@ const ItemsAndServices: React.FC = () => {
   const ref = useRef<HTMLDivElement>(null);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { selectedItems, setSelectedItems } = useBilling();
-  console.log(selectedItems);
 
   const [inventoryItemResults, setInventoryItemResults] = useState<
     InventoryItemSearchResult[]

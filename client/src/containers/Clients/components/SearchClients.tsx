@@ -13,35 +13,36 @@ import ClientInputChip from "../../../components/common/ClientInputChip";
 import ActionButton from "../../../components/common/ActionButton";
 import { useCreateEvent } from "../../Events/hooks/useCreateEvent";
 import { useNavigate } from "react-router";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import { closeModal } from "../../../app/slices/uiSlice";
 
-interface SearchClientsProps<T extends string | null> {
-  openModal: T | null;
-  setOpenModal: React.Dispatch<React.SetStateAction<T | null>>;
+interface SearchClientsProps {
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
   title: string;
   label: string;
   mode: "create" | "update";
 }
 
-const SearchClients = <T extends string | null>({
-  openModal,
-  setOpenModal,
+const SearchClients: React.FC<SearchClientsProps> = ({
   setErrors,
   title,
   label,
   mode,
-}: SearchClientsProps<T>) => {
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
   const { setClient, eventUid } = useCreateEvent();
+
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
+  const dispatch = useAppDispatch();
 
   const [clients, setClients] = useState<ClientDetail[]>([]);
   const [page, setPage] = useState<number>(1);
   const [query, setQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedClient, setSelectedClient] = useState<ClientDetail | null>(
-    null
+    null,
   );
 
   const handleSearch = async () => {
@@ -64,17 +65,16 @@ const SearchClients = <T extends string | null>({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        openModal === "searchClient" &&
-        setOpenModal &&
+        activeModal === "searchClient" &&
         !ref.current?.contains(event.target as Node)
       ) {
-        setOpenModal(null);
+        dispatch(closeModal());
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [openModal, setOpenModal]);
+  }, []);
 
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 h-full w-full z-5">
@@ -90,7 +90,7 @@ const SearchClients = <T extends string | null>({
             </p>
           </div>
 
-          <XButton setIsModalOpen={setOpenModal} setErrors={setErrors} />
+          <XButton setErrors={setErrors} />
         </div>
         <div className="flex flex-col justify-center items-center px-12">
           <div className="relative grid grid-cols-[1fr_3rem] w-full gap-4 h-fit max-h-72">
@@ -137,7 +137,7 @@ const SearchClients = <T extends string | null>({
               style="filled"
               onClick={() => {
                 setClient(selectedClient);
-                setOpenModal(null);
+                dispatch(closeModal());
                 navigate(
                   `${
                     eventUid
@@ -146,7 +146,7 @@ const SearchClients = <T extends string | null>({
                   }`,
                   {
                     replace: true,
-                  }
+                  },
                 );
               }}
             />

@@ -8,6 +8,8 @@ import { deleteAddressEntry } from "../../../Clients/services/clientService";
 import { useToast } from "../../../../hooks/useToast";
 import AddressBookForm from "./AddressBookForm";
 import { useClickOutside } from "../../../../hooks/useClickOutside";
+import { useAppDispatch } from "../../../../app/hooks";
+import { closeModal } from "../../../../app/slices/uiSlice";
 
 interface EditAddressesProps {
   type: "billing" | "delivery";
@@ -16,22 +18,23 @@ interface EditAddressesProps {
 
 const EditAddresses: React.FC<EditAddressesProps> = ({ type, setErrors }) => {
   const [view, setView] = useState<"default" | "edit" | "add" | "delete">(
-    "default"
+    "default",
   );
   const formattedType = type.charAt(0).toUpperCase() + type.slice(1);
   const [title, setTitle] = useState<string>(`${formattedType} Addresses`);
   const ref = useRef<HTMLDivElement>(null);
-  const { client, setClient, setOpenModal } = useCreateEvent();
+  const { client, setClient } = useCreateEvent();
   const [addressEntryUid, setAddressEntryUid] = useState<string | null>(null);
   const addresses =
     type === "billing" ? client?.billingAddresses : client?.deliveryAddresses;
 
   const { addToast } = useToast();
+  const dispatch = useAppDispatch();
 
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   useClickOutside(ref, () => {
-    setOpenModal(null);
+    dispatch(closeModal());
     setErrors(null);
   });
 
@@ -65,7 +68,7 @@ const EditAddresses: React.FC<EditAddressesProps> = ({ type, setErrors }) => {
         "Success",
         `${
           type.charAt(0).toUpperCase() + type.slice(1)
-        } address successfully deleted.`
+        } address successfully deleted.`,
       );
     } catch (err) {
       // handleError(err, setErrors);
@@ -80,7 +83,7 @@ const EditAddresses: React.FC<EditAddressesProps> = ({ type, setErrors }) => {
       <div className="flex justify-between items-center pl-6 pr-4">
         <h4 className="text-lg font-semibold">{title}</h4>
         {view === "default" ? (
-          <XButton setIsModalOpen={setOpenModal} setErrors={setErrors} />
+          <XButton setErrors={setErrors} />
         ) : (
           <XButton
             onClick={() => {

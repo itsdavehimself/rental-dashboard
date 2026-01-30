@@ -1,20 +1,18 @@
+import { useAppDispatch } from "../../../../app/hooks";
+import { closeModal } from "../../../../app/slices/uiSlice";
 import ActionButton from "../../../../components/common/ActionButton";
 import { useEventDetails } from "../../hooks/useEventDetails";
 import { splitLogistics } from "../../services/logisticsService";
-import type { EditEventModalType } from "../EventDetails";
 
 interface SplitTaskModalProps {
   taskToSplit: string | null;
-  setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
 }
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-const SplitTaskModal: React.FC<SplitTaskModalProps> = ({
-  taskToSplit,
-  setOpenModal,
-}) => {
+const SplitTaskModal: React.FC<SplitTaskModalProps> = ({ taskToSplit }) => {
   const { fetchEvent } = useEventDetails();
+  const dispatch = useAppDispatch();
 
   const handleSplitTask = async (taskToSplit: string | null) => {
     if (!taskToSplit) return;
@@ -23,7 +21,7 @@ const SplitTaskModal: React.FC<SplitTaskModalProps> = ({
       // setErrors(null);
       await splitLogistics(apiUrl, taskToSplit);
       fetchEvent();
-      setOpenModal(null);
+      dispatch(closeModal());
     } catch (err) {
       // handleError(err, setErrors);
     }
@@ -45,7 +43,7 @@ const SplitTaskModal: React.FC<SplitTaskModalProps> = ({
         <ActionButton
           label="Cancel"
           style="outline"
-          onClick={() => setOpenModal(null)}
+          onClick={() => dispatch(closeModal())}
         />
         <ActionButton
           label="Split"

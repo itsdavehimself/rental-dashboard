@@ -2,12 +2,11 @@ import ActionButton from "../../../../components/common/ActionButton";
 import { DollarSign } from "lucide-react";
 import ChipTag from "../../../../components/common/ChipTag";
 import { paymentStatus } from "../../helpers/paymentStatus";
-import { useEventDetails } from "../../hooks/useEventDetails";
 import { useBilling } from "../../hooks/useBilling";
+import { useAppDispatch } from "../../../../app/hooks";
+import { openModal } from "../../../../app/slices/uiSlice";
 
 const EventDetailsTotals: React.FC = () => {
-  const { fetchedEvent: event } = useEventDetails();
-
   const {
     transactions,
     total,
@@ -17,6 +16,8 @@ const EventDetailsTotals: React.FC = () => {
     taxes,
     discounts,
   } = useBilling();
+
+  const dispatch = useAppDispatch();
 
   const status = paymentStatus(transactions ?? [], total);
 
@@ -63,9 +64,7 @@ const EventDetailsTotals: React.FC = () => {
           label="Payments"
           icon={DollarSign}
           style={amountDue === 0 ? "outline" : "filled"}
-          onClick={() => {
-            console.log("paying");
-          }}
+          onClick={() => dispatch(openModal("payments"))}
           full={true}
           disabled={amountDue === undefined}
         />

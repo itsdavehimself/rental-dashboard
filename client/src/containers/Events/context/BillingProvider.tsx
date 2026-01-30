@@ -28,6 +28,7 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [selectedItems, setSelectedItems] = useState<EventLineItem[]>([]);
   const [eventDelivery, setEventDelivery] = useState<AddressEntry | null>(null);
+  const [eventBilling, setEventBilling] = useState<AddressEntry | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [taxRate, setTaxRate] = useState(0);
 
@@ -56,6 +57,7 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const mappedAddresses = mapAddressResToEvent(fetchedEvent);
       setEventDelivery(mappedAddresses.delivery);
+      setEventBilling(mappedAddresses.billing);
 
       const eventItems = mapItemResToEvent(fetchedEvent.items);
 
@@ -109,10 +111,12 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({
     setSelectedItems([]);
     setTransactions([]);
     setEventDelivery(null);
+    setEventBilling(null);
     setTaxRate(0);
   };
 
   const value = {
+    eventUid: eUid,
     discounts,
     subTotal,
     taxes,
@@ -125,6 +129,8 @@ export const BillingProvider: React.FC<{ children: React.ReactNode }> = ({
     transactions,
     setTransactions,
     clearContext,
+    eventBilling,
+    setEventBilling,
   };
   return (
     <BillingContext.Provider value={value}>{children}</BillingContext.Provider>

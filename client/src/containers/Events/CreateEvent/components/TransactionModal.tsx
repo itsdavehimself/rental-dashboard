@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useClickOutside } from "../../../../hooks/useClickOutside";
-import { useCreateEvent } from "../../hooks/useCreateEvent";
 import type { ErrorsState } from "../../../../helpers/handleError";
 import XButton from "../../../../components/common/XButton";
 import Dropdown from "../../../../components/common/Dropdown";
@@ -14,6 +13,8 @@ import type { Transaction } from "../../types/Event";
 import TransactionDetails from "./TransactionDetails";
 import RefundForm from "./RefundForm";
 import { useBilling } from "../../hooks/useBilling";
+import { useAppDispatch } from "../../../../app/hooks";
+import { closeModal } from "../../../../app/slices/uiSlice";
 
 export type PaymentInputs = {
   paymentMethod: string;
@@ -36,7 +37,6 @@ const TransactionModal: React.FC = () => {
   });
   const modalRef = useRef<HTMLDivElement>(null);
   const paymentMethodRef = useRef<HTMLDivElement>(null);
-  const { setOpenModal } = useCreateEvent();
   const { amountDue, transactions } = useBilling();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [errors, setErrors] = useState<ErrorsState | null>(null);
@@ -46,6 +46,7 @@ const TransactionModal: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [relatedRefunds, setRelatedRefunds] = useState<Transaction[]>([]);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const relatedRefunds = transactions.filter(
@@ -66,7 +67,7 @@ const TransactionModal: React.FC = () => {
   const amountToCharge = watch("amountToCharge");
 
   useClickOutside(modalRef, () => {
-    setOpenModal(null);
+    dispatch(closeModal());
   });
 
   const toggleView = () => {
@@ -109,11 +110,11 @@ const TransactionModal: React.FC = () => {
             <ArrowLeft className="h-5 w-5" />
           </button>
         ) : (
-          <XButton setIsModalOpen={setOpenModal} setErrors={setErrors} />
+          <XButton setErrors={setErrors} />
         )}
       </div>
       {view === "view" && (
-        <div className="flex flex-col px-6 gap-6 mb-2 max-h-100 overflow-scroll">
+        <div className="flex flex-col px-6 gap-6 mb-4 max-h-100 overflow-scroll">
           {transactions.length === 0 && (
             <p className="self-center text-sm text-gray-400">
               There are no payments related to this event.

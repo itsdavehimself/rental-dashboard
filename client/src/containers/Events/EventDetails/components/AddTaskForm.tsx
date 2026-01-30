@@ -18,17 +18,17 @@ import StyledInput from "../../../../components/common/StyledInput";
 import normalizeTime from "../../../../helpers/normalizeTime";
 import formatToUTC from "../../../../helpers/formatToUTC";
 import type { CrewPreset } from "../../types/CrewPreset";
-import type { EditEventModalType } from "../EventDetails";
 import type { CrewMember, LogisticsTrip } from "../../types/Event";
 import { format } from "date-fns";
+import { useAppDispatch } from "../../../../app/hooks";
+import { closeModal } from "../../../../app/slices/uiSlice";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 interface AddTaskFormProps {
   taskType: string | null;
   crewPresets: CrewPreset[];
-  setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
-  taskDetails?: LogisticsTrip;
+  taskDetails?: LogisticsTrip | null;
 }
 
 export type TaskInputs = {
@@ -44,7 +44,6 @@ export type TaskInputs = {
 const AddTaskForm: React.FC<AddTaskFormProps> = ({
   taskType,
   crewPresets,
-  setOpenModal,
   taskDetails,
 }) => {
   const {
@@ -67,6 +66,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<string | null>();
   const [trips, setTrips] = useState([]);
+
+  const dispatch = useAppDispatch();
 
   const startTimeRef = useRef<HTMLDivElement>(null);
   const endTimeRef = useRef<HTMLDivElement>(null);
@@ -122,7 +123,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
           addToast("Success", `Trip successfully added.`);
         }
 
-        setOpenModal(null);
+        dispatch(closeModal());
       } catch (err) {
         // handleError(err, setErrors);
       }

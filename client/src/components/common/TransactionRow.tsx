@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import PopOver from "./PopOver";
-import { useCreateEvent } from "../../containers/Events/hooks/useCreateEvent";
+import { useBilling } from "../../containers/Events/hooks/useBilling";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -31,7 +31,7 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
   setSelectedTransaction,
 }) => {
   const user = useAppSelector((state) => state.user.user);
-  const { transactions } = useCreateEvent();
+  const { transactions } = useBilling();
 
   const totalRefunded = transactions
     .filter((t) => t.relatedTransactionUid === transaction.uid)

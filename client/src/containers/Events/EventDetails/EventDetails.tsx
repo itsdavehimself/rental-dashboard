@@ -16,6 +16,9 @@ import AddModal from "../../../components/common/AddModal";
 import SplitTaskModal from "./components/SplitTaskModal";
 import DeleteTaskModal from "./components/DeleteTaskModal";
 import type { LogisticsTrip } from "../types/Event";
+import { useAppSelector } from "../../../app/hooks";
+import TransactionModal from "../CreateEvent/components/TransactionModal";
+import EditModal from "../../../components/common/EditModal";
 
 export type EditEventModalType =
   | "addTask"
@@ -28,11 +31,12 @@ const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const EventDetails: React.FC = () => {
   const { fetchedEvent, isLoading } = useEventDetails();
-  const [openModal, setOpenModal] = useState<EditEventModalType>(null);
   const [taskType, setTaskType] = useState<string | null>(null);
   const [crewPresets, setCrewPresets] = useState<CrewPreset[]>([]);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [taskDetails, setTaskDetails] = useState<LogisticsTrip | null>(null);
+
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
 
   const fetchCrewPresets = async () => {
     try {
@@ -66,60 +70,41 @@ const EventDetails: React.FC = () => {
 
   return (
     <main className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {openModal === "addTask" && (
+      {activeModal === "addTask" && (
         <LogisticsModal<EditEventModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
           title={`Add ${taskType} Task`}
           modalKey="addTask"
         >
-          <AddTaskForm
-            taskType={taskType}
-            crewPresets={crewPresets}
-            setOpenModal={setOpenModal}
-          />
+          <AddTaskForm taskType={taskType} crewPresets={crewPresets} />
         </LogisticsModal>
       )}
-      {openModal === "editTask" && (
+      {activeModal === "editTask" && (
         <LogisticsModal<EditEventModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
           title={`Edit ${taskType} Task`}
           modalKey="editTask"
         >
           <AddTaskForm
             taskType={taskType}
             crewPresets={crewPresets}
-            setOpenModal={setOpenModal}
             taskDetails={taskDetails}
           />
         </LogisticsModal>
       )}
-      {openModal === "deleteTask" && (
-        <AddModal<EditEventModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
-          title="Delete Task"
-          modalKey="deleteTask"
-        >
-          <DeleteTaskModal
-            taskToDelete={selectedTask}
-            setOpenModal={setOpenModal}
-          />
+      {activeModal === "deleteTask" && (
+        <AddModal<EditEventModalType> title="Delete Task" modalKey="deleteTask">
+          <DeleteTaskModal taskToDelete={selectedTask} />
         </AddModal>
       )}
-      {openModal === "confirmSplit" && (
+      {activeModal === "confirmSplit" && (
         <AddModal<EditEventModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
           title="Confirm Task Split"
           modalKey="confirmSplit"
         >
-          <SplitTaskModal
-            taskToSplit={selectedTask}
-            setOpenModal={setOpenModal}
-          />
+          <SplitTaskModal taskToSplit={selectedTask} />
         </AddModal>
+      )}
+      {activeModal === "payments" && (
+        <EditModal children={<TransactionModal />} />
       )}
       <section className="flex flex-row justify-between items-center">
         <h2 className="text-2xl font-semibold text-primary">
@@ -146,7 +131,6 @@ const EventDetails: React.FC = () => {
         <div className="grid grid-cols-[1fr_2fr] gap-4 h-full">
           <ClientDetails />
           <TaskAssignment
-            setOpenModal={setOpenModal}
             setTaskType={setTaskType}
             setSelectedTask={setSelectedTask}
             setTaskDetails={setTaskDetails}

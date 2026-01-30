@@ -1,7 +1,6 @@
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useEffect, useState } from "react";
-import { useCreateEvent } from "../../Events/hooks/useCreateEvent";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import ActionButton from "../../../components/common/ActionButton";
@@ -26,8 +25,7 @@ interface Props {
 }
 
 const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
-  const { eventBilling, eventUid } = useCreateEvent();
-  const { amountDue } = useBilling();
+  const { eventUid, amountDue, eventBilling } = useBilling();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Error | null>(null);

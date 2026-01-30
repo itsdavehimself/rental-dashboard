@@ -7,12 +7,13 @@ import SearchBar from "../../components/common/DebouncedSearchBar";
 import ResidentialClientRow from "./components/ResidentialClientRow";
 import { useClients } from "./hooks/useClients";
 import ClientForm from "./components/ClientForm";
+import { useAppSelector } from "../../app/hooks";
 
 export type ClientModalType = null | "addClient";
 
 const Clients: React.FC = () => {
   const [page, setPage] = useState<number>(1);
-  const [openModal, setOpenModal] = useState<ClientModalType>(null);
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
 
   const { clients, setClients, errors, setErrors } = useClients(page);
 
@@ -20,10 +21,8 @@ const Clients: React.FC = () => {
   const columnTemplate = "[grid-template-columns:1fr_0.75fr_2fr]";
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {openModal === "addClient" && (
+      {activeModal === "addClient" && (
         <AddModal<ClientModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
           title="Add Client"
           setErrors={setErrors}
           modalKey="addClient"
@@ -33,7 +32,6 @@ const Clients: React.FC = () => {
             setErrors={setErrors}
             clients={clients}
             setClients={setClients}
-            setOpenModal={setOpenModal}
           />
         </AddModal>
       )}
@@ -44,7 +42,6 @@ const Clients: React.FC = () => {
           <AddButton<ClientModalType>
             Icon={Plus}
             label="Client"
-            addModalOpen={setOpenModal}
             modalKey="addClient"
           />
         </div>

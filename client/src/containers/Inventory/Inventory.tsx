@@ -8,12 +8,12 @@ import AddModal from "../../components/common/AddModal";
 import InventoryItemForm from "./components/InventoryItemForm";
 import { useInventoryItems } from "./hooks/useInventoryItems";
 import { useInventoryConfig } from "./hooks/useInventoryConfig";
+import { useAppSelector } from "../../app/hooks";
 
 export type InventoryModalType = null | "addItem" | "addStock";
 
 const Inventory: React.FC = () => {
   const [page, setPage] = useState<number>(1);
-  const [openModal, setOpenModal] = useState<InventoryModalType>(null);
   const [selectedItem, setSelectedItem] = useState<{
     uid: string;
     name: string;
@@ -25,18 +25,18 @@ const Inventory: React.FC = () => {
   const { items, setItems, errors, setErrors } = useInventoryItems(page);
   const { types } = useInventoryConfig();
 
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
+
   useEffect(() => {
-    if (openModal === null) {
+    if (activeModal === null) {
       setSelectedItem(null);
     }
   }, [openModal]);
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {openModal === "addItem" && (
+      {activeModal === "addItem" && (
         <AddModal<InventoryModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
           title="Add Item"
           setErrors={setErrors}
           modalKey="addItem"
@@ -47,7 +47,6 @@ const Inventory: React.FC = () => {
             setErrors={setErrors}
             setItems={setItems}
             items={items}
-            setOpenModal={setOpenModal}
           />
         </AddModal>
       )}
@@ -58,7 +57,6 @@ const Inventory: React.FC = () => {
           <AddButton<InventoryModalType>
             Icon={Plus}
             label="Item"
-            addModalOpen={setOpenModal}
             modalKey="addItem"
           />
         </div>

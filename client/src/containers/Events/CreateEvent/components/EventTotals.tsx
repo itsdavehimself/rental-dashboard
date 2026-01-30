@@ -9,16 +9,12 @@ import { useFormContext } from "react-hook-form";
 import type { CreateEventInputs } from "../CreateEvent";
 import formatToUTC from "../../../../helpers/formatToUTC";
 import { useBilling } from "../../hooks/useBilling";
+import { useAppDispatch } from "../../../../app/hooks";
+import { openModal } from "../../../../app/slices/uiSlice";
 
 const EventTotals: React.FC = () => {
-  const {
-    setOpenModal,
-    eventUid,
-    setEventUid,
-    client,
-    eventBilling,
-    eventDelivery,
-  } = useCreateEvent();
+  const { eventUid, setEventUid, client, eventBilling, eventDelivery } =
+    useCreateEvent();
 
   const {
     selectedItems,
@@ -30,6 +26,8 @@ const EventTotals: React.FC = () => {
     discounts,
     transactions,
   } = useBilling();
+
+  const dispatch = useAppDispatch();
 
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const status = paymentStatus(transactions, total);
@@ -137,7 +135,7 @@ const EventTotals: React.FC = () => {
           style={amountDue === 0 ? "outline" : "filled"}
           onClick={() => {
             backgroundSaveEvent();
-            setOpenModal("addPayment");
+            dispatch(openModal("payments"));
           }}
           full={true}
           disabled={amountDue === undefined}

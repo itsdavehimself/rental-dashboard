@@ -1,22 +1,17 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { CreateEventContext } from "./CreateEventContext";
 import type { ClientDetail } from "../../Clients/types/Client";
-import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
 import type { AddressEntry } from "../../../types/Address";
-import { type EventStatus, type Transaction } from "../types/Event";
+import { type EventStatus } from "../types/Event";
 import { useLocation, useNavigate } from "react-router";
 import { useFetchEvent } from "../hooks/useFetchEvent";
 import { useFetchClient } from "../hooks/useFetchClient";
-import { useToast } from "../../../hooks/useToast";
-import { getTaxRate } from "../../../service/taxService";
 import { mapAddressResToEvent } from "../helpers/mapAddressResToEvent";
-import { mapItemResToEvent } from "../helpers/mapItemResToEvent";
 
 export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [client, setClient] = useState<ClientDetail | null>(null);
-  const [openModal, setOpenModal] = useState<CreateEventModalType>(null);
   const [eventBilling, setEventBilling] = useState<AddressEntry | null>(null);
   const [eventDelivery, setEventDelivery] = useState<AddressEntry | null>(null);
   const [eventUid, setEventUid] = useState<string | null>(null);
@@ -25,8 +20,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [internalNotes, setInternalNotes] = useState<string | null>(null);
   const [eventType, setEventType] = useState<string | null>(null);
   const [eventStatus, setEventStatus] = useState<EventStatus | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [taxRate, setTaxRate] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const location = useLocation();
@@ -34,9 +27,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const params = new URLSearchParams(location.search);
   const clientUid = params.get("clientId");
   const eUid = params.get("eventId");
-
-  const { addToast } = useToast();
-  const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
   const { client: fetchedClient, loading: loadingClient } =
     useFetchClient(clientUid);
@@ -75,11 +65,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
       setEventType(fetchedEvent.eventType);
       setEventUid(fetchedEvent.uid);
       setEventStatus(fetchedEvent.status);
-      setTransactions(
-        [...fetchedEvent.transactions].sort((a, b) =>
-          b.occurredAt.localeCompare(a.occurredAt),
-        ),
-      );
 
       const mappedAddresses = mapAddressResToEvent(fetchedEvent);
       setEventBilling(mappedAddresses.billing);
@@ -135,12 +120,9 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearContext = () => {
     setClient(null);
-    setOpenModal(null);
     setEventBilling(null);
     setEventDelivery(null);
     setEventUid(null);
-    setTransactions([]);
-    setTaxRate(0);
     setEventStatus(null);
     setEventName(null);
     setEventNotes(null);
@@ -151,8 +133,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const value = {
     client,
     setClient,
-    openModal,
-    setOpenModal,
     eventBilling,
     setEventBilling,
     eventDelivery,
@@ -160,10 +140,6 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     clearContext,
     eventUid,
     setEventUid,
-    transactions,
-    setTransactions,
-    taxRate,
-    setTaxRate,
     isLoading,
     eventName,
     eventNotes,

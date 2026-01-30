@@ -1,14 +1,11 @@
 import React, { createContext } from "react";
 import type { ClientDetail } from "../../Clients/types/Client";
-import type { CreateEventModalType } from "../CreateEvent/CreateEvent";
 import type { AddressEntry } from "../../../types/Address";
 import type { EventStatus } from "../types/Event";
 
 export interface CreateEventContextType {
   client: ClientDetail | null;
   setClient: React.Dispatch<React.SetStateAction<ClientDetail | null>>;
-  openModal: CreateEventModalType;
-  setOpenModal: React.Dispatch<React.SetStateAction<CreateEventModalType>>;
   eventBilling: AddressEntry | null;
   setEventBilling: React.Dispatch<React.SetStateAction<AddressEntry | null>>;
   eventDelivery: AddressEntry | null;

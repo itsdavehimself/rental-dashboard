@@ -6,6 +6,8 @@ import { useToast } from "../../../../hooks/useToast";
 import TextAreaInputLocal from "../../../../components/common/TextAreaInputLocal";
 import XButton from "../../../../components/common/XButton";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
+import { useAppDispatch } from "../../../../app/hooks";
+import { closeModal } from "../../../../app/slices/uiSlice";
 
 interface EditClientNotesProps {
   title: string;
@@ -15,7 +17,8 @@ const EditClientNotes: React.FC<EditClientNotesProps> = ({ title }) => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
   const ref = useRef<HTMLDivElement>(null);
-  const { client, setClient, setOpenModal } = useCreateEvent();
+  const { client, setClient } = useCreateEvent();
+  const dispatch = useAppDispatch();
 
   const [note, setNote] = useState(client?.notes ?? "");
 
@@ -25,10 +28,10 @@ const EditClientNotes: React.FC<EditClientNotesProps> = ({ title }) => {
       // setErrors(null);
       const updatedClient = await updateClient(apiUrl, client?.uid, note);
       setClient((prev) => (prev ? { ...prev, notes: note } : prev));
-      setOpenModal(null);
+      dispatch(closeModal());
       addToast(
         "Success",
-        `${updatedClient.firstName} ${updatedClient.lastName}'s notes successfully updated.`
+        `${updatedClient.firstName} ${updatedClient.lastName}'s notes successfully updated.`,
       );
     } catch (err) {
       // handleError(err, setErrors);
@@ -38,13 +41,13 @@ const EditClientNotes: React.FC<EditClientNotesProps> = ({ title }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpenModal(null);
+        dispatch(closeModal());
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [setOpenModal]);
+  }, []);
 
   return (
     <div
@@ -53,7 +56,7 @@ const EditClientNotes: React.FC<EditClientNotesProps> = ({ title }) => {
     >
       <div className="flex justify-between items-center pl-6 pr-4">
         <h4 className="text-lg font-semibold">{title}</h4>
-        <XButton setIsModalOpen={setOpenModal} />
+        <XButton />
       </div>
       <div className="flex flex-col justify-center px-6 py-2 gap-4">
         <TextAreaInputLocal

@@ -13,10 +13,10 @@ import { handleError, type ErrorsState } from "../../../../helpers/handleError";
 import { useState, useEffect } from "react";
 import { useToast } from "../../../../hooks/useToast";
 import { addCashPayment } from "../../services/transactionService";
-import { useCreateEvent } from "../../hooks/useCreateEvent";
-import { useAppSelector } from "../../../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import sortTransactions from "../../helpers/sortTransactions";
 import { useBilling } from "../../hooks/useBilling";
+import { closeModal } from "../../../../app/slices/uiSlice";
 
 interface CashPaymentFormProps {
   handleSubmit: UseFormHandleSubmit<PaymentInputs, PaymentInputs>;
@@ -35,10 +35,10 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
 }) => {
   const [errors, setErrors] = useState<ErrorsState | null>(null);
   const { addToast } = useToast();
-  const { eventUid, setOpenModal } = useCreateEvent();
-  const { setTransactions, amountDue } = useBilling();
+  const { eventUid, setTransactions, amountDue } = useBilling();
   const user = useAppSelector((state) => state.user.user);
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
+  const dispatch = useAppDispatch();
 
   const onSubmit: SubmitHandler<PaymentInputs> = async (data) => {
     try {
@@ -55,7 +55,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         "Success",
         `$${(amountToCharge / 100).toFixed(2)} cash payment successfully added.`,
       );
-      setOpenModal(null);
+      dispatch(closeModal());
     } catch (err) {
       handleError(err, setErrors);
     }

@@ -8,23 +8,22 @@ import { Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import TeamMemberForm from "./components/TeamMemberForm";
 import { useUsers } from "./hooks/useUsers";
+import { useAppSelector } from "../../app/hooks";
 
 export type TeamModalType = null | "addTeamMember";
 
 const Team: React.FC = () => {
   const [filter, setFilter] = useState<"active" | "inactive" | "all">("active");
-  const [openModal, setOpenModal] = useState<TeamModalType>(null);
   const { users, setUsers, errors, setErrors } = useUsers(filter);
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
 
   const headers = ["Name", "Position", "Phone Number", "Started"];
   const columnTemplate = "[grid-template-columns:1fr_1fr_1fr_1fr]";
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {openModal === "addTeamMember" && (
+      {activeModal === "addTeamMember" && (
         <AddModal<TeamModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
           title="Add Team Member"
           setErrors={setErrors}
           modalKey="addTeamMember"
@@ -34,7 +33,6 @@ const Team: React.FC = () => {
             setErrors={setErrors}
             setUsers={setUsers}
             users={users}
-            setOpenModal={setOpenModal}
           />
         </AddModal>
       )}
@@ -45,7 +43,6 @@ const Team: React.FC = () => {
           <AddButton<TeamModalType>
             Icon={Plus}
             label="Team Member"
-            addModalOpen={setOpenModal}
             modalKey="addTeamMember"
           />
         </div>

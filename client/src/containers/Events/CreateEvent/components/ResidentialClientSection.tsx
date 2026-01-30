@@ -1,11 +1,12 @@
 import { PenSquare } from "lucide-react";
+import { useAppDispatch } from "../../../../app/hooks";
+import { openModal } from "../../../../app/slices/uiSlice";
 
 interface ResidentialClientSectionProps<T extends string | null> {
   title: string;
   children: React.ReactNode;
   lastItem?: boolean;
   hideDividerOnLarge?: boolean;
-  setOpenModal: React.Dispatch<React.SetStateAction<T>>;
   modalKey: T;
   minHeight?: number;
 }
@@ -15,16 +16,17 @@ const ResidentialClientSection = <T extends string | null>({
   children,
   lastItem,
   hideDividerOnLarge,
-  setOpenModal,
   modalKey,
   minHeight,
 }: ResidentialClientSectionProps<T>) => {
+  const dispatch = useAppDispatch();
+
   return (
     <div>
       <div className="flex justify-between items-end">
         <h5 className="font-semibold 3xl:mt-2 4xl:mt-4">{title}</h5>
         <button
-          onClick={() => setOpenModal(modalKey)}
+          onClick={() => dispatch(openModal(modalKey))}
           className="flex justify-center items-center text-gray-500 hover:text-primary hover:cursor-pointer transition-all duration-200"
         >
           <PenSquare className="w-4 h-4" />

@@ -3,16 +3,19 @@ import type { CreateEventModalType } from "../CreateEvent";
 import { useCreateEvent } from "../../hooks/useCreateEvent";
 import { useEffect } from "react";
 import AddressBlock from "../../EventDetails/components/AddressBlock";
+import { useAppDispatch } from "../../../../app/hooks";
+import { openModal } from "../../../../app/slices/uiSlice";
 
 const ResidentialClientInfo: React.FC = () => {
   const {
     client,
-    setOpenModal,
     eventBilling,
     setEventBilling,
     eventDelivery,
     setEventDelivery,
   } = useCreateEvent();
+
+  const dispatch = useAppDispatch();
 
   const primaryBillingAddress = client?.billingAddresses.find(
     (ba) => ba.isPrimary === true,
@@ -41,7 +44,7 @@ const ResidentialClientInfo: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => setOpenModal("searchClient")}
+                onClick={() => dispatch(openModal("searchClient"))}
                 className="font-semibold text-xs text-gray-500 hover:text-primary hover:cursor-pointer transition duration-200"
               >
                 Change
@@ -64,7 +67,6 @@ const ResidentialClientInfo: React.FC = () => {
                   )}
                 </>
               }
-              setOpenModal={setOpenModal}
               modalKey="editClientNotes"
             />
           </div>
@@ -78,7 +80,6 @@ const ResidentialClientInfo: React.FC = () => {
                   <AddressBlock address={eventBilling} type="Client" />
                 </>
               }
-              setOpenModal={setOpenModal}
               modalKey="editClientBilling"
             />
             <ResidentialClientSection<CreateEventModalType>
@@ -90,7 +91,6 @@ const ResidentialClientInfo: React.FC = () => {
                 </>
               }
               lastItem={true}
-              setOpenModal={setOpenModal}
               modalKey="editClientDelivery"
             />
           </div>

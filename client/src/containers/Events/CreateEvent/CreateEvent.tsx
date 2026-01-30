@@ -23,6 +23,7 @@ import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useFetchAvailability } from "../hooks/useFetchAvailability";
 import formatToUTC from "../../../helpers/formatToUTC";
 import { useBilling } from "../hooks/useBilling";
+import { useAppSelector } from "../../../app/hooks";
 
 export type CreateEventModalType =
   | null
@@ -33,7 +34,7 @@ export type CreateEventModalType =
   | "addBillingAddress"
   | "addDeliveryAddress"
   | "searchClient"
-  | "addPayment";
+  | "payments";
 
 export type EventLineItem = Omit<InventoryListItem, "quantityTotal"> & {
   count: number;
@@ -60,8 +61,6 @@ export type CreateEventInputs = {
 const CreateEvent: React.FC = () => {
   const {
     client,
-    openModal,
-    setOpenModal,
     eventBilling,
     eventDelivery,
     setEventUid,
@@ -76,6 +75,8 @@ const CreateEvent: React.FC = () => {
     eventStart,
     eventEnd,
   } = useCreateEvent();
+
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
 
   const {
     selectedItems,
@@ -248,30 +249,28 @@ const CreateEvent: React.FC = () => {
   return (
     <FormProvider {...methods}>
       <div className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 3xl:gap-4 4xl:gap-6">
-        {openModal === "searchClient" && (
-          <SearchClients<CreateEventModalType>
-            openModal={openModal}
-            setOpenModal={setOpenModal}
+        {activeModal === "searchClient" && (
+          <SearchClients
             setErrors={setErrors}
             title="Change Client"
             label="Update Client"
             mode="update"
           />
         )}
-        {openModal === "editClientNotes" && (
+        {activeModal === "editClientNotes" && (
           <EditModal children={<EditClientNotes title="Edit client notes" />} />
         )}
-        {openModal === "editClientBilling" && client?.billingAddresses && (
+        {activeModal === "editClientBilling" && client?.billingAddresses && (
           <EditModal
             children={<EditAddresses type="billing" setErrors={setErrors} />}
           />
         )}
-        {openModal === "editClientDelivery" && client?.deliveryAddresses && (
+        {activeModal === "editClientDelivery" && client?.deliveryAddresses && (
           <EditModal
             children={<EditAddresses type="delivery" setErrors={setErrors} />}
           />
         )}
-        {openModal === "addPayment" && <EditModal children={<PaymentForm />} />}
+        {activeModal === "payments" && <EditModal children={<PaymentForm />} />}
         <div className="flex justify-between">
           <h2 className="text-2xl font-semibold">
             {eventUid ? "Edit Event" : "Create Event"}

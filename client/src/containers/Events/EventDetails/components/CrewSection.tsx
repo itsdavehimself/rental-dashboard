@@ -9,14 +9,14 @@ import {
 } from "lucide-react";
 import type { LogisticsTrip } from "../../types/Event";
 import { formatDate } from "date-fns";
-import type { EditEventModalType } from "../EventDetails";
+import { useAppDispatch } from "../../../../app/hooks";
+import { openModal } from "../../../../app/slices/uiSlice";
 
 interface CrewSectionProps {
   label: string;
   isSplit?: boolean;
   splitLabel?: string;
   combinedLabel?: string;
-  setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
   setTaskType: React.Dispatch<React.SetStateAction<string | null>>;
   trip?: LogisticsTrip;
   setSelectedTask: React.Dispatch<React.SetStateAction<string | null>>;
@@ -28,13 +28,13 @@ const CrewSection: React.FC<CrewSectionProps> = ({
   isSplit,
   splitLabel,
   combinedLabel,
-  setOpenModal,
   setTaskType,
   trip,
   setSelectedTask,
   setTaskDetails,
 }) => {
   const taskName = isSplit ? (splitLabel ?? label) : (combinedLabel ?? label);
+  const dispatch = useAppDispatch();
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -45,7 +45,7 @@ const CrewSection: React.FC<CrewSectionProps> = ({
           </div>
           <button
             onClick={() => {
-              setOpenModal("addTask");
+              dispatch(openModal("addTask"));
               setTaskType(taskName);
             }}
             className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-primary transition-all duration-200 cursor-pointer w-fit"
@@ -109,7 +109,7 @@ const CrewSection: React.FC<CrewSectionProps> = ({
                   onClick={() => {
                     setSelectedTask(trip.uid);
                     setTaskDetails(trip);
-                    setOpenModal("editTask");
+                    dispatch(openModal("editTask"));
                   }}
                   className="h-4 w-4"
                 />
@@ -117,7 +117,7 @@ const CrewSection: React.FC<CrewSectionProps> = ({
               <button
                 onClick={() => {
                   setSelectedTask(trip.uid);
-                  setOpenModal("deleteTask");
+                  dispatch(openModal("deleteTask"));
                 }}
                 className="text-gray-500 hover:text-primary transition-all duration-200 hover:cursor-pointer"
               >

@@ -13,6 +13,8 @@ import { type TeamModalType } from "../Team";
 import { handleError, type ErrorsState } from "../../../helpers/handleError";
 import type { User } from "../types/User";
 import { useToast } from "../../../hooks/useToast";
+import { useAppDispatch } from "../../../app/hooks";
+import { closeModal } from "../../../app/slices/uiSlice";
 
 export type TeamMemberInputs = {
   firstName: string;
@@ -30,7 +32,6 @@ interface TeamMemberFormProps {
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
   users: User[];
-  setOpenModal: React.Dispatch<React.SetStateAction<TeamModalType>>;
 }
 
 const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
@@ -38,7 +39,6 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
   setErrors,
   users,
   setUsers,
-  setOpenModal,
 }) => {
   const {
     handleSubmit,
@@ -53,6 +53,8 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
   type Option = { value: number | string; label: string };
 
   const { addToast } = useToast();
+
+  const dispatch = useAppDispatch();
 
   const [jobTitles, setJobTitles] = useState<Option[]>([]);
   const [roles, setRoles] = useState<Option[]>([]);
@@ -73,10 +75,10 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
       const newUser = await registerUser(apiUrl, data);
       const updatedUsers = [...users, newUser];
       setUsers(updatedUsers);
-      setOpenModal(null);
+      dispatch(closeModal());
       addToast(
         "Success",
-        `${newUser.firstName} ${newUser.lastName} successfully added to the team.`
+        `${newUser.firstName} ${newUser.lastName} successfully added to the team.`,
       );
     } catch (err) {
       handleError(err, setErrors);
@@ -121,7 +123,7 @@ const TeamMemberForm: React.FC<TeamMemberFormProps> = ({
 
   const toOptions = <T extends { id: number | string }>(
     list: T[],
-    labelKey: keyof T
+    labelKey: keyof T,
   ): Option[] =>
     list.map((item) => ({
       value: item.id,

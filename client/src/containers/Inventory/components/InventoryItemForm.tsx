@@ -11,7 +11,8 @@ import { createInventoryItem } from "../services/inventoryService";
 import { useToast } from "../../../hooks/useToast";
 import { handleError, type ErrorsState } from "../../../helpers/handleError";
 import { type InventoryListItem } from "../types/InventoryItem";
-import { type InventoryModalType } from "../Inventory";
+import { useAppDispatch } from "../../../app/hooks";
+import { closeModal } from "../../../app/slices/uiSlice";
 
 export type InventoryItemInput = {
   description: string;
@@ -33,7 +34,6 @@ interface InventoryItemFormProps {
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
   setItems: React.Dispatch<React.SetStateAction<InventoryListItem[]>>;
   items: InventoryListItem[];
-  setOpenModal: React.Dispatch<React.SetStateAction<InventoryModalType>>;
 }
 
 const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
@@ -42,7 +42,6 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   setErrors,
   setItems,
   items,
-  setOpenModal,
 }) => {
   const {
     handleSubmit,
@@ -58,6 +57,8 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  const dispatch = useAppDispatch();
+
   const unitPrice = watch("unitPrice");
   const type = watch("type");
   const subType = watch("subType");
@@ -66,7 +67,7 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
 
   const selectedType = types.find((t) => t.id === type);
   const selectedSubType = selectedType?.subTypes.find(
-    (st) => st.id === subType
+    (st) => st.id === subType,
   );
 
   const typeRef = useRef<HTMLDivElement>(null);
@@ -84,7 +85,7 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
       });
 
       setItems(updatedItems);
-      setOpenModal(null);
+      dispatch(closeModal());
       addToast("Success", `${newItem.sku} successfully added.`);
     } catch (err) {
       handleError(err, setErrors);

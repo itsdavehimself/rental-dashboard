@@ -1,22 +1,20 @@
+import { useAppDispatch } from "../../../../app/hooks";
+import { closeModal } from "../../../../app/slices/uiSlice";
 import ActionButton from "../../../../components/common/ActionButton";
 import { useToast } from "../../../../hooks/useToast";
 import { useEventDetails } from "../../hooks/useEventDetails";
 import { deleteLogistics } from "../../services/logisticsService";
-import type { EditEventModalType } from "../EventDetails";
 
 interface DeleteTaskModalProps {
   taskToDelete: string | null;
-  setOpenModal: React.Dispatch<React.SetStateAction<EditEventModalType>>;
 }
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
-const DeleteTaskModal: React.FC<DeleteTaskModalProps> = ({
-  taskToDelete,
-  setOpenModal,
-}) => {
+const DeleteTaskModal: React.FC<DeleteTaskModalProps> = ({ taskToDelete }) => {
   const { fetchEvent } = useEventDetails();
   const { addToast } = useToast();
+  const dispatch = useAppDispatch();
 
   const handleDeleteTask = async (taskToDelete: string | null) => {
     if (!taskToDelete) return;
@@ -26,7 +24,7 @@ const DeleteTaskModal: React.FC<DeleteTaskModalProps> = ({
       await deleteLogistics(apiUrl, taskToDelete);
       console.log("deleted");
       fetchEvent();
-      setOpenModal(null);
+      dispatch(closeModal());
       addToast("Success", "Task successfully deleted.");
     } catch (err) {
       // handleError(err, setErrors);
@@ -45,7 +43,7 @@ const DeleteTaskModal: React.FC<DeleteTaskModalProps> = ({
         <ActionButton
           label="Cancel"
           style="outline"
-          onClick={() => setOpenModal(null)}
+          onClick={() => dispatch(closeModal())}
         />
         <ActionButton
           label="Delete"

@@ -5,9 +5,9 @@ import { useState } from "react";
 import EventRow from "../EventsDashboard/components/EventRow";
 import AddButton from "../../../components/common/AddButton";
 import SearchClients from "../../Clients/components/SearchClients";
-import { type ErrorsState } from "../../../helpers/handleError";
 import { useEvents } from "../hooks/useEvents";
 import type { Event } from "../types/Event";
+import { useAppSelector } from "../../../app/hooks";
 
 export type EventModalType = null | "searchClient" | "addClient";
 
@@ -26,16 +26,15 @@ const Events: React.FC = () => {
     "[grid-template-columns:1fr_1fr_.7fr_.7fr_1.5fr_.4fr_.4fr]";
 
   const [page, setPage] = useState<number>(1);
-  const [openModal, setOpenModal] = useState<EventModalType>(null);
 
   const { events, setEvents, errors, setErrors } = useEvents(page);
 
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
+
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
-      {openModal === "searchClient" && (
-        <SearchClients<EventModalType>
-          openModal={openModal}
-          setOpenModal={setOpenModal}
+      {activeModal === "searchClient" && (
+        <SearchClients
           setErrors={setErrors}
           title="Create an Event"
           label="Create Event"
@@ -49,7 +48,6 @@ const Events: React.FC = () => {
           <AddButton<EventModalType>
             Icon={Plus}
             label="Event"
-            addModalOpen={setOpenModal}
             modalKey="searchClient"
           />
         </div>

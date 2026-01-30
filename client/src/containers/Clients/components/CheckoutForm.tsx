@@ -5,13 +5,14 @@ import {
 } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import SubmitButton from "../../../components/common/SubmitButton";
-import { useCreateEvent } from "../../Events/hooks/useCreateEvent";
 import { useToast } from "../../../hooks/useToast";
 import { handleError } from "../../../helpers/handleError";
 import { type ErrorsState } from "../../../helpers/handleError";
 import { addCardPayment } from "../../Events/services/transactionService";
-import { useAppSelector } from "../../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import sortTransactions from "../../Events/helpers/sortTransactions";
+import { closeModal } from "../../../app/slices/uiSlice";
+import { useBilling } from "../../Events/hooks/useBilling";
 
 interface Props {
   amountToCharge: number;
@@ -20,9 +21,10 @@ interface Props {
 const CheckoutForm: React.FC<Props> = ({ amountToCharge }) => {
   const stripe = useStripe();
   const elements = useElements();
-  const { setOpenModal, eventUid, setTransactions } = useCreateEvent();
+  const { eventUid, setTransactions } = useBilling();
   const { addToast } = useToast();
   const user = useAppSelector((state) => state.user.user);
+  const dispatch = useAppDispatch();
 
   const [errors, setErrors] = useState<ErrorsState | null>(null);
 
@@ -51,13 +53,13 @@ const CheckoutForm: React.FC<Props> = ({ amountToCharge }) => {
           amountToCharge,
           eventUid,
           user?.uid,
-          paymentIntent?.id
+          paymentIntent?.id,
         );
         setTransactions((prev) => sortTransactions([...prev, transaction]));
-        setOpenModal(null);
+        dispatch(closeModal());
         addToast(
           "Success",
-          `$${(amountToCharge / 100).toFixed(2)} payment successfully added.`
+          `$${(amountToCharge / 100).toFixed(2)} payment successfully added.`,
         );
       } catch (err) {
         handleError(err, setErrors);
