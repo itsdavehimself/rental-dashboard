@@ -20,6 +20,7 @@ import EventDetails from "./containers/Events/EventDetails/EventDetails";
 import { EventDetailsProvider } from "./containers/Events/context/EventDetailsProvider";
 import { BillingProvider } from "./containers/Events/context/BillingProvider";
 import { useLocation } from "react-router";
+import NavigationHandler from "./components/common/NavigationHandler";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -31,6 +32,7 @@ function App() {
 
   return (
     <ToastProvider>
+      <NavigationHandler />
       <Routes>
         <Route index element={<Login />} />
         <Route

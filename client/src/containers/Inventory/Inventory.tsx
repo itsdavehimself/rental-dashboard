@@ -31,7 +31,7 @@ const Inventory: React.FC = () => {
     if (activeModal === null) {
       setSelectedItem(null);
     }
-  }, [openModal]);
+  }, [activeModal]);
 
   return (
     <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
