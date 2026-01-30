@@ -232,7 +232,8 @@ public class TransactionsController : ControllerBase
       {
           var options = new RefundCreateOptions 
           { 
-              PaymentIntent = transaction.ExternalTransactionId, 
+              PaymentIntent = transaction.ExternalTransactionId,
+              Amount = (long)Math.Round(request.Amount * 100),
               Reason = RefundReasons.RequestedByCustomer,
               Metadata = new Dictionary<string, string> { { "InternalNotes", request.Notes } }
           };
