@@ -87,14 +87,14 @@ const RefundForm: React.FC<RefundFormProps> = ({
         apiUrl,
         selectedTransaction?.uid,
         user?.uid,
-        amount,
+        data.amount,
         data.notes,
         selectedTransaction?.method,
       );
       setTransactions((prev) => sortTransactions([...prev, transaction]));
       addToast(
         "Success",
-        `$${(amount / 100).toFixed(2)} refund successfully added.`,
+        `$${(data.amount / 100).toFixed(2)} refund successfully added.`,
       );
       setView("view");
     } catch (err) {

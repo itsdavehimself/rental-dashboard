@@ -135,10 +135,37 @@ const deleteLogistics = async (
   }
 };
 
+const getTruckSchedule = async (
+  apiUrl: string,
+  truckUid: string,
+  date: string,
+  timezone: string,
+): Promise<LogisticsTrip[]> => {
+  const response = await fetch(
+    `${apiUrl}/api/logistics/trucks/${truckUid}/schedule/${date}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-timezone": timezone,
+      },
+      credentials: "include",
+    },
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Get truck schedule failed.", errorData);
+  }
+
+  return await response.json();
+};
+
 export {
   getActiveTrucks,
   createLogistics,
   updateLogistics,
   splitLogistics,
   deleteLogistics,
+  getTruckSchedule,
 };

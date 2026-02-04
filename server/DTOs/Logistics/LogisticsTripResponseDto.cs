@@ -1,7 +1,10 @@
 public class LogisticsTripResponseDto
 {
     public Guid Uid { get; set; }
-    public string Status { get; set; } = ""; 
+    public string Status { get; set; } = "";
+
+    // Grouped Event Info
+    public DeliveryDetailsDto DeliveryDetails { get; set; } = new();
     
     // Timing
     public DateTime ScheduledStart { get; set; }
@@ -21,4 +24,16 @@ public class LogisticsTripResponseDto
     // Helper for UI
     public string? CrewLeadName => Crew.FirstOrDefault(c => c.IsLead)?.FullName;
     public string TripSummary => string.Join(" / ", WorkItems.Select(w => w.Type.ToString()));
+}
+
+public class DeliveryDetailsDto
+{
+    public Guid EventUid { get; set; } = Guid.NewGuid();
+    public string? EventName { get; set; }
+    public string AddressLine1 { get; set; } = "";
+    public string? AddressLine2 { get; set; }
+    public string City { get; set; } = "";
+    public string State { get; set; } = "";
+    public string ZipCode { get; set; } = "";
+    public string Phone { get; set; } = "";
 }

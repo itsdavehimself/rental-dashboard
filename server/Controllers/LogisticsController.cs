@@ -39,6 +39,60 @@ public class LogisticsController : ControllerBase
     return Ok(response);
   }
 
+  [HttpGet("trucks/{truckUid}/schedule/{date}")]
+  public async Task<IActionResult> GetTruckSchedule(Guid truckUid, DateOnly date, [FromHeader(Name = "x-user-timezone")] string timezone)
+  {
+    var truck = await _context.Trucks.FirstOrDefaultAsync(t => t.Uid == truckUid);
+
+    if (truck == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Truck not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    if (timezone == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Bad Request",
+        Detail = "Timezone must be provided in header.",
+        Status = StatusCodes.Status400BadRequest
+      })
+      {
+        StatusCode = StatusCodes.Status400BadRequest
+      };
+    }
+
+    var tz = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+    var localStart = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0);
+    var localEnd = localStart.AddDays(1).AddTicks(-1);
+
+    var utcStart = TimeZoneInfo.ConvertTimeToUtc(localStart, tz);
+    var utcEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, tz);
+
+    var trips = await _context.LogisticsTrips
+      .Where(t => t.TruckId == truck.Id 
+              && t.ScheduledStart >= utcStart 
+              && t.ScheduledStart <= utcEnd)
+      .Include(t => t.WorkItems)
+      .Include(t => t.Event)
+      .Include(t => t.Crew)
+          .ThenInclude(a => a.User)
+      .OrderBy(t => t.ScheduledStart)
+      .ToListAsync();
+
+    var dto = _mapper.Map<List<LogisticsTripResponseDto>>(trips);
+
+    return Ok(dto);
+  }
+
   [HttpPost("trip")]
   public async Task<IActionResult> CreateTrip(LogisticsTripRequestDto request)
   {

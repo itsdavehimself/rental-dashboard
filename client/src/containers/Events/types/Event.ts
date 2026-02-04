@@ -76,6 +76,7 @@ export type LogisticsTrip = {
   actualArrival: string;
   actualStart: string;
   completedAt: string;
+  deliveryDetails: LogisticsTripDeliveryDetails;
   crew: CrewMember[];
   crewLeadName: string;
   scheduledEnd: string;
@@ -85,6 +86,17 @@ export type LogisticsTrip = {
   truckUid: string;
   truckName: string;
   workItems: WorkItem[];
+};
+
+type LogisticsTripDeliveryDetails = {
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+  eventName: string;
+  eventUid: string;
 };
 
 type CrewMember = {

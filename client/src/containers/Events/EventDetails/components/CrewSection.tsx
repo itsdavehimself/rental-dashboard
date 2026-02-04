@@ -110,6 +110,7 @@ const CrewSection: React.FC<CrewSectionProps> = ({
                     setSelectedTask(trip.uid);
                     setTaskDetails(trip);
                     dispatch(openModal("editTask"));
+                    setTaskType(taskName);
                   }}
                   className="h-4 w-4"
                 />

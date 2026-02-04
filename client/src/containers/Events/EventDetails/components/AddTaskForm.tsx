@@ -9,7 +9,6 @@ import {
 } from "../../services/logisticsService";
 import type { Truck } from "../../types/Logistics";
 import { useEventDetails } from "../../hooks/useEventDetails";
-import { formatDate } from "date-fns";
 import { useUsers } from "../../../Team/hooks/useUsers";
 import SubmitButton from "../../../../components/common/SubmitButton";
 import MultiCrewDropdown from "../../../../components/common/MultiCrewDropdown";
@@ -22,6 +21,7 @@ import type { CrewMember, LogisticsTrip } from "../../types/Event";
 import { format } from "date-fns";
 import { useAppDispatch } from "../../../../app/hooks";
 import { closeModal } from "../../../../app/slices/uiSlice";
+import TruckSchedule from "./TruckSchedule";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -60,12 +60,11 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
     },
   });
 
-  const { fetchedEvent, addLogisticsTrip } = useEventDetails();
+  const { fetchedEvent, addLogisticsTrip, fetchEvent } = useEventDetails();
   const { users } = useUsers("active");
   const [openDropDown, setOpenDropDown] = useState<string | null>(null);
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [selectedPreset, setSelectedPreset] = useState<string | null>();
-  const [trips, setTrips] = useState([]);
 
   const dispatch = useAppDispatch();
 
@@ -74,8 +73,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
   const truckRef = useRef<HTMLDivElement>(null);
   const leadRef = useRef<HTMLDivElement>(null);
   const crewRef = useRef<HTMLDivElement>(null);
-
-  const { fetchEvent } = useEventDetails();
 
   const taskStartDate = watch("taskStartDate");
   const truck = watch("truck");
@@ -377,24 +374,12 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
         </div>
       </form>
 
-      <div className="flex flex-col border-l border-gray-200 px-8 h-full">
-        {truck ? (
-          <div className="flex flex-col items-baseline pt-4">
-            <div className="text-xs text-gray-500">
-              {formatDate(taskStartDate, "MM/dd/yyyy")}
-            </div>
-            <h4 className="font-semibold">
-              {trucks.find((t) => t.uid === truck)?.name} Schedule
-            </h4>
-          </div>
-        ) : (
-          <div className="flex flex-col flex-1 justify-center items-center text-center">
-            <div className="text-sm font-medium text-gray-400 max-w-[150px]">
-              Please select a truck to view schedule
-            </div>
-          </div>
-        )}
-      </div>
+      <TruckSchedule
+        truck={truck}
+        trucks={trucks}
+        taskStartDate={taskStartDate}
+        eventUid={fetchedEvent?.uid ? fetchedEvent.uid : null}
+      />
     </section>
   );
 };

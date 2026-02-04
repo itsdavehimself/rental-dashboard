@@ -7,7 +7,7 @@ const addCashPayment = async (
   apiUrl: string,
   data: PaymentInputs,
   eventUid: string,
-  userUid: string
+  userUid: string,
 ): Promise<Transaction> => {
   const response = await fetch(`${apiUrl}/api/transactions`, {
     method: "POST",
@@ -38,7 +38,7 @@ const addCardPayment = async (
   amount: number,
   eventUid: string,
   userUid: string,
-  externalTransactionId: string
+  externalTransactionId: string,
 ): Promise<Transaction> => {
   const response = await fetch(`${apiUrl}/api/transactions`, {
     method: "POST",
@@ -71,7 +71,7 @@ const addRefund = async (
   userUid: string,
   amount: number,
   notes: string,
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod,
 ): Promise<Transaction> => {
   const response = await fetch(
     `${apiUrl}/api/transactions/${transactionUid}/refund`,
@@ -87,7 +87,7 @@ const addRefund = async (
         paymentMethod,
         processedByUid: userUid,
       }),
-    }
+    },
   );
 
   if (!response.ok) {

@@ -19,6 +19,8 @@ import type { LogisticsTrip } from "../types/Event";
 import { useAppSelector } from "../../../app/hooks";
 import TransactionModal from "../CreateEvent/components/TransactionModal";
 import EditModal from "../../../components/common/EditModal";
+import ChipTag from "../../../components/common/ChipTag";
+import TAG_COLOR_MAP from "../../../config/TAG_COLOR_MAP";
 
 export type EditEventModalType =
   | "addTask"
@@ -26,6 +28,16 @@ export type EditEventModalType =
   | "deleteTask"
   | "editTask"
   | null;
+
+type TagColor = keyof typeof TAG_COLOR_MAP;
+
+const statusMap: Record<string, { label: string; color: TagColor }> = {
+  Draft: { label: "Draft", color: "gray" },
+  Confirmed: { label: "Confirmed", color: "blue" },
+  Scheduled: { label: "Scheduled", color: "amber" },
+  Completed: { label: "Completed", color: "green" },
+  Cancelled: { label: "Cancelled", color: "red" },
+};
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -107,9 +119,16 @@ const EventDetails: React.FC = () => {
         <EditModal children={<TransactionModal />} />
       )}
       <section className="flex flex-row justify-between items-center">
-        <h2 className="text-2xl font-semibold text-primary">
-          {fetchedEvent.eventName}
-        </h2>
+        <div className="flex gap-4 items-center justify-baseline">
+          <h2 className="text-2xl font-semibold text-primary">
+            {fetchedEvent.eventName}
+          </h2>
+          <ChipTag
+            label={statusMap[fetchedEvent.status].label}
+            color={statusMap[fetchedEvent.status].color}
+          />
+        </div>
+
         <ActionButton
           label="Edit Event"
           onClick={() => {
