@@ -65,6 +65,10 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
     if (!amountToCharge) {
       setValue("amountToCharge", amountDue * 100);
     }
+
+    if (amountDue < 0) {
+      setValue("amountToCharge", 0);
+    }
   }, [amountDue]);
 
   return (
@@ -85,7 +89,7 @@ const CashPaymentForm: React.FC<CashPaymentFormProps> = ({
         register={register("notes")}
         optional={true}
       />
-      {amountToCharge / 100 > amountDue && (
+      {amountToCharge / 100 > amountDue && amountToCharge !== 0 && (
         <p className="self-center text-red-500 text-sm">
           Amount cannot exceed amount due.
         </p>

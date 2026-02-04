@@ -75,7 +75,7 @@ const TransactionModal: React.FC = () => {
   };
 
   useEffect(() => {
-    if (amountDue === 0) setView("view");
+    if (amountDue <= 0) setView("view");
   }, []);
 
   const modalTitle = (view: "add" | "view" | "refund" | "details" | null) => {

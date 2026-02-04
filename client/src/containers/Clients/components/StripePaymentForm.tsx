@@ -36,6 +36,10 @@ const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
     if (!amountToCharge) {
       setValue("amountToCharge", amountDue * 100);
     }
+
+    if (amountDue < 0) {
+      setValue("amountToCharge", 0);
+    }
   }, [amountDue]);
 
   const overcharge = amountToCharge / 100 > amountDue;
@@ -71,7 +75,7 @@ const StripePaymentForm: React.FC<Props> = ({ amountToCharge, setValue }) => {
             onValueChange={(val) => setValue("amountToCharge", val)}
           />
 
-          {overcharge && (
+          {overcharge && amountToCharge !== 0 && (
             <p className="text-red-500 text-sm">
               Amount cannot exceed amount due.
             </p>
