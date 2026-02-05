@@ -1,7 +1,6 @@
 import AddressBlock from "./AddressBlock";
 import { useEventDetails } from "../../hooks/useEventDetails";
 import { useNavigate } from "react-router";
-import { formatLowerAmPm } from "../../helpers/formatWithLowerAmPm";
 import { Calendar1, Clock } from "lucide-react";
 import { formatDate } from "date-fns";
 

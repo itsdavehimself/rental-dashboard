@@ -110,10 +110,20 @@ const TaskAssignment: React.FC<TaskAssignmentProps> = ({
     postEventData.teardownOnly || postEventData.pickupOnly
   );
 
+  if (fetchedEvent?.status === "Cancelled") {
+    return (
+      <section className="flex w-full h-full flex-col border-1 gap-6 border-gray-200 rounded-lg py-4 px-6 overflow-hidden">
+        <h3 className="text-lg font-semibold text-primary">Task Assignment</h3>
+        <div className="flex justify-center items-center text-sm text-gray-400 w-full h-full">
+          This event has been cancelled. Tasks can no longer be assigned.
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="flex flex-col border-1 gap-6 border-gray-200 rounded-lg py-4 px-6 overflow-hidden">
       <h3 className="text-lg font-semibold text-primary">Task Assignment</h3>
-
       <div className="grid grid-cols-2 h-full gap-8">
         {/* PRE-EVENT TASKS */}
         <div className="flex flex-col gap-4">

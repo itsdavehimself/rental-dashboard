@@ -5,7 +5,7 @@ import type { Event, EventDraftResponse } from "../types/Event";
 
 const fetchEvents = async (
   apiUrl: string,
-  page: number
+  page: number,
 ): Promise<PaginatedResponse<Event>> => {
   const response = await fetch(
     `${apiUrl}/api/events?page=${page}&pageSize=25`,
@@ -15,7 +15,7 @@ const fetchEvents = async (
         "Content-Type": "application/json",
       },
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -51,7 +51,7 @@ const saveEvent = async (
   items: ItemBasics[],
   uids: { clientUid: string; billingUid: string; deliveryUid: string },
   eventUid: string | null,
-  action: "draft" | "reserve" | "update"
+  action: "draft" | "reserve" | "update",
 ): Promise<EventDraftResponse> => {
   let url = "";
   let method = eventUid ? "PATCH" : "POST";
@@ -94,4 +94,29 @@ const saveEvent = async (
   return await response.json();
 };
 
-export { fetchEvents, saveEvent, getEventDetails };
+const changeEventStatus = async (
+  apiUrl: string,
+  uid: string,
+  status: string,
+): Promise<null> => {
+  const response = await fetch(`${apiUrl}/api/events/${status}/${uid}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Changing event status failed.");
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return await response.json();
+};
+
+export { fetchEvents, saveEvent, getEventDetails, changeEventStatus };

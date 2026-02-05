@@ -23,7 +23,11 @@ export type PaymentInputs = {
   amountToCharge: number;
 };
 
-const TransactionModal: React.FC = () => {
+interface TransactionModalProps {
+  cancelled?: boolean;
+}
+
+const TransactionModal: React.FC = ({ cancelled }) => {
   const {
     handleSubmit,
     register,
@@ -76,6 +80,7 @@ const TransactionModal: React.FC = () => {
 
   useEffect(() => {
     if (amountDue <= 0) setView("view");
+    if (cancelled) setView("view");
   }, []);
 
   const modalTitle = (view: "add" | "view" | "refund" | "details" | null) => {
@@ -93,7 +98,7 @@ const TransactionModal: React.FC = () => {
       <div className="flex justify-between items-center pl-6 pr-4 mb-4">
         <div className="flex justify-center gap-6 items-baseline">
           <h4 className="text-lg font-semibold">{modalTitle(view)}</h4>
-          {view !== "refund" && view !== "details" && (
+          {view !== "refund" && view !== "details" && !cancelled && (
             <button
               onClick={toggleView}
               className="text-xs text-gray-400 font-semibold hover:cursor-pointer hover:text-primary transition-all duration-200"

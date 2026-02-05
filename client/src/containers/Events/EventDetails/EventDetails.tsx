@@ -7,7 +7,7 @@ import EventItems from "./components/EventItems";
 import ClientDetails from "./components/ClientDetails";
 import EventDetailsSection from "./components/EventDetailsSection";
 import TaskAssignment from "./components/TaskAssignment";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LogisticsModal from "../../../components/common/LogisticsModal";
 import AddTaskForm from "./components/AddTaskForm";
 import type { CrewPreset } from "../types/CrewPreset";
@@ -21,6 +21,10 @@ import TransactionModal from "../CreateEvent/components/TransactionModal";
 import EditModal from "../../../components/common/EditModal";
 import ChipTag from "../../../components/common/ChipTag";
 import TAG_COLOR_MAP from "../../../config/TAG_COLOR_MAP";
+import { Ban, Ellipsis, Undo2 } from "lucide-react";
+import PopOver from "../../../components/common/PopOver";
+import { changeEventStatus } from "../services/eventService";
+import { useToast } from "../../../hooks/useToast";
 
 export type EditEventModalType =
   | "addTask"
@@ -34,7 +38,7 @@ type TagColor = keyof typeof TAG_COLOR_MAP;
 const statusMap: Record<string, { label: string; color: TagColor }> = {
   Draft: { label: "Draft", color: "gray" },
   Confirmed: { label: "Confirmed", color: "blue" },
-  Scheduled: { label: "Scheduled", color: "amber" },
+  Scheduled: { label: "Scheduled", color: "indigo" },
   Completed: { label: "Completed", color: "green" },
   Cancelled: { label: "Cancelled", color: "red" },
 };
@@ -42,13 +46,19 @@ const statusMap: Record<string, { label: string; color: TagColor }> = {
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const EventDetails: React.FC = () => {
-  const { fetchedEvent, isLoading } = useEventDetails();
+  const { fetchedEvent, isLoading, fetchEvent } = useEventDetails();
   const [taskType, setTaskType] = useState<string | null>(null);
   const [crewPresets, setCrewPresets] = useState<CrewPreset[]>([]);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [taskDetails, setTaskDetails] = useState<LogisticsTrip | null>(null);
+  const [popOverOpen, setPopOverOpen] = useState<boolean>(false);
+
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   const activeModal = useAppSelector((state) => state.ui.activeModal);
+
+  const { addToast } = useToast();
 
   const fetchCrewPresets = async () => {
     try {
@@ -59,9 +69,57 @@ const EventDetails: React.FC = () => {
     }
   };
 
+  const handleEventStatusChange = async (
+    eventUid: string | null,
+    status: string,
+  ) => {
+    if (!eventUid) return;
+
+    try {
+      // setErrors(null);
+      await changeEventStatus(apiUrl, eventUid, status);
+      addToast("Success", `Event status successfully changed to ${status}.`);
+      if (status === "draft") {
+        navigate(
+          `/events/create?clientId=${fetchedEvent?.clientUid}&eventId=${fetchedEvent?.uid}`,
+        );
+      } else {
+        fetchEvent();
+      }
+    } catch (err) {
+      // handleError(err, setErrors);
+    }
+  };
+
   useEffect(() => {
     fetchCrewPresets();
   }, []);
+
+  useEffect(() => {
+    if (!popOverOpen) return;
+
+    const close = (e: MouseEvent) => {
+      if (buttonRef.current?.contains(e.target as Node)) return;
+      setPopOverOpen(false);
+    };
+
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [popOverOpen]);
+
+  useEffect(() => {
+    if (!popOverOpen) return;
+
+    function handleScroll() {
+      setPopOverOpen(false);
+    }
+
+    window.addEventListener("scroll", handleScroll, true);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [popOverOpen]);
 
   const navigate = useNavigate();
 
@@ -82,6 +140,29 @@ const EventDetails: React.FC = () => {
 
   return (
     <main className="flex flex-col bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
+      {popOverOpen && anchorRect && (
+        <PopOver
+          anchorRect={anchorRect}
+          onClose={() => setPopOverOpen(false)}
+          buttons={[
+            {
+              icon: Undo2,
+              label: "Revert to Draft",
+              onClick: () => {
+                handleEventStatusChange(fetchedEvent.uid, "draft");
+              },
+            },
+            {
+              icon: Ban,
+              label: "Cancel Event",
+              onClick: () => {
+                handleEventStatusChange(fetchedEvent.uid, "cancelled");
+              },
+              danger: true,
+            },
+          ]}
+        />
+      )}
       {activeModal === "addTask" && (
         <LogisticsModal<EditEventModalType>
           title={`Add ${taskType} Task`}
@@ -116,10 +197,14 @@ const EventDetails: React.FC = () => {
         </AddModal>
       )}
       {activeModal === "payments" && (
-        <EditModal children={<TransactionModal />} />
+        <EditModal
+          children={
+            <TransactionModal cancelled={fetchedEvent.status === "Cancelled"} />
+          }
+        />
       )}
       <section className="flex flex-row justify-between items-center">
-        <div className="flex gap-4 items-center justify-baseline">
+        <div className="flex gap-4 items-center justify-end">
           <h2 className="text-2xl font-semibold text-primary">
             {fetchedEvent.eventName}
           </h2>
@@ -128,16 +213,33 @@ const EventDetails: React.FC = () => {
             color={statusMap[fetchedEvent.status].color}
           />
         </div>
+        <div className="flex gap-4">
+          {fetchedEvent.status !== "Cancelled" && (
+            <>
+              <ActionButton
+                label="Edit Event"
+                onClick={() => {
+                  navigate(
+                    `/events/create?clientId=${fetchedEvent.clientUid}&eventId=${fetchedEvent.uid}`,
+                  );
+                }}
+                style="outline"
+              />
 
-        <ActionButton
-          label="Edit Event"
-          onClick={() => {
-            navigate(
-              `/events/create?clientId=${fetchedEvent.clientUid}&eventId=${fetchedEvent.uid}`,
-            );
-          }}
-          style="outline"
-        />
+              <ActionButton
+                ref={buttonRef}
+                icon={Ellipsis}
+                label=""
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setAnchorRect(rect);
+                  setPopOverOpen((prev) => !prev);
+                }}
+                style="outline"
+              />
+            </>
+          )}
+        </div>
       </section>
       <section className="flex flex-col gap-4 h-full flex-1">
         <div className="grid grid-cols-[1fr_2fr] gap-4">

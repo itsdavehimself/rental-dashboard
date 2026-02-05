@@ -225,7 +225,30 @@ public class LogisticsController : ControllerBase
     }
 
     newTrip.Crew = assignments;  
-      
+
+    var allWorkTypes = await _context.LogisticsWorkItems
+        .Where(wi => wi.LogisticsTrip.EventId == eventJob.Id)
+        .Select(wi => wi.Type)
+        .ToListAsync();
+
+    allWorkTypes.AddRange(newTrip.WorkItems.Select(wi => wi.Type));
+
+    var requiredTypes = new[] 
+    { 
+        LogisticsWorkType.Delivery, 
+        LogisticsWorkType.Setup, 
+        LogisticsWorkType.Teardown, 
+        LogisticsWorkType.Pickup 
+    };
+
+    bool isFullyScheduled = requiredTypes.All(rt => allWorkTypes.Contains(rt));
+
+    if (isFullyScheduled)
+    {
+        eventJob.Status = Models.Event.EventStatus.Scheduled;
+        _context.Events.Update(eventJob);
+    }
+
     await _context.SaveChangesAsync();
 
     var responseTrip = await _context.LogisticsTrips
@@ -475,6 +498,23 @@ public class LogisticsController : ControllerBase
         StatusCode = StatusCodes.Status404NotFound
       };
     }
+
+    var eventJob = await _context.Events.FirstOrDefaultAsync(e => e.Id == trip.EventId);
+
+    if (eventJob == null)
+    {
+      return new ObjectResult(new ProblemDetails
+      {
+        Title = "Not Found",
+        Detail = "Related event not found.",
+        Status = StatusCodes.Status404NotFound
+      })
+      {
+        StatusCode = StatusCodes.Status404NotFound
+      };
+    }
+
+    eventJob.Status = Models.Event.EventStatus.Confirmed;
 
     _context.LogisticsTrips.Remove(trip);
     await _context.SaveChangesAsync();

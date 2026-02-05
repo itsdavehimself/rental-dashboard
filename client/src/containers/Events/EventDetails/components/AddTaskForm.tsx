@@ -104,7 +104,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
           addToast("Success", "Trip updated successfully.");
           fetchEvent();
         } else {
-          const savedLogistics = await createLogistics(
+          await createLogistics(
             apiUrl,
             fetchedEvent?.uid,
             data,
@@ -112,12 +112,8 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({
             endUtc,
             taskType!,
           );
-
-          if (savedLogistics) {
-            addLogisticsTrip(savedLogistics);
-          }
-
           addToast("Success", `Trip successfully added.`);
+          fetchEvent();
         }
 
         dispatch(closeModal());

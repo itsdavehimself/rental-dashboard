@@ -712,4 +712,64 @@ public class EventsController : ControllerBase
       total = eventDraft.Total
     });
   }
+
+  [HttpPost("{status}/{uid}")]
+  public async Task<IActionResult> ChangeEventStatus(string status, Guid uid)
+  {
+      var eventJob = await _context.Events.FirstOrDefaultAsync(e => e.Uid == uid);
+
+      if (eventJob == null)
+      {
+          return new ObjectResult(new ProblemDetails
+          {
+              Title = "Not Found",
+              Detail = "Event not found.",
+              Status = StatusCodes.Status404NotFound
+          })
+          {
+              StatusCode = StatusCodes.Status404NotFound
+          };
+      }
+
+      var isDraftRequest = status.Equals("draft", StringComparison.OrdinalIgnoreCase);
+      var isCancelRequest = status.Equals("cancelled", StringComparison.OrdinalIgnoreCase);
+
+      if (!isDraftRequest && !isCancelRequest)
+      {
+          return new ObjectResult(new ProblemDetails
+          {
+              Title = "Bad Request",
+              Detail = "Unsupported status transition.",
+              Status = StatusCodes.Status400BadRequest
+          })
+          {
+              StatusCode = StatusCodes.Status400BadRequest
+          };
+      }
+
+      if (eventJob.Status != EventStatus.Confirmed && eventJob.Status != EventStatus.Scheduled)
+      {
+          return new ObjectResult(new ProblemDetails
+          {
+              Title = "Bad Request",
+              Detail = $"Only Confirmed or Scheduled events can be moved to {status}.",
+              Status = StatusCodes.Status400BadRequest
+          })
+          {
+              StatusCode = StatusCodes.Status400BadRequest
+          };
+      }
+
+      eventJob.Status = isDraftRequest ? EventStatus.Draft : EventStatus.Cancelled;
+      
+      var tripsToCleanUp = await _context.LogisticsTrips
+        .Where(t => t.EventId == eventJob.Id)
+        .ToListAsync();
+
+      _context.LogisticsTrips.RemoveRange(tripsToCleanUp);
+
+      await _context.SaveChangesAsync();
+
+      return NoContent();
+  }
 }
