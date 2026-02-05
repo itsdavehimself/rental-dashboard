@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<ClientAddress> ClientAddresses => Set<ClientAddress>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<InventoryComponent> InventoryComponents => Set<InventoryComponent>();
     public DbSet<InventoryPurchase> InventoryPurchases => Set<InventoryPurchase>();
     public DbSet<InventoryRetirement> InventoryRetirements => Set<InventoryRetirement>();
     public DbSet<InventoryType> InventoryTypes => Set<InventoryType>();
@@ -82,6 +83,20 @@ public class AppDbContext : DbContext
           .WithMany(st => st.BounceHouseTypes)
           .HasForeignKey(b => b.InventorySubTypeId)
           .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<InventoryComponent>(entity =>
+          {
+              entity.HasKey(ic => ic.Id);
+              entity.HasOne(ic => ic.ParentItem)
+                  .WithMany(i => i.Components)
+                  .HasForeignKey(ic => ic.ParentItemId)
+                  .OnDelete(DeleteBehavior.Cascade);
+              entity.HasOne(ic => ic.ChildItem)
+                  .WithMany(i => i.ParentItems)
+                  .HasForeignKey(ic => ic.ChildItemId)
+                  .OnDelete(DeleteBehavior.Restrict); 
+              entity.HasIndex(ic => new { ic.ParentItemId, ic.ChildItemId }).IsUnique();
+          });
 
         // --- PACKAGES ---
         modelBuilder.Entity<PackageItem>()

@@ -26,6 +26,8 @@ public class InventoryItem
   public decimal? Width { get; set; }
   public decimal? Height { get; set; }
   public string? Variant { get; set; } = string.Empty;
+  public List<InventoryComponent> Components { get; set; } = [];
+  public List<InventoryComponent> ParentItems { get; set; } = [];
   public List<InventoryPurchase> Purchases { get; set; } = [];
   public List<InventoryRetirement> Retirements { get; set; } = [];
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
