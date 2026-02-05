@@ -18,6 +18,7 @@ type TagColor = keyof typeof TAG_COLOR_MAP;
 
 const statusMap: Record<string, { label: string; color: TagColor }> = {
   Draft: { label: "Draft", color: "gray" },
+  OnHold: { label: "On Hold", color: "orange" },
   Confirmed: { label: "Confirmed", color: "blue" },
   Scheduled: { label: "Scheduled", color: "indigo" },
   Completed: { label: "Completed", color: "green" },

@@ -731,15 +731,15 @@ public class EventsController : ControllerBase
           };
       }
 
-      var isDraftRequest = status.Equals("draft", StringComparison.OrdinalIgnoreCase);
+      var isHoldRequest = status.Equals("onhold", StringComparison.OrdinalIgnoreCase);
       var isCancelRequest = status.Equals("cancelled", StringComparison.OrdinalIgnoreCase);
 
-      if (!isDraftRequest && !isCancelRequest)
+      if (!isHoldRequest && !isCancelRequest)
       {
           return new ObjectResult(new ProblemDetails
           {
               Title = "Bad Request",
-              Detail = "Unsupported status transition.",
+              Detail = "Unsupported status transition. Use specific endpoints for Confirming or Scheduling.",
               Status = StatusCodes.Status400BadRequest
           })
           {
@@ -747,7 +747,9 @@ public class EventsController : ControllerBase
           };
       }
 
-      if (eventJob.Status != EventStatus.Confirmed && eventJob.Status != EventStatus.Scheduled)
+      if (eventJob.Status != EventStatus.Confirmed && 
+        eventJob.Status != EventStatus.Scheduled && 
+        eventJob.Status != EventStatus.OnHold)
       {
           return new ObjectResult(new ProblemDetails
           {
@@ -760,11 +762,11 @@ public class EventsController : ControllerBase
           };
       }
 
-      eventJob.Status = isDraftRequest ? EventStatus.Draft : EventStatus.Cancelled;
+      eventJob.Status = isHoldRequest ? EventStatus.OnHold : EventStatus.Cancelled;
       
       var tripsToCleanUp = await _context.LogisticsTrips
-        .Where(t => t.EventId == eventJob.Id)
-        .ToListAsync();
+          .Where(t => t.EventId == eventJob.Id)
+          .ToListAsync();
 
       _context.LogisticsTrips.RemoveRange(tripsToCleanUp);
 

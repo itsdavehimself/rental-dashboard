@@ -21,7 +21,7 @@ import TransactionModal from "../CreateEvent/components/TransactionModal";
 import EditModal from "../../../components/common/EditModal";
 import ChipTag from "../../../components/common/ChipTag";
 import TAG_COLOR_MAP from "../../../config/TAG_COLOR_MAP";
-import { Ban, Ellipsis, Undo2 } from "lucide-react";
+import { Ban, CirclePause, Ellipsis } from "lucide-react";
 import PopOver from "../../../components/common/PopOver";
 import { changeEventStatus } from "../services/eventService";
 import { useToast } from "../../../hooks/useToast";
@@ -37,6 +37,7 @@ type TagColor = keyof typeof TAG_COLOR_MAP;
 
 const statusMap: Record<string, { label: string; color: TagColor }> = {
   Draft: { label: "Draft", color: "gray" },
+  OnHold: { label: "On Hold", color: "orange" },
   Confirmed: { label: "Confirmed", color: "blue" },
   Scheduled: { label: "Scheduled", color: "indigo" },
   Completed: { label: "Completed", color: "green" },
@@ -78,14 +79,12 @@ const EventDetails: React.FC = () => {
     try {
       // setErrors(null);
       await changeEventStatus(apiUrl, eventUid, status);
-      addToast("Success", `Event status successfully changed to ${status}.`);
-      if (status === "draft") {
-        navigate(
-          `/events/create?clientId=${fetchedEvent?.clientUid}&eventId=${fetchedEvent?.uid}`,
-        );
-      } else {
-        fetchEvent();
-      }
+      const statusLabel = statusMap[status]?.label || status;
+      addToast(
+        "Success",
+        `Event status successfully changed to ${statusLabel}.`,
+      );
+      fetchEvent();
     } catch (err) {
       // handleError(err, setErrors);
     }
@@ -146,10 +145,10 @@ const EventDetails: React.FC = () => {
           onClose={() => setPopOverOpen(false)}
           buttons={[
             {
-              icon: Undo2,
-              label: "Revert to Draft",
+              icon: CirclePause,
+              label: "Hold Event",
               onClick: () => {
-                handleEventStatusChange(fetchedEvent.uid, "draft");
+                handleEventStatusChange(fetchedEvent.uid, "onhold");
               },
             },
             {

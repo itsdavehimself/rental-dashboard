@@ -30,6 +30,11 @@ const TAG_COLOR_MAP = {
     text: "text-indigo-800",
     outline: "outline-indigo-500",
   },
+  orange: {
+    bg: "bg-orange-200",
+    text: "text-orange-800",
+    outline: "outline-orange-500",
+  },
 } as const;
 
 export default TAG_COLOR_MAP;

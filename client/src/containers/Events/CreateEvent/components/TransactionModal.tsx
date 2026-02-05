@@ -27,7 +27,7 @@ interface TransactionModalProps {
   cancelled?: boolean;
 }
 
-const TransactionModal: React.FC = ({ cancelled }) => {
+const TransactionModal: React.FC<TransactionModalProps> = ({ cancelled }) => {
   const {
     handleSubmit,
     register,

@@ -51,6 +51,7 @@ type EventStatus =
   | "Draft"
   | "Confirmed"
   | "Scheduled"
+  | "On Hold"
   | "Completed"
   | "Cancelled";
 

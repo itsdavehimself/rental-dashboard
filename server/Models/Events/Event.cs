@@ -53,6 +53,7 @@ public enum EventStatus
   Draft,
   Confirmed,
   Scheduled,
+  OnHold,
   Completed,
   Cancelled
 }
