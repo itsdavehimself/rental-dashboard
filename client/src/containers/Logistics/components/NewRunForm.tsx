@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FocusEvent } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import DatePicker from "../../../components/common/DatePicker";
 import StyledInput from "../../../components/common/StyledInput";
 import SubmitButton from "../../../components/common/SubmitButton";
@@ -20,6 +20,23 @@ import {
 } from "../services/logisticsService";
 import { fetchEvents } from "../../Events/services/eventService";
 import type { DispatchRun } from "./RunCard";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const apiUrl = import.meta.env.VITE_API_BASE_URL;
 import { useAppDispatch } from "../../../app/hooks";
@@ -85,6 +102,97 @@ interface NewRunFormProps {
   initialManifestItems?: PrefillManifestItem[];
 }
 
+type SortableManifestItemProps = {
+  item: ManifestItemDraft;
+  formatManifestType: (type: ManifestWorkType) => string;
+  formatEventWindow: (
+    eventStart?: string | null,
+    eventEnd?: string | null,
+  ) => string | null;
+  getTaskTimingHint: (item: ManifestItemDraft) => string | null;
+  removeManifestItem: (id: string) => void;
+};
+
+const SortableManifestItem: React.FC<SortableManifestItemProps> = ({
+  item,
+  formatManifestType,
+  formatEventWindow,
+  getTaskTimingHint,
+  removeManifestItem,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`grid grid-cols-[2rem_1fr_auto] gap-3 items-center rounded-lg border-1 border-gray-200 p-3 transition-shadow ${
+        isDragging ? "bg-white shadow-lg z-10" : "bg-gray-50"
+      }`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="flex justify-center items-center h-8 w-8 text-gray-400 hover:text-primary hover:cursor-grab active:cursor-grabbing transition-colors"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      <div className="flex flex-col">
+        <div className="flex gap-2 items-center">
+          <p className="font-semibold text-sm">
+            {formatManifestType(item.type)}
+          </p>
+
+          <span className="text-[11px] text-gray-400">#{item.sortOrder}</span>
+        </div>
+
+        {item.eventName ? (
+          <>
+            <p className="text-xs text-gray-500">{item.eventName}</p>
+            <p className="text-xs text-gray-400">{item.location}</p>
+
+            {formatEventWindow(item.eventStart, item.eventEnd) && (
+              <p className="text-xs font-semibold text-gray-500">
+                {formatEventWindow(item.eventStart, item.eventEnd)}
+              </p>
+            )}
+
+            {getTaskTimingHint(item) && (
+              <p className="text-[11px] text-gray-400">
+                {getTaskTimingHint(item)}
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-gray-400">Warehouse task</p>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => removeManifestItem(item.id)}
+        className="text-gray-500 hover:text-primary hover:cursor-pointer transition-colors duration-200"
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  );
+};
+
 const NewRunForm: React.FC<NewRunFormProps> = ({
   mode = "create",
   initialRun,
@@ -133,6 +241,17 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
   const [eventOptionsRaw, setEventOptionsRaw] = useState<EventOption[]>([]);
   const [selectedEventUid, setSelectedEventUid] = useState<string>("");
   const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const truckRef = useRef<HTMLDivElement>(null);
   const leadRef = useRef<HTMLDivElement>(null);
@@ -291,24 +410,18 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
     );
   };
 
-  const moveManifestItem = (id: string, direction: "up" | "down") => {
+  const handleManifestDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
     setManifestItems((prev) => {
-      const currentIndex = prev.findIndex((item) => item.id === id);
+      const oldIndex = prev.findIndex((item) => item.id === active.id);
+      const newIndex = prev.findIndex((item) => item.id === over.id);
 
-      if (currentIndex === -1) return prev;
+      if (oldIndex === -1 || newIndex === -1) return prev;
 
-      const targetIndex =
-        direction === "up" ? currentIndex - 1 : currentIndex + 1;
-
-      if (targetIndex < 0 || targetIndex >= prev.length) return prev;
-
-      const next = [...prev];
-      const currentItem = next[currentIndex];
-
-      next[currentIndex] = next[targetIndex];
-      next[targetIndex] = currentItem;
-
-      return resequenceManifestItems(next);
+      return resequenceManifestItems(arrayMove(prev, oldIndex, newIndex));
     });
   };
 
@@ -708,81 +821,27 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
                 building the run.
               </div>
             ) : (
-              manifestItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-[2rem_1fr_auto] gap-3 items-center rounded-lg bg-gray-50 border-1 border-gray-200 p-3"
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleManifestDragEnd}
+              >
+                <SortableContext
+                  items={manifestItems.map((item) => item.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <div className="flex justify-center items-center h-8 w-8 rounded-full bg-white border-1 border-gray-200 text-sm font-semibold">
-                    {item.sortOrder}
-                  </div>
-
-                  <div className="flex flex-col">
-                    <p className="font-semibold text-sm">
-                      {formatManifestType(item.type)}
-                    </p>
-
-                    {item.eventName ? (
-                      <>
-                        <p className="text-xs text-gray-500">
-                          {item.eventName}
-                        </p>
-                        <p className="text-xs text-gray-400">{item.location}</p>
-
-                        {formatEventWindow(item.eventStart, item.eventEnd) && (
-                          <p className="text-xs font-semibold text-gray-500">
-                            {formatEventWindow(item.eventStart, item.eventEnd)}
-                          </p>
-                        )}
-
-                        {getTaskTimingHint(item) && (
-                          <p className="text-[11px] text-gray-400">
-                            {getTaskTimingHint(item)}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="text-xs text-gray-400">Warehouse task</p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2 items-center">
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => moveManifestItem(item.id, "up")}
-                      className={`transition-colors duration-200 ${
-                        index === 0
-                          ? "text-gray-300 cursor-default"
-                          : "text-gray-500 hover:text-primary hover:cursor-pointer"
-                      }`}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={index === manifestItems.length - 1}
-                      onClick={() => moveManifestItem(item.id, "down")}
-                      className={`transition-colors duration-200 ${
-                        index === manifestItems.length - 1
-                          ? "text-gray-300 cursor-default"
-                          : "text-gray-500 hover:text-primary hover:cursor-pointer"
-                      }`}
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => removeManifestItem(item.id)}
-                      className="text-gray-500 hover:text-primary hover:cursor-pointer transition-colors duration-200"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))
+                  {manifestItems.map((item) => (
+                    <SortableManifestItem
+                      key={item.id}
+                      item={item}
+                      formatManifestType={formatManifestType}
+                      formatEventWindow={formatEventWindow}
+                      getTaskTimingHint={getTaskTimingHint}
+                      removeManifestItem={removeManifestItem}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             )}
           </div>
         </section>
