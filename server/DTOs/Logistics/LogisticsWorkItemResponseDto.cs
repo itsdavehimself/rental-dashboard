@@ -1,3 +1,5 @@
+using server.Models.Event;
+
 public class LogisticsWorkItemResponseDto
 {
     public Guid Uid { get; set; }

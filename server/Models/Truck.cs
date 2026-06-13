@@ -1,3 +1,5 @@
+using server.Models.Event;
+
 public class Truck
 {
     public int Id { get; set; }

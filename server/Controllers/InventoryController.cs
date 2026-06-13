@@ -167,6 +167,7 @@ public async Task<IActionResult> GetInventory(
       InventorySubTypeId = request.SubType,
       InventoryColorId = request.Color,
       InventoryMaterialId = request.Material,
+      BounceHouseTypeId = request.BounceHouseType,
       Notes = request.Notes,
       UnitPrice = request.UnitPrice,
       Length = request.Length,
@@ -179,7 +180,7 @@ public async Task<IActionResult> GetInventory(
       Variant = request.Variant
     };
 
-    item.SKU = InventorySkuHelper.GenerateSku(item, request.Variant);
+    item.SKU = InventorySkuHelper.GenerateSku(item);
 
     _context.InventoryItems.Add(item);
     await _context.SaveChangesAsync();
@@ -450,4 +451,222 @@ public async Task<IActionResult> GetInventory(
 
     return Ok(new { types = result });
   }
+
+  [HttpGet("{uid}")]
+  public async Task<IActionResult> GetItemByUid(Guid uid)
+  {
+      var item = await _context.InventoryItems
+          .Include(i => i.Type)
+          .Include(i => i.SubType)
+          .Include(i => i.Color)
+          .Include(i => i.Material)
+          .Include(i => i.BounceHouseType)
+          .Include(i => i.Purchases)
+          .Include(i => i.Retirements).Include(i => i.Components)     
+              .ThenInclude(c => c.ChildItem)   
+          .FirstOrDefaultAsync(i => i.Uid == uid);
+
+      if (item == null) return NotFound(new { message = "Item not found" });
+
+      var response = new
+      {
+          uid = item.Uid,
+          description = item.Description,
+          type = item.Type?.Name ?? "",
+          subType = item.SubType?.Name ?? "",
+          color = item.Color?.Name ?? "",
+          material = item.Material?.Name ?? "",
+          bounceHouseType = item.BounceHouseType?.Name ?? "",
+          sku = item.SKU,
+          notes = item.Notes,
+          imageUrl = item.ImageUrl,
+          length = item.Length,
+          width = item.Width,
+          height = item.Height,
+          unitPrice = item.UnitPrice,
+          averagePurchaseCost = item.AveragePurchaseCost,
+          isActive = item.IsActive,
+          packageOnly = item.PackageOnly,
+          quantityTotal = item.Purchases.Sum(p => p.QuantityPurchased) - item.Retirements.Sum(r => r.QuantityRetired),
+          components = item.Components.Select(c => new {
+              id = c.Id,
+              childItemUid = c.ChildItem.Uid,
+              description = c.ChildItem.Description,
+              sku = c.ChildItem.SKU,
+              quantity = c.Quantity,
+              isRequired = c.IsRequired
+          }),
+          purchases = item.Purchases.Select(p => new {
+              id = p.Id,
+              quantityPurchased = p.QuantityPurchased,
+              unitCost = p.UnitCost,
+              vendorName = p.VendorName,
+              datePurchased = p.DatePurchased
+          }),
+          retirements = item.Retirements.Select(r => new {
+              id = r.Id,
+              quantityRetired = r.QuantityRetired,
+              reason = (int)r.Reason, 
+              notes = r.Notes,
+              dateRetired = r.DateRetired
+          })
+      };
+
+      return Ok(response);
+  }
+
+  public class RecordPurchaseDto 
+  {
+      public int Quantity { get; set; }
+      public decimal UnitCost { get; set; }
+      public string? VendorName { get; set; }
+      public DateTime DatePurchased { get; set; }
+  }
+
+  [HttpPost("{uid}/purchase")]
+  public async Task<IActionResult> RecordPurchase(Guid uid, [FromBody] RecordPurchaseDto request)
+  {
+      var item = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == uid);
+      if (item == null) return NotFound();
+
+      var purchase = new InventoryPurchase
+      {
+          InventoryItemId = item.Id,
+          QuantityPurchased = request.Quantity,
+          UnitCost = request.UnitCost,
+          VendorName = request.VendorName,
+          DatePurchased = request.DatePurchased.ToUniversalTime()
+      };
+
+      _context.InventoryPurchases.Add(purchase);
+      await _context.SaveChangesAsync();
+
+      return Ok(new {
+          id = purchase.Id,
+          quantityPurchased = purchase.QuantityPurchased,
+          unitCost = purchase.UnitCost,
+          vendorName = purchase.VendorName,
+          datePurchased = purchase.DatePurchased
+      });
+  }
+
+  public class RecordRetirementDto 
+  {
+      public int Quantity { get; set; }
+      public ReasonType Reason { get; set; }
+      public string? Notes { get; set; }
+      public DateTime DateRetired { get; set; }
+  }
+
+  [HttpPost("{uid}/retire")]
+  public async Task<IActionResult> RecordRetirement(Guid uid, [FromBody] RecordRetirementDto request)
+  {
+      var item = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == uid);
+      if (item == null) return NotFound();
+
+      var retirement = new InventoryRetirement
+      {
+          InventoryItemId = item.Id,
+          QuantityRetired = request.Quantity,
+          Reason = request.Reason,
+          Notes = request.Notes,
+          DateRetired = request.DateRetired.ToUniversalTime()
+      };
+
+      _context.InventoryRetirements.Add(retirement);
+      await _context.SaveChangesAsync();
+
+      return Ok(new {
+          id = retirement.Id,
+          quantityRetired = retirement.QuantityRetired,
+          reason = (int)retirement.Reason,
+          notes = retirement.Notes,
+          dateRetired = retirement.DateRetired
+      });
+  }
+
+  public class AddComponentDto 
+  {
+      public Guid ChildItemUid { get; set; }
+      public int Quantity { get; set; }
+      public bool IsRequired { get; set; }
+  }
+
+  [HttpPost("{uid}/components")]
+  public async Task<IActionResult> AddComponent(Guid uid, [FromBody] AddComponentDto request)
+  {
+      var parent = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == uid);
+      var child = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == request.ChildItemUid);
+
+      if (parent == null || child == null) return NotFound(new { message = "Parent or Child item not found." });
+
+      var existing = await _context.InventoryComponents
+          .FirstOrDefaultAsync(c => c.ParentItemId == parent.Id && c.ChildItemId == child.Id);
+
+      if (existing != null) return BadRequest(new { message = "This item is already attached as a component." });
+
+      var component = new InventoryComponent
+      {
+          ParentItemId = parent.Id,
+          ChildItemId = child.Id,
+          Quantity = request.Quantity,
+          IsRequired = request.IsRequired
+      };
+
+      _context.InventoryComponents.Add(component);
+      await _context.SaveChangesAsync();
+
+      return Ok(new {
+          id = component.Id,
+          childItemUid = child.Uid,
+          description = child.Description,
+          sku = child.SKU,
+          quantity = component.Quantity,
+          isRequired = component.IsRequired
+      });
+  }
+
+  [HttpDelete("components/{componentId}")]
+  public async Task<IActionResult> RemoveComponent(int componentId)
+  {
+      var component = await _context.InventoryComponents.FindAsync(componentId);
+      if (component == null) return NotFound();
+
+      _context.InventoryComponents.Remove(component);
+      await _context.SaveChangesAsync();
+
+      return Ok();
+  }
+
+  public class UpdateItemDto
+  {
+      public string Description { get; set; } = string.Empty;
+      public decimal UnitPrice { get; set; }
+      public decimal? Length { get; set; }
+      public decimal? Width { get; set; }
+      public decimal? Height { get; set; }
+      public string? Notes { get; set; }
+      public string? Variant { get; set; }
+  }
+
+  [HttpPut("{uid}")]
+  public async Task<IActionResult> UpdateItem(Guid uid, [FromBody] UpdateItemDto request)
+  {
+      var item = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == uid);
+      if (item == null) return NotFound(new { message = "Item not found" });
+
+      item.Description = request.Description;
+      item.UnitPrice = request.UnitPrice;
+      item.Length = request.Length;
+      item.Width = request.Width;
+      item.Height = request.Height;
+      item.Notes = request.Notes;
+      item.Variant = request.Variant;
+      item.UpdatedAt = DateTime.UtcNow;
+
+      await _context.SaveChangesAsync();
+
+      return Ok(new { message = "Item updated successfully" });
+  }
+  
 }

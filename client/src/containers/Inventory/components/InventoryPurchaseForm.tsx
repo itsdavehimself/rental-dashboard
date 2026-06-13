@@ -2,6 +2,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import StyledInput from "../../../components/common/StyledInput";
 import CurrencyInput from "../../../components/common/CurrencyInput";
 import SubmitButton from "../../../components/common/SubmitButton";
+import DatePicker from "../../../components/common/DatePicker";
 import { useEffect } from "react";
 import { toCamelCasePath } from "../../../helpers/toCamelCasePath";
 
@@ -9,6 +10,7 @@ export type InventoryPurchaseInput = {
   quantity: number;
   unitCost: number;
   vendorName: string;
+  datePurchased: Date;
 };
 
 interface InventoryPurchaseFormProps {
@@ -30,9 +32,14 @@ const InventoryPurchaseForm: React.FC<InventoryPurchaseFormProps> = ({
     setError,
     clearErrors,
     formState: { errors: formErrors },
-  } = useForm<InventoryPurchaseInput>();
+  } = useForm<InventoryPurchaseInput>({
+    defaultValues: {
+      datePurchased: new Date(),
+    },
+  });
 
   const unitCost = watch("unitCost");
+  const datePurchased = watch("datePurchased");
 
   useEffect(() => {
     if (errors && typeof errors === "object" && !Array.isArray(errors)) {
@@ -40,7 +47,7 @@ const InventoryPurchaseForm: React.FC<InventoryPurchaseFormProps> = ({
 
       Object.entries(errors).forEach(([fieldName, errorMessages]) => {
         const fieldKey = toCamelCasePath(
-          fieldName
+          fieldName,
         ) as keyof InventoryPurchaseInput;
 
         if (Array.isArray(errorMessages) && errorMessages.length > 0) {
@@ -53,9 +60,16 @@ const InventoryPurchaseForm: React.FC<InventoryPurchaseFormProps> = ({
     }
   }, [errors, setError, clearErrors]);
 
+  const handleFormSubmit = (data: InventoryPurchaseInput) => {
+    onSubmit({
+      ...data,
+      unitCost: data.unitCost ? Number(data.unitCost) : 0,
+    });
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(handleFormSubmit)}
       className="flex flex-col justify-center px-8 pt-4 gap-4"
     >
       <StyledInput
@@ -64,25 +78,37 @@ const InventoryPurchaseForm: React.FC<InventoryPurchaseFormProps> = ({
         disabled={true}
         defaultText={item?.name}
       />
-      <StyledInput
-        label="Quantity"
-        placeholder="100"
-        register={register("quantity", { valueAsNumber: true })}
-        error={formErrors.quantity?.message}
-      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <StyledInput
+          label="Quantity"
+          placeholder="100"
+          register={register("quantity", { valueAsNumber: true })}
+          error={formErrors.quantity?.message}
+        />
+        <DatePicker
+          label="Date"
+          date={datePurchased}
+          onSelect={(val) => setValue("datePurchased", val)}
+          disablePastDates={false}
+        />
+      </div>
+
       <CurrencyInput
         label="Unit Cost"
         value={unitCost}
         onValueChange={(val) => setValue("unitCost", val)}
       />
+
       <StyledInput
         label="Vendor"
-        placeholder="Home Depot"
+        placeholder="e.g. Home Depot"
         register={register("vendorName")}
         error={formErrors.vendorName?.message}
         optional={true}
       />
-      <div className="self-center w-1/4">
+
+      <div className="self-center w-1/4 mt-2">
         <SubmitButton label="Add" />
       </div>
     </form>

@@ -49,6 +49,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
               label="Delete"
               onClick={deleteAction}
               style="filled"
+              type="delete"
             />
           </div>
         </div>

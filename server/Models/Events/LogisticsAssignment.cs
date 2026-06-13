@@ -1,4 +1,5 @@
 using server.Models.User;
+using server.Models.Event;
 
 public class LogisticsAssignment
 {

@@ -74,6 +74,7 @@ type EventItem = {
 
 export type LogisticsTrip = {
   uid: string;
+  name?: string;
   actualArrival: string;
   actualStart: string;
   completedAt: string;
@@ -114,6 +115,8 @@ type WorkItem = {
   notes: string;
   type: string;
   uid: string;
+  status?: string;
+  sortOrder?: number;
 };
 
 type TransactionType = "Payment" | "Refund" | "Adjustment";

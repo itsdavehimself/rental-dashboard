@@ -11,7 +11,7 @@ import Events from "./containers/Events/EventsDashboard/Events";
 import Clients from "./containers/Clients/Clients";
 import Team from "./containers/Team/Team";
 import ToastProvider from "./context/ToastProvider";
-import ResidentialClient from "./containers/Clients/ResidentialClient";
+import ResidentialClient from "./containers/Clients/ResidentialClient/ResidentialClient";
 import Library from "./containers/Library/Library";
 import Vendors from "./containers/Vendors/Vendors";
 import CreateEvent from "./containers/Events/CreateEvent/CreateEvent";
@@ -21,6 +21,9 @@ import { EventDetailsProvider } from "./containers/Events/context/EventDetailsPr
 import { BillingProvider } from "./containers/Events/context/BillingProvider";
 import { useLocation } from "react-router";
 import NavigationHandler from "./components/common/NavigationHandler";
+import InventorySettings from "./containers/Inventory/InventorySettings/InventorySettings";
+import ItemDetails from "./containers/Inventory/InventoryDetails/ItemDetails";
+import Logistics from "./containers/Logistics/Logistics";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -43,7 +46,11 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/inventory" element={<Outlet />}>
+            <Route index element={<Inventory />} />
+            <Route path="settings" element={<InventorySettings />} />
+            <Route path=":uid" element={<ItemDetails />} />
+          </Route>
           <Route path="/events" element={<Outlet />}>
             <Route
               index
@@ -78,7 +85,7 @@ function App() {
             <Route index element={<Clients />} />
             <Route path=":uid" element={<ResidentialClient />} />
           </Route>
-
+          <Route path="/logistics" element={<Logistics />}></Route>
           <Route path="/team" element={<Team />} />
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/library" element={<Library />} />

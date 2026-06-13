@@ -6,12 +6,39 @@ type InventoryListItem = {
   unitPrice: number;
 };
 
+export type InventoryPurchase = {
+  id: number;
+  quantityPurchased: number;
+  unitCost: number;
+  vendorName?: string;
+  datePurchased: string;
+};
+
+export type InventoryRetirement = {
+  id: number;
+  quantityRetired: number;
+  reason: number;
+  notes?: string;
+  dateRetired: string;
+};
+
+export type InventoryItemComponent = {
+  id: number;
+  childItemUid: string;
+  description: string;
+  sku: string;
+  quantity: number;
+  isRequired: boolean;
+};
+
 type InventoryItemDetails = {
   uid: string;
   description: string;
   type: string;
   subType: string;
   color: string;
+  material: string;
+  bounceHouseType: string;
   quantityTotal: number;
   sku: string;
   notes?: string;
@@ -19,11 +46,13 @@ type InventoryItemDetails = {
   length?: number;
   width?: number;
   height?: number;
-  material?: number;
   unitPrice: number;
-  purchaseCost?: number;
+  averagePurchaseCost?: number;
   isActive: boolean;
   packageOnly: boolean;
+  purchases: InventoryPurchase[];
+  retirements: InventoryRetirement[];
+  components: InventoryItemComponent[];
 };
 
 type InventoryItemSearchResult = {

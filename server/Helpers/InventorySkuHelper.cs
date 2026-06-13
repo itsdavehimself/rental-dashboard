@@ -4,55 +4,33 @@ namespace server.Helpers;
 
 public static class InventorySkuHelper
 {
-  public static string GenerateSku(InventoryItem i, string? suffix = null)
-  {
-    if (string.IsNullOrWhiteSpace(i.Type?.SkuCode)) throw new ArgumentException("Missing Type SKU Code");
-    if (string.IsNullOrWhiteSpace(i.SubType?.SkuCode)) throw new ArgumentException("Missing SubType SKU Code");
-    if (string.IsNullOrWhiteSpace(i.Color?.SkuCode)) throw new ArgumentException("Missing Color SKU Code");
-
-    var parts = new List<string>
+    public static string GenerateSku(InventoryItem item, string? suffix = null)
     {
-      i.Type.SkuCode,
-      i.SubType.SkuCode
-    };
+        var prefix = string.IsNullOrWhiteSpace(item.Type?.SkuCode) 
+            ? "INV" 
+            : Sanitize(item.Type.SkuCode);
 
-    if (!string.IsNullOrWhiteSpace(i.Material?.SkuCode))
-      parts.Add(i.Material.SkuCode);
+        var uniqueHash = item.Uid.ToString("N").Substring(0, 6).ToUpperInvariant();
 
-    var size = FormatSize(i.Length, i.Width);
-    if (size is not null)
-      parts.Add(size);
+        var sku = $"{prefix}-{uniqueHash}";
 
-    parts.Add(i.Color.SkuCode);
+        if (!string.IsNullOrWhiteSpace(suffix))
+        {
+            sku += $"-{Sanitize(suffix)}";
+        }
 
-    if (!string.IsNullOrWhiteSpace(suffix))
-      parts.Add(SanitizeSuffix(suffix));
+        return sku;
+    }
 
-    return string.Join("-", parts);
-  }
+    private static string Sanitize(string s)
+    {
+        var upper = s.Trim().ToUpperInvariant();
+        return new string(upper.Where(ch => char.IsLetterOrDigit(ch)).ToArray());
+    }
 
-
-  private static string? FormatSize(decimal? length, decimal? width)
-  {
-    if (!length.HasValue || !width.HasValue) return null;
-
-    var L = Math.Ceiling(Math.Max(length.Value, width.Value));
-    var W = Math.Ceiling(Math.Min(length.Value, width.Value));
-
-    string fmt(decimal v) => v >= 100 ? v.ToString("0") : v.ToString("00");
-
-    return $"{fmt(L)}X{fmt(W)}";
-  }
-
-  private static string SanitizeSuffix(string s)
-  {
-    var upper = s.Trim().ToUpperInvariant();
-    return new string(upper.Where(ch => char.IsLetterOrDigit(ch)).ToArray());
-  }
-
-  public static bool TryParseSku(string sku, out string[] parts)
-  {
-    parts = sku.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    return parts.Length >= 3;
-  }
+    public static bool TryParseSku(string sku, out string[] parts)
+    {
+        parts = sku.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length >= 2;
+    }
 }

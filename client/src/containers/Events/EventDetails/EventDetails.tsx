@@ -6,15 +6,9 @@ import EventDetailsTotals from "./components/EventDetailsTotals";
 import EventItems from "./components/EventItems";
 import ClientDetails from "./components/ClientDetails";
 import EventDetailsSection from "./components/EventDetailsSection";
-import TaskAssignment from "./components/TaskAssignment";
 import { useState, useEffect, useRef } from "react";
-import LogisticsModal from "../../../components/common/LogisticsModal";
-import AddTaskForm from "./components/AddTaskForm";
 import type { CrewPreset } from "../types/CrewPreset";
 import { getCrewPresets } from "../services/crewService";
-import AddModal from "../../../components/common/AddModal";
-import SplitTaskModal from "./components/SplitTaskModal";
-import DeleteTaskModal from "./components/DeleteTaskModal";
 import type { LogisticsTrip } from "../types/Event";
 import { useAppSelector } from "../../../app/hooks";
 import TransactionModal from "../CreateEvent/components/TransactionModal";
@@ -25,13 +19,7 @@ import { Ban, CirclePause, Ellipsis } from "lucide-react";
 import PopOver from "../../../components/common/PopOver";
 import { changeEventStatus } from "../services/eventService";
 import { useToast } from "../../../hooks/useToast";
-
-export type EditEventModalType =
-  | "addTask"
-  | "confirmSplit"
-  | "deleteTask"
-  | "editTask"
-  | null;
+import EventLogisticsPanel from "./components/EventLogisticsPanel";
 
 type TagColor = keyof typeof TAG_COLOR_MAP;
 
@@ -48,10 +36,6 @@ const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const EventDetails: React.FC = () => {
   const { fetchedEvent, isLoading, fetchEvent } = useEventDetails();
-  const [taskType, setTaskType] = useState<string | null>(null);
-  const [crewPresets, setCrewPresets] = useState<CrewPreset[]>([]);
-  const [selectedTask, setSelectedTask] = useState<string | null>(null);
-  const [taskDetails, setTaskDetails] = useState<LogisticsTrip | null>(null);
   const [popOverOpen, setPopOverOpen] = useState<boolean>(false);
 
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
@@ -60,15 +44,6 @@ const EventDetails: React.FC = () => {
   const activeModal = useAppSelector((state) => state.ui.activeModal);
 
   const { addToast } = useToast();
-
-  const fetchCrewPresets = async () => {
-    try {
-      const crewPresets = await getCrewPresets(apiUrl);
-      setCrewPresets(crewPresets);
-    } catch (err) {
-      console.error("Error fetching active trucks:", err);
-    }
-  };
 
   const handleEventStatusChange = async (
     eventUid: string | null,
@@ -89,10 +64,6 @@ const EventDetails: React.FC = () => {
       // handleError(err, setErrors);
     }
   };
-
-  useEffect(() => {
-    fetchCrewPresets();
-  }, []);
 
   useEffect(() => {
     if (!popOverOpen) return;
@@ -162,39 +133,6 @@ const EventDetails: React.FC = () => {
           ]}
         />
       )}
-      {activeModal === "addTask" && (
-        <LogisticsModal<EditEventModalType>
-          title={`Add ${taskType} Task`}
-          modalKey="addTask"
-        >
-          <AddTaskForm taskType={taskType} crewPresets={crewPresets} />
-        </LogisticsModal>
-      )}
-      {activeModal === "editTask" && (
-        <LogisticsModal<EditEventModalType>
-          title={`Edit ${taskType} Task`}
-          modalKey="editTask"
-        >
-          <AddTaskForm
-            taskType={taskType}
-            crewPresets={crewPresets}
-            taskDetails={taskDetails}
-          />
-        </LogisticsModal>
-      )}
-      {activeModal === "deleteTask" && (
-        <AddModal<EditEventModalType> title="Delete Task" modalKey="deleteTask">
-          <DeleteTaskModal taskToDelete={selectedTask} />
-        </AddModal>
-      )}
-      {activeModal === "confirmSplit" && (
-        <AddModal<EditEventModalType>
-          title="Confirm Task Split"
-          modalKey="confirmSplit"
-        >
-          <SplitTaskModal taskToSplit={selectedTask} />
-        </AddModal>
-      )}
       {activeModal === "payments" && (
         <EditModal
           children={
@@ -250,11 +188,7 @@ const EventDetails: React.FC = () => {
         </div>
         <div className="grid grid-cols-[1fr_2fr] gap-4 h-full">
           <ClientDetails />
-          <TaskAssignment
-            setTaskType={setTaskType}
-            setSelectedTask={setSelectedTask}
-            setTaskDetails={setTaskDetails}
-          />
+          <EventLogisticsPanel />
         </div>
       </section>
     </main>

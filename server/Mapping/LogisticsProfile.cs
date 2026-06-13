@@ -19,7 +19,9 @@ public class LogisticsProfile : Profile
 
         CreateMap<LogisticsTrip, LogisticsTripResponseDto>()
             .ForMember(dest => dest.DeliveryDetails, 
-                opt => opt.MapFrom(src => src.Event))
+                opt => opt.MapFrom(src => src.WorkItems != null 
+                    ? src.WorkItems.Where(w => w.Event != null).Select(w => w.Event).FirstOrDefault() 
+                    : null))
             
             .ForMember(dest => dest.TruckName,
                 opt => opt.MapFrom(src => src.Truck != null ? src.Truck.Name : "No Truck"))

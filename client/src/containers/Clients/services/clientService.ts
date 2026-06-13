@@ -258,12 +258,57 @@ const deleteAddressEntry = async (
   return;
 };
 
+export type UpdateClientProfileInput = {
+  type?: "Residential" | "Business";
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  businessName?: string;
+  isTaxExempt?: boolean;
+  isLegacy: boolean;
+};
+
+const updateClientProfile = async (
+  apiUrl: string,
+  uid: string,
+  data: UpdateClientProfileInput,
+): Promise<any> => {
+  const response = await fetch(`${apiUrl}/api/clients/${uid}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({
+      type: data.type,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phoneNumber: data.phoneNumber?.replaceAll("-", ""),
+      isLegacy: data.isLegacy,
+      ...(data.type === "Business" && {
+        businessName: data.businessName,
+        isTaxExempt: data.isTaxExempt,
+      }),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new CustomError("Updating client profile failed.", errorData);
+  }
+
+  return await response.json();
+};
+
 export {
   fetchClients,
   createClient,
   getClientDetails,
   searchClients,
   updateClient,
+  updateClientProfile,
   createAddressEntry,
   updateAddressEntry,
   setAddressEntryAsPrimary,

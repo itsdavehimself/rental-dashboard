@@ -6,6 +6,7 @@ import {
   Users,
   LibraryBig,
   Store,
+  Truck,
 } from "lucide-react";
 import NavBtn from "./NavBtn";
 
@@ -22,6 +23,7 @@ const Sidebar: React.FC = () => {
         <NavBtn icon={Home} label="Dashboard" path="/dashboard" />
         <NavBtn icon={Boxes} label="Inventory" path="/inventory" />
         <NavBtn icon={PartyPopper} label="Events" path="/events" />
+        <NavBtn icon={Truck} label="Logistics" path="/logistics" />
         <NavBtn icon={Handshake} label="Clients" path="/clients" />
         <NavBtn icon={Users} label="Team" path="/team" />
         <NavBtn icon={Store} label="Vendors" path="/vendors" />

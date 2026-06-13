@@ -8,7 +8,7 @@ import {
   BanknoteArrowDown,
   NotebookText,
 } from "lucide-react";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import PopOver from "./PopOver";
 import { useBilling } from "../../containers/Events/hooks/useBilling";
 
@@ -39,43 +39,9 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
 
   const isFullyRefunded = totalRefunded >= transaction.amount;
 
-  const popOverRef = useRef<HTMLDivElement | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [popOverOpen, setPopOverOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        popOverRef.current &&
-        !popOverRef.current.contains(e.target as Node)
-      ) {
-        setPopOverOpen(false);
-      }
-    }
-
-    if (popOverOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [popOverOpen]);
-
-  useEffect(() => {
-    if (!popOverOpen) return;
-
-    function handleScroll() {
-      setPopOverOpen(false);
-    }
-
-    window.addEventListener("scroll", handleScroll, true);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll, true);
-    };
-  }, [popOverOpen]);
 
   return (
     <div className="flex justify-between items-end">
@@ -100,10 +66,9 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
             : transaction.processedBy}
         </p>
       </div>
-      <div
-        ref={popOverRef}
-        className="relative flex items-center justify-center gap-2"
-      >
+
+      {/* Removed the ref from this div */}
+      <div className="relative flex items-center justify-center gap-2">
         <div className="flex flex-col">
           <p
             className={`${
@@ -118,11 +83,13 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
           </p>
         </div>
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             if (!buttonRef.current) return;
             setAnchorRect(buttonRef.current.getBoundingClientRect());
             setPopOverOpen(!popOverOpen);
           }}
+          onMouseDown={(e) => e.stopPropagation()}
           ref={buttonRef}
           className="p-1 text-gray-400 hover:text-primary transition-all duration-200 hover:cursor-pointer"
         >

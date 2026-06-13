@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<LogisticsTrip> LogisticsTrips => Set<LogisticsTrip>();
     public DbSet<LogisticsWorkItem> LogisticsWorkItems => Set<LogisticsWorkItem>();
     public DbSet<LogisticsAssignment> LogisticsAssignments => Set<LogisticsAssignment>();
+    public DbSet<LogisticsPhoto> LogisticsPhotos => Set<LogisticsPhoto>();
     public DbSet<Package> Packages => Set<Package>();
     public DbSet<PackageItem> PackageItems => Set<PackageItem>();
     public DbSet<TaxJurisdiction> TaxJurisdictions => Set<TaxJurisdiction>();
@@ -161,9 +162,9 @@ public class AppDbContext : DbContext
 
         // 1. Event to Trip
         modelBuilder.Entity<Event>()
-          .HasMany(e => e.LogisticsTrips)
-          .WithOne(t => t.Event)
-          .HasForeignKey(t => t.EventId)
+          .HasMany(e => e.LogisticsWorkItems)
+          .WithOne(w => w.Event)
+          .HasForeignKey(w => w.EventId)
           .OnDelete(DeleteBehavior.Cascade);
 
         // 2. Trip to WorkItems
@@ -171,6 +172,13 @@ public class AppDbContext : DbContext
           .HasMany(t => t.WorkItems)
           .WithOne(w => w.LogisticsTrip)
           .HasForeignKey(w => w.LogisticsTripId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+        // 2b. WorkItem to Photos (Proof of Delivery)
+        modelBuilder.Entity<LogisticsWorkItem>()
+          .HasMany(w => w.Photos)
+          .WithOne(p => p.LogisticsWorkItem)
+          .HasForeignKey(p => p.LogisticsWorkItemId)
           .OnDelete(DeleteBehavior.Cascade);
 
         // 3. Trip to Crew Assignments
@@ -223,8 +231,25 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<LogisticsTrip>().Property(t => t.Status).HasConversion<string>();
         modelBuilder.Entity<LogisticsTrip>().HasIndex(t => t.Uid).IsUnique();
 
-        modelBuilder.Entity<LogisticsWorkItem>().Property(w => w.Type).HasConversion<string>();
-        modelBuilder.Entity<LogisticsWorkItem>().HasIndex(w => w.Uid).IsUnique();
+        modelBuilder.Entity<LogisticsWorkItem>()
+          .Property(w => w.Type)
+          .HasConversion<string>();
+
+        modelBuilder.Entity<LogisticsWorkItem>()
+          .Property(w => w.Status)
+          .HasConversion<string>()
+          .HasDefaultValue(LogisticsWorkItemStatus.Pending);
+
+        modelBuilder.Entity<LogisticsWorkItem>()
+          .Property(w => w.SortOrder)
+          .HasDefaultValue(0);
+
+        modelBuilder.Entity<LogisticsWorkItem>()
+          .HasIndex(w => w.Uid)
+          .IsUnique();
+
+        modelBuilder.Entity<LogisticsWorkItem>()
+          .HasIndex(w => new { w.LogisticsTripId, w.SortOrder });
 
         modelBuilder.Entity<LogisticsAssignment>().HasIndex(a => a.Uid).IsUnique();
 

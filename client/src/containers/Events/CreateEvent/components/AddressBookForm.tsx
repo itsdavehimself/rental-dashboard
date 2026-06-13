@@ -33,39 +33,31 @@ export type AddressInputs = {
   isPrimary: boolean;
 };
 
-interface AddressBookForm {
+// --- 1. THE PURE UI FORM (Exported for use in CRM) ---
+export interface BaseAddressBookFormProps {
   type: "billing" | "delivery";
-  setView: React.Dispatch<
-    React.SetStateAction<"default" | "edit" | "add" | "delete">
-  >;
   addressEntryUid: string | null;
   mode: "add" | "edit";
+  client: any;
+  onSuccess: (addressResponse: any, data: AddressInputs) => void;
 }
 
-const AddressBookForm: React.FC<AddressBookForm> = ({
+export const BaseAddressBookForm: React.FC<BaseAddressBookFormProps> = ({
   type,
-  setView,
   addressEntryUid,
   mode,
+  client,
+  onSuccess,
 }) => {
   const {
     handleSubmit,
     register,
     watch,
     setValue,
-    setError,
-    clearErrors,
     getValues,
     formState: { errors: formErrors },
   } = useForm<AddressInputs>();
-  const {
-    client,
-    setClient,
-    eventBilling,
-    eventDelivery,
-    setEventBilling,
-    setEventDelivery,
-  } = useCreateEvent();
+
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
 
@@ -78,7 +70,7 @@ const AddressBookForm: React.FC<AddressBookForm> = ({
 
   const key = type === "billing" ? "billingAddresses" : "deliveryAddresses";
   const selectedAddress =
-    client && client[key]?.find((a) => a.uid === addressEntryUid);
+    client && client[key]?.find((a: any) => a.uid === addressEntryUid);
 
   const isPrimary = watch("isPrimary");
 
@@ -114,7 +106,7 @@ const AddressBookForm: React.FC<AddressBookForm> = ({
       setValue("lastName", selectedAddress.lastName || "");
       setValue(
         "phoneNumber",
-        splitPhoneNumber(selectedAddress.phoneNumber || "")
+        splitPhoneNumber(selectedAddress.phoneNumber || ""),
       );
       setValue("email", selectedAddress.email || "");
       setValue("addressLine1", selectedAddress.addressLine1 || "");
@@ -141,51 +133,11 @@ const AddressBookForm: React.FC<AddressBookForm> = ({
 
       const addressResponse = await apiCall;
 
-      setClient((prev) => {
-        if (!prev) return prev;
+      onSuccess(addressResponse, data); // Delegate state manipulation back to the parent
 
-        const key =
-          type === "billing" ? "billingAddresses" : "deliveryAddresses";
-        let updatedAddresses = [...prev[key]];
-
-        if (data.isPrimary) {
-          updatedAddresses = updatedAddresses.map((addr) => ({
-            ...addr,
-            isPrimary: false,
-          }));
-        }
-
-        if (isEdit) {
-          updatedAddresses = updatedAddresses.map((a) =>
-            a.uid === addressResponse.uid ? { ...a, ...addressResponse } : a
-          );
-        } else {
-          updatedAddresses.push(addressResponse);
-        }
-
-        const sorted = updatedAddresses.sort((a, b) => {
-          if (a.isPrimary && !b.isPrimary) return -1;
-          if (!a.isPrimary && b.isPrimary) return 1;
-          return a.addressLine1.localeCompare(b.addressLine1);
-        });
-
-        const addressType = type === "billing" ? eventBilling : eventDelivery;
-        const setActionType =
-          type === "billing" ? setEventBilling : setEventDelivery;
-
-        if (addressType?.uid === selectedAddress?.uid) {
-          setActionType(addressResponse);
-        }
-
-        return { ...prev, [key]: sorted };
-      });
-
-      setView("default");
       addToast(
         "Success",
-        `${type.charAt(0).toUpperCase() + type.slice(1)} address successfully ${
-          isEdit ? "updated" : "added"
-        }.`
+        `${type.charAt(0).toUpperCase() + type.slice(1)} address successfully ${isEdit ? "updated" : "added"}.`,
       );
     } catch (err) {
       handleError(err, setErrors);
@@ -226,6 +178,7 @@ const AddressBookForm: React.FC<AddressBookForm> = ({
           register={register("phoneNumber")}
           error={formErrors.phoneNumber?.message}
         />
+
         <SearchInput
           label="Address Line 1"
           placeholder="123 Bouncehouse Ln"
@@ -251,6 +204,7 @@ const AddressBookForm: React.FC<AddressBookForm> = ({
           isLoading={isLoading}
           setIsLoading={setIsLoading}
         />
+
         <StyledInput
           label="Address Line 2"
           placeholder="Suite 7"
@@ -258,6 +212,7 @@ const AddressBookForm: React.FC<AddressBookForm> = ({
           error={formErrors.addressLine2?.message}
           optional={true}
         />
+
         <div className="grid grid-cols-[1fr_5rem_.5fr] gap-4">
           <StyledInput
             label="City"
@@ -291,10 +246,93 @@ const AddressBookForm: React.FC<AddressBookForm> = ({
           />
         </div>
       </div>
-      <div className="self-end">
+      <div className="self-end pb-2">
         <SubmitButton label={mode === "add" ? "Add" : "Save"} />
       </div>
     </form>
+  );
+};
+
+// --- 2. THE CONTEXT WRAPPER (Default Export for Event Builder Backwards Compatibility) ---
+interface AddressBookForm {
+  type: "billing" | "delivery";
+  setView: React.Dispatch<
+    React.SetStateAction<"default" | "edit" | "add" | "delete">
+  >;
+  addressEntryUid: string | null;
+  mode: "add" | "edit";
+}
+
+const AddressBookForm: React.FC<AddressBookForm> = ({
+  type,
+  setView,
+  addressEntryUid,
+  mode,
+}) => {
+  const {
+    client,
+    setClient,
+    eventBilling,
+    eventDelivery,
+    setEventBilling,
+    setEventDelivery,
+  } = useCreateEvent();
+  const selectedAddress =
+    client &&
+    client[type === "billing" ? "billingAddresses" : "deliveryAddresses"]?.find(
+      (a) => a.uid === addressEntryUid,
+    );
+
+  const handleSuccess = (addressResponse: any, data: AddressInputs) => {
+    setClient((prev) => {
+      if (!prev) return prev;
+
+      const key = type === "billing" ? "billingAddresses" : "deliveryAddresses";
+      let updatedAddresses = [...prev[key]];
+
+      if (data.isPrimary) {
+        updatedAddresses = updatedAddresses.map((addr) => ({
+          ...addr,
+          isPrimary: false,
+        }));
+      }
+
+      if (mode === "edit" && addressEntryUid !== null) {
+        updatedAddresses = updatedAddresses.map((a) =>
+          a.uid === addressResponse.uid ? { ...a, ...addressResponse } : a,
+        );
+      } else {
+        updatedAddresses.push(addressResponse);
+      }
+
+      const sorted = updatedAddresses.sort((a, b) => {
+        if (a.isPrimary && !b.isPrimary) return -1;
+        if (!a.isPrimary && b.isPrimary) return 1;
+        return a.addressLine1.localeCompare(b.addressLine1);
+      });
+
+      const addressType = type === "billing" ? eventBilling : eventDelivery;
+      const setActionType =
+        type === "billing" ? setEventBilling : setEventDelivery;
+
+      if (addressType?.uid === selectedAddress?.uid) {
+        setActionType(addressResponse);
+      }
+
+      return { ...prev, [key]: sorted };
+    });
+
+    setView("default");
+  };
+
+  return (
+    <BaseAddressBookForm
+      type={type}
+      addressEntryUid={addressEntryUid}
+      mode={mode}
+      client={client}
+      onSuccess={handleSuccess}
+    />
   );
 };
 

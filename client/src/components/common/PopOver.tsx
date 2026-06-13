@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { LucideIcon } from "lucide-react";
+import { useClickOutside } from "../../hooks/useClickOutside";
 
 interface PopOverProps {
   buttons: {
@@ -13,8 +15,18 @@ interface PopOverProps {
 }
 
 const PopOver: React.FC<PopOverProps> = ({ buttons, anchorRect, onClose }) => {
+  const popOverRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(popOverRef, onClose);
+
+  useEffect(() => {
+    window.addEventListener("scroll", onClose, true);
+    return () => window.removeEventListener("scroll", onClose, true);
+  }, [onClose]);
+
   return createPortal(
     <div
+      ref={popOverRef}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
       className="fixed z-50"
@@ -48,7 +60,7 @@ const PopOver: React.FC<PopOverProps> = ({ buttons, anchorRect, onClose }) => {
         ))}
       </div>
     </div>,
-    document.getElementById("portal-root")!,
+    document.getElementById("portal-root") || document.body,
   );
 };
 

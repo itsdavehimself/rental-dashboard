@@ -482,7 +482,59 @@ public class ClientsController : ControllerBase
     if (client == null)
         return NotFound(new { message = "Client not found." });
 
-    client.Notes = body.Notes;
+    if (body.Type.HasValue)
+    {
+        client.Type = body.Type.Value;
+    }
+
+    if (body.FirstName != null)
+    {
+        client.FirstName = body.FirstName;
+    }
+
+    if (body.LastName != null)
+    {
+        client.LastName = body.LastName;
+    }
+
+    if (body.Email != null)
+    {
+        client.Email = body.Email;
+    }
+
+    if (body.PhoneNumber != null)
+    {
+        client.PhoneNumber = body.PhoneNumber;
+    }
+
+    if (body.IsLegacy.HasValue)
+    {
+        client.IsLegacy = body.IsLegacy.Value;
+    }
+
+    if (body.Notes != null)
+    {
+        client.Notes = body.Notes;
+    }
+
+    if (client.Type == ClientType.Business)
+    {
+        if (body.BusinessName != null)
+        {
+            client.BusinessName = body.BusinessName;
+        }
+
+        if (body.IsTaxExempt.HasValue)
+        {
+            client.IsTaxExempt = body.IsTaxExempt.Value;
+        }
+    }
+    else
+    {
+        client.BusinessName = null;
+        client.IsTaxExempt = false;
+    }
+
     client.UpdatedAt = DateTime.UtcNow;
 
     await _context.SaveChangesAsync();
@@ -536,7 +588,9 @@ public class ClientsController : ControllerBase
           State = p.State,
           ZipCode = p.ZipCode,
           IsPrimary = p.IsPrimary
-        }).ToList()
+        }).ToList(),
+      BusinessName = client.BusinessName,
+    IsTaxExempt = client.IsTaxExempt
     });
   }
 

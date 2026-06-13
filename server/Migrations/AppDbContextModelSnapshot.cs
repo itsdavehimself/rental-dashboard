@@ -340,106 +340,6 @@ namespace server.Migrations
                     b.ToTable("LogisticsAssignments");
                 });
 
-            modelBuilder.Entity("LogisticsTrip", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("ActualArrival")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("ActualStart")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("InternalNotes")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("ScheduledEnd")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("ScheduledStart")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("TruckId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("Uid")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventId");
-
-                    b.HasIndex("Uid")
-                        .IsUnique();
-
-                    b.HasIndex("TruckId", "ScheduledStart", "ScheduledEnd");
-
-                    b.ToTable("LogisticsTrips");
-                });
-
-            modelBuilder.Entity("LogisticsWorkItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("LogisticsTripId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SpecificNotes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("Uid")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LogisticsTripId");
-
-                    b.HasIndex("Uid")
-                        .IsUnique();
-
-                    b.ToTable("LogisticsWorkItems");
-                });
-
             modelBuilder.Entity("Package", b =>
                 {
                     b.Property<int>("Id")
@@ -761,6 +661,158 @@ namespace server.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("server.Models.Event.LogisticsPhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("LogisticsWorkItemId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PhotoUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Uid")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LogisticsWorkItemId");
+
+                    b.ToTable("LogisticsPhotos");
+                });
+
+            modelBuilder.Entity("server.Models.Event.LogisticsTrip", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActualArrival")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ActualStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ClientSignatureUrl")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InternalNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ScheduledEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ScheduledStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TruckId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("Uid")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Uid")
+                        .IsUnique();
+
+                    b.HasIndex("TruckId", "ScheduledStart", "ScheduledEnd");
+
+                    b.ToTable("LogisticsTrips");
+                });
+
+            modelBuilder.Entity("server.Models.Event.LogisticsWorkItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ArrivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LogisticsTripId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("SpecificNotes")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("Uid")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("Uid")
+                        .IsUnique();
+
+                    b.HasIndex("LogisticsTripId", "SortOrder");
+
+                    b.ToTable("LogisticsWorkItems");
+                });
+
             modelBuilder.Entity("server.Models.Inventory.BounceHouseType", b =>
                 {
                     b.Property<int>("Id")
@@ -790,16 +842,37 @@ namespace server.Migrations
                         new
                         {
                             Id = 1,
-                            InventorySubTypeId = 5,
-                            Label = "Dolphin",
-                            Name = "Dolphin"
+                            InventorySubTypeId = 6,
+                            Label = "Standard Castle",
+                            Name = "StandardCastle"
                         },
                         new
                         {
                             Id = 2,
-                            InventorySubTypeId = 5,
-                            Label = "Spongebob",
-                            Name = "Spongebob"
+                            InventorySubTypeId = 6,
+                            Label = "Combo (Jump & Slide)",
+                            Name = "Combo"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            InventorySubTypeId = 6,
+                            Label = "Water Slide",
+                            Name = "WaterSlide"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            InventorySubTypeId = 6,
+                            Label = "Obstacle Course",
+                            Name = "ObstacleCourse"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            InventorySubTypeId = 6,
+                            Label = "Interactive Game",
+                            Name = "Interactive"
                         });
                 });
 
@@ -869,6 +942,54 @@ namespace server.Migrations
                             Label = "White",
                             Name = "White",
                             SkuCode = "WHT"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            InventorySubTypeId = 3,
+                            Label = "Solid White",
+                            Name = "SolidWhite",
+                            SkuCode = "WHT"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            InventorySubTypeId = 3,
+                            Label = "Clear Top",
+                            Name = "ClearTop",
+                            SkuCode = "CLR"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            InventorySubTypeId = 4,
+                            Label = "Solid White",
+                            Name = "SolidWhite",
+                            SkuCode = "WHT"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            InventorySubTypeId = 4,
+                            Label = "Clear Top",
+                            Name = "ClearTop",
+                            SkuCode = "CLR"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            InventorySubTypeId = 8,
+                            Label = "Solid White",
+                            Name = "SolidWhite",
+                            SkuCode = "WHT"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            InventorySubTypeId = 8,
+                            Label = "Clear Top",
+                            Name = "ClearTop",
+                            SkuCode = "CLR"
                         });
                 });
 
@@ -1061,9 +1182,33 @@ namespace server.Migrations
                         {
                             Id = 5,
                             InventorySubTypeId = 3,
-                            Label = "Vinyl",
+                            Label = "Standard Vinyl",
                             Name = "Vinyl",
                             SkuCode = "VNL"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            InventorySubTypeId = 4,
+                            Label = "Standard Vinyl",
+                            Name = "Vinyl",
+                            SkuCode = "VNL"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            InventorySubTypeId = 8,
+                            Label = "Standard Vinyl",
+                            Name = "Vinyl",
+                            SkuCode = "VNL"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            InventorySubTypeId = 4,
+                            Label = "Sailcloth",
+                            Name = "Sailcloth",
+                            SkuCode = "SCL"
                         });
                 });
 
@@ -1183,7 +1328,7 @@ namespace server.Migrations
                         {
                             Id = 3,
                             InventoryTypeId = 3,
-                            Label = "Canopy",
+                            Label = "Canopy / Pop-Up",
                             Name = "Canopy",
                             SkuCode = "CNP"
                         },
@@ -1197,6 +1342,14 @@ namespace server.Migrations
                         },
                         new
                         {
+                            Id = 8,
+                            InventoryTypeId = 3,
+                            Label = "Frame Tent",
+                            Name = "Frame",
+                            SkuCode = "FRM"
+                        },
+                        new
+                        {
                             Id = 5,
                             InventoryTypeId = 5,
                             Label = "Mechanical Bull",
@@ -1207,9 +1360,9 @@ namespace server.Migrations
                         {
                             Id = 6,
                             InventoryTypeId = 5,
-                            Label = "Bounce House",
-                            Name = "BounceHouse",
-                            SkuCode = "BNC"
+                            Label = "Inflatable / Bounce House",
+                            Name = "Inflatable",
+                            SkuCode = "INF"
                         },
                         new
                         {
@@ -1522,7 +1675,7 @@ namespace server.Migrations
 
             modelBuilder.Entity("LogisticsAssignment", b =>
                 {
-                    b.HasOne("LogisticsTrip", "LogisticsTrip")
+                    b.HasOne("server.Models.Event.LogisticsTrip", "LogisticsTrip")
                         .WithMany("Crew")
                         .HasForeignKey("LogisticsTripId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1537,36 +1690,6 @@ namespace server.Migrations
                     b.Navigation("LogisticsTrip");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LogisticsTrip", b =>
-                {
-                    b.HasOne("server.Models.Event.Event", "Event")
-                        .WithMany("LogisticsTrips")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Truck", "Truck")
-                        .WithMany("Trips")
-                        .HasForeignKey("TruckId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-
-                    b.Navigation("Truck");
-                });
-
-            modelBuilder.Entity("LogisticsWorkItem", b =>
-                {
-                    b.HasOne("LogisticsTrip", "LogisticsTrip")
-                        .WithMany("WorkItems")
-                        .HasForeignKey("LogisticsTripId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("LogisticsTrip");
                 });
 
             modelBuilder.Entity("PackageItem", b =>
@@ -1626,6 +1749,46 @@ namespace server.Migrations
                     b.Navigation("ProcessedBy");
 
                     b.Navigation("RelatedTransaction");
+                });
+
+            modelBuilder.Entity("server.Models.Event.LogisticsPhoto", b =>
+                {
+                    b.HasOne("server.Models.Event.LogisticsWorkItem", "LogisticsWorkItem")
+                        .WithMany("Photos")
+                        .HasForeignKey("LogisticsWorkItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LogisticsWorkItem");
+                });
+
+            modelBuilder.Entity("server.Models.Event.LogisticsTrip", b =>
+                {
+                    b.HasOne("Truck", "Truck")
+                        .WithMany("Trips")
+                        .HasForeignKey("TruckId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Truck");
+                });
+
+            modelBuilder.Entity("server.Models.Event.LogisticsWorkItem", b =>
+                {
+                    b.HasOne("server.Models.Event.Event", "Event")
+                        .WithMany("LogisticsWorkItems")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("server.Models.Event.LogisticsTrip", "LogisticsTrip")
+                        .WithMany("WorkItems")
+                        .HasForeignKey("LogisticsTripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("LogisticsTrip");
                 });
 
             modelBuilder.Entity("server.Models.Inventory.BounceHouseType", b =>
@@ -1780,13 +1943,6 @@ namespace server.Migrations
                     b.Navigation("ClientAddresses");
                 });
 
-            modelBuilder.Entity("LogisticsTrip", b =>
-                {
-                    b.Navigation("Crew");
-
-                    b.Navigation("WorkItems");
-                });
-
             modelBuilder.Entity("Package", b =>
                 {
                     b.Navigation("Items");
@@ -1803,9 +1959,21 @@ namespace server.Migrations
 
                     b.Navigation("Items");
 
-                    b.Navigation("LogisticsTrips");
+                    b.Navigation("LogisticsWorkItems");
 
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("server.Models.Event.LogisticsTrip", b =>
+                {
+                    b.Navigation("Crew");
+
+                    b.Navigation("WorkItems");
+                });
+
+            modelBuilder.Entity("server.Models.Event.LogisticsWorkItem", b =>
+                {
+                    b.Navigation("Photos");
                 });
 
             modelBuilder.Entity("server.Models.Inventory.InventoryItem", b =>

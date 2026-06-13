@@ -12,6 +12,7 @@ public class CreateInventoryItemDto
   public int SubType { get; set; }
   public int? Color { get; set; }
   public int? Material { get; set; }
+  public int? BounceHouseType { get; set; }
   public string? Variant { get; set; } = string.Empty;
   public string? Notes { get; set; }
   [Range(1, 9999, ErrorMessage = "Length must be 1 or more")]

@@ -37,7 +37,7 @@ public class Event
   public string EventType { get; set; } = "";
   public string? Notes { get; set; }
   public string? InternalNotes { get; set; }
-  public List<LogisticsTrip> LogisticsTrips { get; set; } = [];
+  public List<LogisticsWorkItem> LogisticsWorkItems { get; set; } = [];
   public List<EventItem> Items { get; set; } = [];
   public decimal Subtotal { get; set; }
   public decimal TaxAmount { get; set; }

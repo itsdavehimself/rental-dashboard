@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import InventoryRow from "./components/InventoryRow";
 import AddButton from "../../components/common/AddButton";
 import SearchBar from "../../components/common/DebouncedSearchBar";
-import { Plus } from "lucide-react";
+import { Cog, Plus } from "lucide-react";
 import AddModal from "../../components/common/AddModal";
 import InventoryItemForm from "./components/InventoryItemForm";
 import { useInventoryItems } from "./hooks/useInventoryItems";
 import { useInventoryConfig } from "./hooks/useInventoryConfig";
 import { useAppSelector } from "../../app/hooks";
+import ActionButton from "../../components/common/ActionButton";
+import { useNavigate } from "react-router";
 
 export type InventoryModalType = null | "addItem" | "addStock";
 
@@ -24,6 +26,7 @@ const Inventory: React.FC = () => {
 
   const { items, setItems, errors, setErrors } = useInventoryItems(page);
   const { types } = useInventoryConfig();
+  const navigate = useNavigate();
 
   const activeModal = useAppSelector((state) => state.ui.activeModal);
 
@@ -34,7 +37,7 @@ const Inventory: React.FC = () => {
   }, [activeModal]);
 
   return (
-    <div className="flex flex-col items-center bg-white h-screen w-full shadow-md rounded-3xl p-8 gap-6">
+    <div className="flex flex-col items-center bg-white h-screen w-full rounded-3xl p-8 gap-6">
       {activeModal === "addItem" && (
         <AddModal<InventoryModalType>
           title="Add Item"
@@ -54,11 +57,19 @@ const Inventory: React.FC = () => {
       <div className="flex flex-col gap-4 w-full">
         <div className="flex justify-between w-full">
           <SearchBar placeholder="Search" />
-          <AddButton<InventoryModalType>
-            Icon={Plus}
-            label="Item"
-            modalKey="addItem"
-          />
+          <div className="flex gap-4">
+            <ActionButton
+              label="Settings"
+              icon={Cog}
+              style="outline"
+              onClick={() => navigate("/inventory/settings")}
+            />
+            <AddButton<InventoryModalType>
+              Icon={Plus}
+              label="Item"
+              modalKey="addItem"
+            />
+          </div>
         </div>
         <Table
           columnTemplate={columnTemplate}

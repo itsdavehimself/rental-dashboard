@@ -38,7 +38,7 @@ const ItemsAndServices: React.FC = () => {
   const debouncedSearch = useDebounce(handleSearch, 750);
 
   return (
-    <section className="flex flex-col flex-grow gap-4 border-1 border-gray-200 rounded-lg py-4 px-6 overflow-hidden">
+    <section className="flex flex-col flex-grow gap-4 border-1 border-gray-200 rounded-lg py-4 px-6 3xl:max-h-95 4xl:max-h-full overflow-hidden">
       <h4 className="font-semibold text-lg">Items & Services</h4>
       <div className="flex flex-col justify-center">
         <DebouncedSearchBar
@@ -62,16 +62,18 @@ const ItemsAndServices: React.FC = () => {
         />
       </div>
       {selectedItems && selectedItems.length > 0 && (
-        <section className="flex flex-col">
-          <h6 className="font-semibold mb-2">Items</h6>
-          {selectedItems.map((item) => (
-            <SelectedItemRow
-              key={item.uid}
-              item={item}
-              selectedItems={selectedItems}
-              setSelectedItems={setSelectedItems}
-            />
-          ))}
+        <section className="flex flex-col overflow-scroll">
+          <h6 className="font-semibold pb-1 top-0 sticky bg-white">Items</h6>
+          <div className="flex flex-col">
+            {selectedItems.map((item) => (
+              <SelectedItemRow
+                key={item.uid}
+                item={item}
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+              />
+            ))}
+          </div>
         </section>
       )}
     </section>

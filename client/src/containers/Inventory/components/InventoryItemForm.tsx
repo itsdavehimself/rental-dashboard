@@ -13,6 +13,7 @@ import { handleError, type ErrorsState } from "../../../helpers/handleError";
 import { type InventoryListItem } from "../types/InventoryItem";
 import { useAppDispatch } from "../../../app/hooks";
 import { closeModal } from "../../../app/slices/uiSlice";
+import { Camera } from "lucide-react";
 
 export type InventoryItemInput = {
   description: string;
@@ -25,6 +26,7 @@ export type InventoryItemInput = {
   height: number;
   unitPrice: number;
   material: number;
+  bounceHouseType: number;
   variant: string;
 };
 
@@ -56,14 +58,17 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   const { addToast } = useToast();
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const dispatch = useAppDispatch();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const unitPrice = watch("unitPrice");
   const type = watch("type");
   const subType = watch("subType");
   const material = watch("material");
   const color = watch("color");
+  const bounceHouseType = watch("bounceHouseType");
 
   const selectedType = types.find((t) => t.id === type);
   const selectedSubType = selectedType?.subTypes.find(
@@ -74,11 +79,41 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   const subTypeRef = useRef<HTMLDivElement>(null);
   const materialRef = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLDivElement>(null);
+  const bounceHouseTypeRef = useRef<HTMLDivElement>(null);
 
+  // --- IMAGE UPLOAD HANDLERS ---
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Create a local preview URL for the selected image
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // --- SUBMIT HANDLER ---
   const onSubmit: SubmitHandler<InventoryItemInput> = async (data) => {
     try {
       setErrors(null);
-      const newItem = await createInventoryItem(apiUrl, data);
+
+      const payload = {
+        ...data,
+        unitPrice: data.unitPrice ? Number(data.unitPrice) : 0,
+        length: Number.isNaN(data.length) ? null : data.length,
+        width: Number.isNaN(data.width) ? null : data.width,
+        height: Number.isNaN(data.height) ? null : data.height,
+      };
+
+      // TODO: If you update your C# backend to accept multipart/form-data for images,
+      // you will append the fileInputRef.current.files[0] to a FormData object here instead!
+      const newItem = await createInventoryItem(apiUrl, payload as any);
 
       const updatedItems = [...items, newItem].sort((a, b) => {
         return a.sku.localeCompare(b.sku);
@@ -92,6 +127,7 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
     }
   };
 
+  // --- EFFECTS ---
   useEffect(() => {
     if (errors && typeof errors === "object" && !Array.isArray(errors)) {
       clearErrors();
@@ -116,7 +152,8 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
         !typeRef.current?.contains(event.target as Node) &&
         !subTypeRef.current?.contains(event.target as Node) &&
         !colorRef.current?.contains(event.target as Node) &&
-        !materialRef.current?.contains(event.target as Node)
+        !materialRef.current?.contains(event.target as Node) &&
+        !bounceHouseTypeRef.current?.contains(event.target as Node)
       ) {
         setOpenDropdown(null);
       }
@@ -142,123 +179,215 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col justify-center px-8 pt-4 gap-4"
+      className="flex flex-col gap-8 px-6 pt-4 pb-2 w-full min-w-[800px]"
     >
-      <StyledInput
-        label="Item"
-        placeholder="6ft White Resin Folding Table"
-        register={register("description")}
-        error={formErrors.description?.message}
-      />
-      <div className="flex gap-4">
-        <StyledInput
-          label="Length"
-          placeholder="72"
-          register={register("length", { valueAsNumber: true })}
-          error={formErrors.length?.message}
-          optional={true}
-        />
-        <StyledInput
-          label="Width"
-          placeholder="30"
-          register={register("width", { valueAsNumber: true })}
-          error={formErrors.width?.message}
-          optional={true}
-        />
-        <StyledInput
-          label="Height"
-          placeholder="36"
-          register={register("height", { valueAsNumber: true })}
-          error={formErrors.height?.message}
-          optional={true}
-        />
+      <div className="flex flex-row gap-8 w-full">
+        {/* --- LEFT COLUMN: IMAGE UPLOAD --- */}
+        <div className="flex flex-col items-center gap-3 w-1/4 pt-6">
+          <div
+            onClick={handleImageClick}
+            className="relative w-48 h-48 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 flex-shrink-0 group cursor-pointer hover:bg-gray-100 transition-colors"
+          >
+            {imagePreview ? (
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col gap-2 items-center justify-center">
+                <Camera className="w-10 h-10 text-gray-400" />
+                <span className="text-xs font-semibold text-gray-400">
+                  Add Photo
+                </span>
+              </div>
+            )}
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <span className="text-white text-xs font-semibold tracking-wider uppercase">
+                {imagePreview ? "Change Photo" : "Upload Photo"}
+              </span>
+            </div>
+          </div>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+        </div>
+
+        {/* --- RIGHT COLUMN: FORM FIELDS --- */}
+        <div className="flex flex-col gap-5 w-3/4">
+          <StyledInput
+            label="Item Description"
+            placeholder="e.g. 6ft White Resin Folding Table"
+            register={register("description")}
+            error={formErrors.description?.message}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Dropdown
+              ref={typeRef}
+              label="Type"
+              value={type}
+              options={types.map((t) => ({ value: t.id, label: t.label }))}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              selectedLabel={
+                types.find((t) => t.id === type)?.label ?? "Select a type"
+              }
+              onChange={(val) => setValue("type", val as number)}
+              error={formErrors.type?.message}
+            />
+            {selectedType && selectedType.subTypes.length > 0 ? (
+              <Dropdown
+                ref={subTypeRef}
+                label="SubType"
+                value={subType}
+                options={selectedType.subTypes.map((st) => ({
+                  value: st.id,
+                  label: st.label,
+                }))}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                selectedLabel={
+                  selectedType.subTypes.find((st) => st.id === subType)
+                    ?.label ?? "Select a sub-type"
+                }
+                onChange={(val) => setValue("subType", val as number)}
+                error={formErrors.subType?.message}
+              />
+            ) : (
+              <div />
+            )}{" "}
+            {/* Empty div to maintain grid alignment if no subType */}
+          </div>
+
+          {/* Dynamic Attributes Row */}
+          {selectedSubType && (
+            <>
+              {selectedSubType.bounceHouseTypes.length > 0 && (
+                <div className="grid grid-cols-1 gap-4">
+                  <Dropdown
+                    ref={bounceHouseTypeRef}
+                    label="Theme/Style"
+                    value={bounceHouseType}
+                    options={selectedSubType.bounceHouseTypes.map((b) => ({
+                      value: b.id,
+                      label: b.label,
+                    }))}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    selectedLabel={
+                      selectedSubType.bounceHouseTypes.find(
+                        (b) => b.id === bounceHouseType,
+                      )?.label ?? "Select theme"
+                    }
+                    onChange={(val) =>
+                      setValue("bounceHouseType", val as number)
+                    }
+                    error={formErrors.bounceHouseType?.message}
+                  />
+                </div>
+              )}
+
+              {selectedSubType.materials.length > 0 && (
+                <div className="grid grid-cols-2 gap-4">
+                  <Dropdown
+                    ref={materialRef}
+                    label="Material"
+                    value={material}
+                    options={selectedSubType.materials.map((m) => ({
+                      value: m.id,
+                      label: m.label,
+                    }))}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    selectedLabel={
+                      selectedSubType.materials.find((m) => m.id === material)
+                        ?.label ?? "Select material"
+                    }
+                    onChange={(val) => setValue("material", val as number)}
+                    error={formErrors.material?.message}
+                  />
+                  <Dropdown
+                    ref={colorRef}
+                    label="Color"
+                    value={color}
+                    options={selectedSubType.colors.map((c) => ({
+                      value: c.id,
+                      label: c.label,
+                    }))}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    selectedLabel={
+                      selectedSubType.colors.find((c) => c.id === color)
+                        ?.label ?? "Select color"
+                    }
+                    onChange={(val) => setValue("color", val as number)}
+                    error={formErrors.color?.message}
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <StyledInput
+              label="Variant Label"
+              placeholder="e.g. Round, Heavy Duty, V1"
+              register={register("variant")}
+              error={formErrors.variant?.message}
+              optional={true}
+            />
+            <CurrencyInput
+              label="Rental Price"
+              value={unitPrice}
+              onValueChange={(val) => setValue("unitPrice", val)}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <StyledInput
+              label="Length (in)"
+              placeholder="0"
+              register={register("length", { valueAsNumber: true })}
+              error={formErrors.length?.message}
+              optional={true}
+            />
+            <StyledInput
+              label="Width (in)"
+              placeholder="0"
+              register={register("width", { valueAsNumber: true })}
+              error={formErrors.width?.message}
+              optional={true}
+            />
+            <StyledInput
+              label="Height (in)"
+              placeholder="0"
+              register={register("height", { valueAsNumber: true })}
+              error={formErrors.height?.message}
+              optional={true}
+            />
+          </div>
+
+          <TextAreaInput
+            label="Internal Notes"
+            register={register("notes")}
+            optional={true}
+          />
+        </div>
       </div>
-      <Dropdown
-        ref={typeRef}
-        label="Type"
-        value={type}
-        options={types.map((t) => ({ value: t.id, label: t.label }))}
-        openDropdown={openDropdown}
-        setOpenDropdown={setOpenDropdown}
-        selectedLabel={types.find((t) => t.id === type)?.label ?? "Type"}
-        onChange={(val) => setValue("type", val as number)}
-        error={formErrors.type?.message}
-      />
-      {selectedType && selectedType.subTypes.length > 0 && (
-        <Dropdown
-          ref={subTypeRef}
-          label="SubType"
-          value={subType}
-          options={selectedType.subTypes.map((st) => ({
-            value: st.id,
-            label: st.label,
-          }))}
-          openDropdown={openDropdown}
-          setOpenDropdown={setOpenDropdown}
-          selectedLabel={
-            selectedType.subTypes.find((st) => st.id === subType)?.label ??
-            "SubType"
-          }
-          onChange={(val) => setValue("subType", val as number)}
-          error={formErrors.subType?.message}
-        />
-      )}
-      {selectedSubType && selectedSubType.materials.length > 0 && (
-        <Dropdown
-          ref={materialRef}
-          label="Material"
-          value={material}
-          options={selectedSubType.materials.map((m) => ({
-            value: m.id,
-            label: m.label,
-          }))}
-          openDropdown={openDropdown}
-          setOpenDropdown={setOpenDropdown}
-          selectedLabel={
-            selectedSubType.materials.find((m) => m.id === material)?.label ??
-            "Material"
-          }
-          onChange={(val) => setValue("material", val as number)}
-          error={formErrors.material?.message}
-        />
-      )}
-      {selectedSubType && selectedSubType.colors.length > 0 && (
-        <Dropdown
-          ref={colorRef}
-          label="Color"
-          value={color}
-          options={selectedSubType.colors.map((c) => ({
-            value: c.id,
-            label: c.label,
-          }))}
-          openDropdown={openDropdown}
-          setOpenDropdown={setOpenDropdown}
-          selectedLabel={
-            selectedSubType.colors.find((c) => c.id === color)?.label ?? "Color"
-          }
-          onChange={(val) => setValue("color", val as number)}
-          error={formErrors.color?.message}
-        />
-      )}
-      <CurrencyInput
-        label="Unit Price"
-        value={unitPrice}
-        onValueChange={(val) => setValue("unitPrice", val)}
-      />
-      <StyledInput
-        label="Variant Label"
-        placeholder="Round, Heavy Duty, Indoor, Outdoor, V1, etc."
-        register={register("variant")}
-        error={formErrors.variant?.message}
-        optional={true}
-      />
-      <TextAreaInput
-        label="Notes"
-        register={register("notes")}
-        optional={true}
-      />
-      <div className="self-center w-1/4">
-        <SubmitButton label="Add" />
+
+      {/* --- BOTTOM ACTIONS --- */}
+      <div className="flex justify-end">
+        <div className="w-40">
+          <SubmitButton label="Create Item" />
+        </div>
       </div>
     </form>
   );

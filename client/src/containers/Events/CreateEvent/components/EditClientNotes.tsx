@@ -5,39 +5,66 @@ import { updateClient } from "../../../Clients/services/clientService";
 import { useToast } from "../../../../hooks/useToast";
 import TextAreaInputLocal from "../../../../components/common/TextAreaInputLocal";
 import XButton from "../../../../components/common/XButton";
-import { useCreateEvent } from "../../hooks/useCreateEvent";
 import { useAppDispatch } from "../../../../app/hooks";
 import { closeModal } from "../../../../app/slices/uiSlice";
 
+// Safe import for the Event Builder context
+import { useCreateEvent } from "../../hooks/useCreateEvent";
+
 interface EditClientNotesProps {
   title: string;
+  passedClient?: any;
+  onSuccess?: (newNote: string) => void;
 }
 
-const EditClientNotes: React.FC<EditClientNotesProps> = ({ title }) => {
+const EditClientNotes: React.FC<EditClientNotesProps> = ({
+  title,
+  passedClient,
+  onSuccess,
+}) => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
   const { addToast } = useToast();
   const ref = useRef<HTMLDivElement>(null);
-  const { client, setClient } = useCreateEvent();
   const dispatch = useAppDispatch();
 
+  // Safely consume Event Context if it exists
+  let eventContext: any = null;
+  try {
+    eventContext = useCreateEvent();
+  } catch (e) {
+    // Component is being used outside of Event Builder
+  }
+
+  const client = passedClient || eventContext?.client;
   const [note, setNote] = useState(client?.notes ?? "");
 
   const saveNote = async (note: string) => {
     if (!client?.uid) return;
     try {
-      // setErrors(null);
-      const updatedClient = await updateClient(apiUrl, client?.uid, note);
-      setClient((prev) => (prev ? { ...prev, notes: note } : prev));
-      dispatch(closeModal());
+      const updatedClient = await updateClient(apiUrl, client.uid, note);
+
+      // CRM Flow
+      if (onSuccess) {
+        onSuccess(note);
+      }
+      // Legacy Event Builder Flow
+      else if (eventContext?.setClient) {
+        eventContext.setClient((prev: any) =>
+          prev ? { ...prev, notes: note } : prev,
+        );
+        dispatch(closeModal());
+      }
+
       addToast(
         "Success",
         `${updatedClient.firstName} ${updatedClient.lastName}'s notes successfully updated.`,
       );
     } catch (err) {
-      // handleError(err, setErrors);
+      addToast("Error", "Failed to update notes.");
     }
   };
 
+  // Click outside logic already handles closing the modal beautifully
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
@@ -47,7 +74,7 @@ const EditClientNotes: React.FC<EditClientNotesProps> = ({ title }) => {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [dispatch]);
 
   return (
     <div

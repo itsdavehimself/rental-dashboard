@@ -12,7 +12,6 @@ namespace server.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-
 public class EventsController : ControllerBase
 {
   private readonly AppDbContext _context;
@@ -31,7 +30,10 @@ public class EventsController : ControllerBase
   {
     var query = _context.Events
       .Include(e => e.Transactions).ThenInclude(p => p.ProcessedBy)
-      .Include(e => e.LogisticsTrips)
+      .Include(e => e.LogisticsWorkItems) // Included WorkItems instead of Trips
+          .ThenInclude(w => w.LogisticsTrip)
+              .ThenInclude(t => t.Crew)
+                  .ThenInclude(c => c.User)
       .Include(e => e.Items).ThenInclude(i => i.InventoryItem)
       .Include(e => e.Items).ThenInclude(i => i.Package)
       .Include(e => e.Discounts)
@@ -85,24 +87,31 @@ public class EventsController : ControllerBase
       Status = e.Status,
       Notes = e.Notes,
       InternalNotes = e.InternalNotes,
-      LogisticsTrips = e.LogisticsTrips.Select(l => new LogisticsTripResponseDto
-      {
-        Uid = l.Uid,
-        Status = l.Status.ToString(),
-        ScheduledStart = l.ScheduledStart,
-        ScheduledEnd = l.ScheduledEnd,
-        ActualArrival = l.ActualArrival,
-        ActualStart = l.ActualStart,
-        CompletedAt = l.CompletedAt,
-        Crew = l.Crew.Select(ca => new LogisticsAssignmentResponseDto
-            {
-                Uid = ca.Uid,
-                UserUid = ca.User.Uid,
-                FullName = $"{ca.User.FirstName} {ca.User.LastName}".Trim(),
-                IsLead = ca.IsLead,
-                RoleNotes = ca.RoleNotes,
-            }).ToList(),
-      }).ToList(),
+      
+      // Select the unique trips attached to this event's work items
+      LogisticsTrips = e.LogisticsWorkItems
+          .Select(w => w.LogisticsTrip)
+          .Where(l => l != null)
+          .Distinct()
+          .Select(l => new LogisticsTripResponseDto
+          {
+            Uid = l.Uid,
+            Status = l.Status.ToString(),
+            ScheduledStart = l.ScheduledStart,
+            ScheduledEnd = l.ScheduledEnd,
+            ActualArrival = l.ActualArrival,
+            ActualStart = l.ActualStart,
+            CompletedAt = l.CompletedAt,
+            Crew = l.Crew.Select(ca => new LogisticsAssignmentResponseDto
+                {
+                    Uid = ca.Uid,
+                    UserUid = ca.User.Uid,
+                    FullName = $"{ca.User.FirstName} {ca.User.LastName}".Trim(),
+                    IsLead = ca.IsLead,
+                    RoleNotes = ca.RoleNotes,
+                }).ToList(),
+          }).ToList(),
+          
       Items = e.Items.Select(i => new EventItemResponseDto
       {
         Uid = i.Uid,
@@ -157,10 +166,12 @@ public class EventsController : ControllerBase
   {
     var eventObject = await _context.Events
       .Include(e => e.Transactions).ThenInclude(p => p.ProcessedBy)
-      .Include(e => e.LogisticsTrips).ThenInclude(l => l.Crew)
-        .ThenInclude(a => a.User)
-      .Include(e => e.LogisticsTrips).ThenInclude(l => l.WorkItems)
-      .Include(e => e.LogisticsTrips).ThenInclude(l => l.Truck)
+      
+      // Swapped Trip routing to WorkItem routing
+      .Include(e => e.LogisticsWorkItems).ThenInclude(w => w.LogisticsTrip).ThenInclude(l => l.Crew).ThenInclude(a => a.User)
+      .Include(e => e.LogisticsWorkItems).ThenInclude(w => w.LogisticsTrip).ThenInclude(l => l.WorkItems)
+      .Include(e => e.LogisticsWorkItems).ThenInclude(w => w.LogisticsTrip).ThenInclude(l => l.Truck)
+      
       .Include(e => e.Items).ThenInclude(i => i.InventoryItem)
       .Include(e => e.Items).ThenInclude(i => i.Package)
       .Include(e => e.Discounts).FirstOrDefaultAsync(e => e.Uid == uid);
@@ -172,13 +183,18 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Event not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
     }
 
     var dto = _mapper.Map<EventResponseDto>(eventObject);
+    
+    // Safely attach the trips back onto the mapped DTO to prevent missing lists
+    dto.LogisticsTrips = eventObject.LogisticsWorkItems
+        .Select(w => w.LogisticsTrip)
+        .Where(l => l != null)
+        .Distinct()
+        .Select(l => _mapper.Map<LogisticsTripResponseDto>(l))
+        .ToList();
 
     var cardPayments = dto.Transactions
       .Where(t => t.Method == PaymentMethod.Card && t.ExternalTransactionId != null)
@@ -228,10 +244,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Client not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
     }
 
     var billingDetails = await _context.ClientAddresses.FirstOrDefaultAsync(a => a.Uid == request.BillingAddress);
@@ -243,10 +256,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Billing address not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
 
     if (deliveryDetails == null)
       return new ObjectResult(new ProblemDetails
@@ -254,10 +264,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Delivery address not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
 
     var newEvent = new Models.Event.Event
     {
@@ -294,7 +301,7 @@ public class EventsController : ControllerBase
       Notes = request.Notes,
       EventType = request.EventType,
       InternalNotes = request.InternalNotes,
-      LogisticsTrips = [],
+      LogisticsWorkItems = [], // Changed from Trips to WorkItems
       CreatedAt = DateTime.UtcNow,
       UpdatedAt = DateTime.UtcNow
     };
@@ -307,7 +314,6 @@ public class EventsController : ControllerBase
     foreach (var item in request.Items)
     {
       var inventory = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == item.InventoryItemUid);
-      // var package = _context.Packages.FirstOrDefaultAsync(p => p.Uid == item.PackageUid);
 
       if (inventory == null)
         return new ObjectResult(new ProblemDetails
@@ -315,10 +321,7 @@ public class EventsController : ControllerBase
           Title = "Not Found",
           Detail = "Iventory item not found.",
           Status = StatusCodes.Status404NotFound
-        })
-        {
-          StatusCode = StatusCodes.Status404NotFound
-        };
+        }) { StatusCode = StatusCodes.Status404NotFound };
 
       var eventItem = new EventItem
       {
@@ -381,10 +384,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Event draft not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
     }
 
     var client = await _context.Clients.FirstOrDefaultAsync(c => c.Uid == request.ClientUid);
@@ -396,10 +396,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "User not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
     }
     
     var billingDetails = await _context.ClientAddresses.FirstOrDefaultAsync(a => a.Uid == request.BillingAddress);
@@ -411,10 +408,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Billing address not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
 
     if (deliveryDetails == null)
       return new ObjectResult(new ProblemDetails
@@ -422,10 +416,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Delivery address not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
 
     eventDraft.ClientId = client.Id;
     eventDraft.ClientUid = client.Uid;
@@ -472,7 +463,6 @@ public class EventsController : ControllerBase
     foreach (var item in request.Items)
     {
       var inventory = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == item.InventoryItemUid);
-      // var package = _context.Packages.FirstOrDefaultAsync(p => p.Uid == item.PackageUid);
 
       if (inventory == null)
         return new ObjectResult(new ProblemDetails
@@ -480,10 +470,7 @@ public class EventsController : ControllerBase
           Title = "Not Found",
           Detail = "Iventory item not found.",
           Status = StatusCodes.Status404NotFound
-        })
-        {
-          StatusCode = StatusCodes.Status404NotFound
-        };
+        }) { StatusCode = StatusCodes.Status404NotFound };
 
       var eventItem = new EventItem
       {
@@ -546,10 +533,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Event draft not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
     }
 
     var client = await _context.Clients.FirstOrDefaultAsync(c => c.Uid == request.ClientUid);
@@ -561,12 +545,8 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Client not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
     }
-
 
     var totalTransactionAmount = await _context.Transactions
       .Where(t => t.EventId == eventDraft.Id)
@@ -579,10 +559,7 @@ public class EventsController : ControllerBase
         Title = "Bad Request",
         Detail = "Cannot reserve event with less than 20% deposit.",
         Status = StatusCodes.Status400BadRequest
-      })
-      {
-        StatusCode = StatusCodes.Status400BadRequest
-      };
+      }) { StatusCode = StatusCodes.Status400BadRequest };
     }
 
     var billingDetails = await _context.ClientAddresses.FirstOrDefaultAsync(a => a.Uid == request.BillingAddress);
@@ -594,10 +571,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Billing address not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
 
     if (deliveryDetails == null)
       return new ObjectResult(new ProblemDetails
@@ -605,10 +579,7 @@ public class EventsController : ControllerBase
         Title = "Not Found",
         Detail = "Delivery address not found.",
         Status = StatusCodes.Status404NotFound
-      })
-      {
-        StatusCode = StatusCodes.Status404NotFound
-      };
+      }) { StatusCode = StatusCodes.Status404NotFound };
 
     eventDraft.ClientId = client.Id;
     eventDraft.ClientUid = client.Uid;
@@ -656,7 +627,6 @@ public class EventsController : ControllerBase
     foreach (var item in request.Items)
     {
       var inventory = await _context.InventoryItems.FirstOrDefaultAsync(i => i.Uid == item.InventoryItemUid);
-      // var package = _context.Packages.FirstOrDefaultAsync(p => p.Uid == item.PackageUid);
 
       if (inventory == null)
         return new ObjectResult(new ProblemDetails
@@ -664,10 +634,7 @@ public class EventsController : ControllerBase
           Title = "Not Found",
           Detail = "Iventory item not found.",
           Status = StatusCodes.Status404NotFound
-        })
-        {
-          StatusCode = StatusCodes.Status404NotFound
-        };
+        }) { StatusCode = StatusCodes.Status404NotFound };
 
       var eventItem = new EventItem
       {
@@ -713,6 +680,75 @@ public class EventsController : ControllerBase
     });
   }
 
+  private async Task ReconcileLogisticsAfterEventCancelled(int eventId)
+  {
+      var affectedTrips = await _context.LogisticsTrips
+          .Include(t => t.WorkItems)
+          .Include(t => t.Crew)
+          .Where(t => t.WorkItems.Any(w => w.EventId == eventId))
+          .ToListAsync();
+
+      foreach (var trip in affectedTrips)
+      {
+          var eventWorkItems = trip.WorkItems
+              .Where(w => w.EventId == eventId)
+              .ToList();
+
+          if (!eventWorkItems.Any())
+          {
+              continue;
+          }
+
+          foreach (var workItem in eventWorkItems)
+          {
+              if (
+                  trip.Status == TripStatus.Scheduled &&
+                  workItem.Status == LogisticsWorkItemStatus.Pending
+              )
+              {
+                  trip.WorkItems.Remove(workItem);
+                  _context.LogisticsWorkItems.Remove(workItem);
+                  continue;
+              }
+
+              if (workItem.Status != LogisticsWorkItemStatus.Completed)
+              {
+                  workItem.Status = LogisticsWorkItemStatus.Cancelled;
+                  workItem.UpdatedAt = DateTime.UtcNow;
+              }
+          }
+
+          var remainingWorkItems = trip.WorkItems
+              .OrderBy(w => w.SortOrder)
+              .ToList();
+
+          var hasRemainingEventWork = remainingWorkItems
+              .Any(w => w.EventId.HasValue);
+
+          if (
+              trip.Status == TripStatus.Scheduled &&
+              !hasRemainingEventWork
+          )
+          {
+              _context.LogisticsAssignments.RemoveRange(trip.Crew);
+              _context.LogisticsWorkItems.RemoveRange(remainingWorkItems);
+              _context.LogisticsTrips.Remove(trip);
+              continue;
+          }
+
+          if (trip.Status == TripStatus.Scheduled)
+          {
+              for (var index = 0; index < remainingWorkItems.Count; index++)
+              {
+                  remainingWorkItems[index].SortOrder = index + 1;
+                  remainingWorkItems[index].UpdatedAt = DateTime.UtcNow;
+              }
+
+              trip.UpdatedAt = DateTime.UtcNow;
+          }
+      }
+  }
+
   [HttpPost("{status}/{uid}")]
   public async Task<IActionResult> ChangeEventStatus(string status, Guid uid)
   {
@@ -725,10 +761,7 @@ public class EventsController : ControllerBase
               Title = "Not Found",
               Detail = "Event not found.",
               Status = StatusCodes.Status404NotFound
-          })
-          {
-              StatusCode = StatusCodes.Status404NotFound
-          };
+          }) { StatusCode = StatusCodes.Status404NotFound };
       }
 
       var isHoldRequest = status.Equals("onhold", StringComparison.OrdinalIgnoreCase);
@@ -741,10 +774,7 @@ public class EventsController : ControllerBase
               Title = "Bad Request",
               Detail = "Unsupported status transition. Use specific endpoints for Confirming or Scheduling.",
               Status = StatusCodes.Status400BadRequest
-          })
-          {
-              StatusCode = StatusCodes.Status400BadRequest
-          };
+          }) { StatusCode = StatusCodes.Status400BadRequest };
       }
 
       if (eventJob.Status != EventStatus.Confirmed && 
@@ -756,19 +786,16 @@ public class EventsController : ControllerBase
               Title = "Bad Request",
               Detail = $"Only Confirmed or Scheduled events can be moved to {status}.",
               Status = StatusCodes.Status400BadRequest
-          })
-          {
-              StatusCode = StatusCodes.Status400BadRequest
-          };
+          }) { StatusCode = StatusCodes.Status400BadRequest };
       }
 
       eventJob.Status = isHoldRequest ? EventStatus.OnHold : EventStatus.Cancelled;
-      
-      var tripsToCleanUp = await _context.LogisticsTrips
-          .Where(t => t.EventId == eventJob.Id)
-          .ToListAsync();
+      eventJob.UpdatedAt = DateTime.UtcNow;
 
-      _context.LogisticsTrips.RemoveRange(tripsToCleanUp);
+      if (isCancelRequest)
+      {
+          await ReconcileLogisticsAfterEventCancelled(eventJob.Id);
+      }
 
       await _context.SaveChangesAsync();
 

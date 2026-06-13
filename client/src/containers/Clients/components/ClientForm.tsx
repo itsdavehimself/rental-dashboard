@@ -66,6 +66,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
     defaultValues: {
       type: "Residential",
       isTaxExempt: false,
+      isLegacy: false,
     },
   });
   const apiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -160,9 +161,10 @@ const ClientForm: React.FC<ClientFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col justify-center px-8 pt-4 gap-4"
+      className="flex flex-col gap-5 px-6 pt-4 pb-2 w-[min(72rem,calc(100vw-6rem))] max-h-[calc(100vh-10rem)] overflow-hidden"
     >
-      <div className="flex justify-center items-center">
+      {/* Client Type */}
+      <div className="flex justify-center shrink-0">
         <SegmentedToggle
           option={type}
           setOption={(val) =>
@@ -175,126 +177,153 @@ const ClientForm: React.FC<ClientFormProps> = ({
           labels={["Residential", "Business"]}
         />
       </div>
-      {type === "Business" && (
-        <div className="flex flex-col gap-4">
-          <h4 className="font-semibold -mb-1">Business Info</h4>
-          <StyledInput
-            label="Business Name"
-            placeholder="Table Tops, LLC"
-            register={register("businessName")}
-          />
-          <BooleanCheckbox
-            label="Tax Exempt"
-            checked={isTaxExempt}
-            onChange={(val) => setValue("isTaxExempt", val)}
-          />
-          <hr className="border-gray-200 mt-2"></hr>
-        </div>
-      )}
-      <div className="flex flex-col gap-4">
-        <h4 className="font-semibold -mb-1">Primary Contact</h4>
-        <div className="grid grid-cols-2 gap-4 w-172">
-          <StyledInput
-            label="First Name"
-            placeholder="Becky"
-            register={register("firstName")}
-            error={formErrors.firstName?.message}
-          />
-          <StyledInput
-            label="Last Name"
-            placeholder="Bouncehouse"
-            register={register("lastName")}
-            error={formErrors.lastName?.message}
-          />
-          <StyledInput
-            label="Email"
-            placeholder="beckybouncehouse@adrentals.com"
-            register={register("email")}
-            error={formErrors.email?.message}
-          />
-          <PhoneInput
-            label="Phone Number"
-            register={register("phoneNumber")}
-            error={formErrors.phoneNumber?.message}
-          />
-        </div>
-        <hr className="border-gray-200 mt-2"></hr>
-      </div>
-      <div className="flex flex-col gap-4">
-        <h4 className="font-semibold -mb-1">Primary Address</h4>
-        <SearchInput
-          label="Address Line 1"
-          placeholder="123 Bouncehouse Ln"
-          register={register("address.addressLine1")}
-          error={formErrors.address?.addressLine1?.message}
-          debouncedSearch={debouncedSearch}
-          results={addressResults}
-          setResults={setAddressResults}
-          renderResult={(address) => (
-            <AddressSearchResultRow
-              key={address.id}
-              address={address}
-              setValue={setValue}
-              setResults={setAddressResults}
-              fieldMap={{
-                addressLine1: "address.addressLine1",
-                city: "address.city",
-                state: "address.state",
-                zipCode: "address.zipCode",
-              }}
-            />
-          )}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-        />
-        <StyledInput
-          label="Address Line 2"
-          placeholder="Suite 7"
-          register={register("address.addressLine2")}
-          error={formErrors.address?.addressLine2?.message}
-          optional={true}
-        />
-        <div className="grid grid-cols-[1fr_5rem_.5fr] gap-4">
-          <StyledInput
-            label="City"
-            placeholder="Canopyside"
-            register={register("address.city")}
-            error={formErrors.address?.city?.message}
-          />
-          <Dropdown
-            ref={ref}
-            label="State"
-            value={state}
-            options={STATES}
-            openDropdown={openDropdown}
-            setOpenDropdown={setOpenDropdown}
-            selectedLabel={
-              STATES.find((s) => s.value === state)?.label ?? "State"
-            }
-            onChange={(val) => setValue("address.state", val as string)}
-            error={formErrors.address?.state?.message}
-          />
-          <StyledInput
-            label="Zip Code"
-            placeholder="60089"
-            register={register("address.zipCode")}
-            error={formErrors.address?.zipCode?.message}
-          />
-        </div>
-      </div>
-      <TextAreaInput
-        label="Notes"
-        register={register("notes")}
-        optional={true}
-      />
-      <BooleanCheckbox
-        label="Legacy Client"
-        checked={isLegacyClient}
-        onChange={(val) => setValue("isLegacy", val)}
-      />
 
-      <div className="self-center w-1/4">
-        <SubmitButton label="Add" />
+      {/* Business Info */}
+      {type === "Business" && (
+        <section className="border border-gray-200 rounded-2xl p-4 shrink-0">
+          <div className="grid grid-cols-[1fr_auto] gap-4 items-end">
+            <StyledInput
+              label="Business Name"
+              placeholder="Table Tops, LLC"
+              register={register("businessName")}
+            />
+
+            <div className="pb-1">
+              <BooleanCheckbox
+                label="Tax Exempt"
+                checked={!!isTaxExempt}
+                onChange={(val) => setValue("isTaxExempt", val)}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Main Horizontal Form */}
+      <section className="grid grid-cols-2 gap-6 min-h-0">
+        {/* Left: Contact */}
+        <div className="border border-gray-200 rounded-2xl p-5 flex flex-col gap-4 min-h-0">
+          <h4 className="font-semibold text-lg">Primary Contact</h4>
+
+          <div className="grid grid-cols-2 gap-4">
+            <StyledInput
+              label="First Name"
+              placeholder="Becky"
+              register={register("firstName")}
+              error={formErrors.firstName?.message}
+            />
+
+            <StyledInput
+              label="Last Name"
+              placeholder="Bouncehouse"
+              register={register("lastName")}
+              error={formErrors.lastName?.message}
+            />
+
+            <StyledInput
+              label="Email"
+              placeholder="beckybouncehouse@adrentals.com"
+              register={register("email")}
+              error={formErrors.email?.message}
+            />
+
+            <PhoneInput
+              label="Phone Number"
+              register={register("phoneNumber")}
+              error={formErrors.phoneNumber?.message}
+            />
+          </div>
+
+          <div className="flex-1 min-h-0">
+            <TextAreaInput
+              label="Notes"
+              register={register("notes")}
+              optional={true}
+            />
+          </div>
+        </div>
+
+        {/* Right: Address */}
+        <div className="border border-gray-200 rounded-2xl p-5 flex flex-col gap-4 min-h-0">
+          <h4 className="font-semibold text-lg">Primary Address</h4>
+
+          <SearchInput
+            label="Address Line 1"
+            placeholder="123 Bouncehouse Ln"
+            register={register("address.addressLine1")}
+            error={formErrors.address?.addressLine1?.message}
+            debouncedSearch={debouncedSearch}
+            results={addressResults}
+            setResults={setAddressResults}
+            renderResult={(address) => (
+              <AddressSearchResultRow
+                key={address.id}
+                address={address}
+                setValue={setValue}
+                setResults={setAddressResults}
+                fieldMap={{
+                  addressLine1: "address.addressLine1",
+                  city: "address.city",
+                  state: "address.state",
+                  zipCode: "address.zipCode",
+                }}
+              />
+            )}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+
+          <StyledInput
+            label="Address Line 2"
+            placeholder="Suite 7"
+            register={register("address.addressLine2")}
+            error={formErrors.address?.addressLine2?.message}
+            optional={true}
+          />
+
+          <div className="grid grid-cols-[1fr_5rem_.65fr] gap-4">
+            <StyledInput
+              label="City"
+              placeholder="Canopyside"
+              register={register("address.city")}
+              error={formErrors.address?.city?.message}
+            />
+
+            <Dropdown
+              ref={ref}
+              label="State"
+              value={state}
+              options={STATES}
+              openDropdown={openDropdown}
+              setOpenDropdown={setOpenDropdown}
+              selectedLabel={
+                STATES.find((s) => s.value === state)?.label ?? "State"
+              }
+              onChange={(val) => setValue("address.state", val as string)}
+              error={formErrors.address?.state?.message}
+            />
+
+            <StyledInput
+              label="Zip Code"
+              placeholder="60089"
+              register={register("address.zipCode")}
+              error={formErrors.address?.zipCode?.message}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between shrink-0 border-t border-gray-200 pt-4">
+        <BooleanCheckbox
+          label="Legacy Client"
+          checked={!!isLegacyClient}
+          onChange={(val) => setValue("isLegacy", val)}
+        />
+
+        <div className="w-36">
+          <SubmitButton label="Add" />
+        </div>
       </div>
     </form>
   );
