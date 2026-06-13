@@ -161,3 +161,50 @@ export const deleteManifestTrip = async (apiUrl: string, runUid: string) => {
 
   return null;
 };
+
+export type UnassignedLogisticsEvent = {
+  uid: string;
+  eventName: string | null;
+  clientName: string;
+  location: string;
+  eventStart: string;
+  eventEnd: string;
+  missingWorkTypes: ManifestWorkType[];
+};
+
+export const getUnassignedLogisticsEvents = async (
+  apiUrl: string,
+  date: Date,
+): Promise<UnassignedLogisticsEvent[]> => {
+  const dateOnly = formatDateOnly(date);
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  const response = await fetch(
+    `${apiUrl}/api/logistics/unassigned-events/${dateOnly}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-timezone": timezone,
+      },
+      credentials: "include",
+    },
+  );
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    let message = "There was a problem fetching unassigned events.";
+
+    try {
+      const errorBody = JSON.parse(text);
+      message = errorBody.detail || errorBody.title || message;
+    } catch {
+      message = text || message;
+    }
+
+    throw new Error(message);
+  }
+
+  return text ? JSON.parse(text) : [];
+};

@@ -74,6 +74,7 @@ const CreateEvent: React.FC = () => {
     eventUid,
     eventStart,
     eventEnd,
+    eventItems,
   } = useCreateEvent();
 
   const activeModal = useAppSelector((state) => state.ui.activeModal);
@@ -83,6 +84,13 @@ const CreateEvent: React.FC = () => {
     setSelectedItems,
     clearContext: clearBillingContext,
   } = useBilling();
+
+  useEffect(() => {
+    if (!eventUid) return;
+    if (!eventItems.length) return;
+
+    setSelectedItems(eventItems);
+  }, [eventUid, eventItems, setSelectedItems]);
 
   const methods = useForm<CreateEventInputs>();
 

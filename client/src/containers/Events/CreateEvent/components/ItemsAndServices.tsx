@@ -62,9 +62,10 @@ const ItemsAndServices: React.FC = () => {
         />
       </div>
       {selectedItems && selectedItems.length > 0 && (
-        <section className="flex flex-col overflow-scroll">
-          <h6 className="font-semibold pb-1 top-0 sticky bg-white">Items</h6>
-          <div className="flex flex-col">
+        <section className="flex flex-col min-h-0">
+          <h6 className="font-semibold pb-1 bg-white shrink-0">Items</h6>
+
+          <div className="flex flex-col min-h-0 overflow-y-auto">
             {selectedItems.map((item) => (
               <SelectedItemRow
                 key={item.uid}

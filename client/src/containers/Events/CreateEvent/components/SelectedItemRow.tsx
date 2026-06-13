@@ -37,7 +37,17 @@ const SelectedItemRow: React.FC<SelectedItemRowProps> = ({
   return (
     <div className="flex flex-row justify-between items-center px-4 h-20 text-sm text-primary">
       <div className="grid grid-cols-[4rem_1fr] items-center">
-        <div className="bg-gray-200 rounded-lg h-12 w-12"></div>
+        <div className="bg-gray-200 rounded-lg h-12 w-12 overflow-hidden flex-shrink-0">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.description}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full bg-gray-200" />
+          )}
+        </div>
         <div className="flex flex-col">
           <p className="font-semibold">{item.description}</p>
           <p className="text-xs text-gray-500">{item.sku}</p>

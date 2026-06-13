@@ -279,17 +279,18 @@ public async Task<IActionResult> GetInventory(
 
     var mappedInventoryItems = inventoryItems.Select(i => new InventorySearchResultDto
     {
-      Uid = i.Uid,
-      Description = i.Description,
-      QuantityTotal = i.Purchases.Sum(p => p.QuantityPurchased)
-  - i.Retirements.Sum(r => r.QuantityRetired),
-      SKU = i.SKU,
-      UnitPrice = i.UnitPrice,
-      Type = i.Type.Name,
-      SubType = i.SubType.Name,
-      Material = i.Material?.Name,
-      Color = i.Color?.Name,
-      BounceHouseType = i.BounceHouseType?.Name
+        Uid = i.Uid,
+        Description = i.Description,
+        QuantityTotal = i.Purchases.Sum(p => p.QuantityPurchased)
+            - i.Retirements.Sum(r => r.QuantityRetired),
+        SKU = i.SKU,
+        UnitPrice = i.UnitPrice,
+        Type = i.Type.Name,
+        SubType = i.SubType.Name,
+        Material = i.Material?.Name,
+        Color = i.Color?.Name,
+        BounceHouseType = i.BounceHouseType?.Name,
+        ImageUrl = GetInventoryImageUrl(i.ImageUrl)
     });
 
     var items = mappedInventoryItems.ToList();
@@ -717,6 +718,25 @@ public async Task<IActionResult> GetInventory(
       await _context.SaveChangesAsync();
 
       return Ok(new { message = "Item updated successfully" });
+  }
+
+  private string? GetInventoryImageUrl(string? imageKey)
+  {
+      if (string.IsNullOrWhiteSpace(imageKey))
+      {
+          return null;
+      }
+
+      var bucketName = _config["AWS:S3BucketName"];
+
+      var request = new GetPreSignedUrlRequest
+      {
+          BucketName = bucketName,
+          Key = imageKey,
+          Expires = DateTime.UtcNow.AddHours(1)
+      };
+
+      return _s3.GetPreSignedURL(request);
   }
   
 }

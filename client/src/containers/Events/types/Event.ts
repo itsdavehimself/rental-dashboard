@@ -70,6 +70,7 @@ type EventItem = {
   inventoryItemSKU: string;
   createdAt: string;
   updatedAt: string;
+  imageUrl?: string | null;
 };
 
 export type LogisticsTrip = {

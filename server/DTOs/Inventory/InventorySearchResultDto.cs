@@ -8,6 +8,8 @@ public class InventorySearchResultDto
   public string SKU { get; set; } = string.Empty;
   public decimal? UnitPrice { get; set; }
 
+  public string ImageUrl { get; set; } = string.Empty;
+
   public string Type { get; set; } = string.Empty;
   public string SubType { get; set; } = string.Empty;
   public string? Material { get; set; }

@@ -2,6 +2,12 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import type { RefObject } from "react";
 import { useState, useRef, useEffect } from "react";
 
+type DropdownOption = {
+  value: string | number;
+  label: string;
+  subLabel?: string;
+};
+
 interface DropdownProps {
   ref: RefObject<HTMLDivElement | null>;
   openDropdown: string | null;
@@ -10,7 +16,7 @@ interface DropdownProps {
   value: string | number;
   selectedLabel: string;
   onChange: (val: string | number) => void;
-  options: { value: string | number; label: string }[];
+  options: DropdownOption[];
   error: string | undefined;
 }
 
@@ -70,13 +76,13 @@ const Dropdown: React.FC<DropdownProps> = ({
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev < options.length - 1 ? prev + 1 : 0
+          prev < options.length - 1 ? prev + 1 : 0,
         );
       }
       if (e.key === "ArrowUp") {
         e.preventDefault();
         setHighlightedIndex((prev) =>
-          prev > 0 ? prev - 1 : options.length - 1
+          prev > 0 ? prev - 1 : options.length - 1,
         );
       }
     }
@@ -122,7 +128,15 @@ const Dropdown: React.FC<DropdownProps> = ({
                   : "hover:bg-gray-100"
               } ${i === highlightedIndex ? "bg-gray-100" : ""}`}
             >
-              {opt.label}
+              <div className="flex flex-col">
+                <span>{opt.label}</span>
+
+                {opt.subLabel && (
+                  <span className="text-xs text-gray-400 font-normal leading-4">
+                    {opt.subLabel}
+                  </span>
+                )}
+              </div>
             </li>
           ))}
         </ul>

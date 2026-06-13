@@ -1,10 +1,10 @@
 import type { InventoryItemSearchResult } from "../../../Inventory/types/InventoryItem";
-import type { EventItem } from "../CreateEvent";
+import type { EventLineItem } from "../CreateEvent";
 
 interface ItemSearchResultRowProps {
   item: InventoryItemSearchResult;
-  selectedItems: EventItem[];
-  setSelectedItems: React.Dispatch<React.SetStateAction<EventItem[]>>;
+  selectedItems: EventLineItem[];
+  setSelectedItems: React.Dispatch<React.SetStateAction<EventLineItem[]>>;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
@@ -26,6 +26,7 @@ const ItemSearchResultRow: React.FC<ItemSearchResultRowProps> = ({
               uid: item.uid,
               description: item.description,
               sku: item.sku,
+              imageUrl: item.imageUrl,
               count: 1,
               unitPrice: item.unitPrice,
               quantityAvailable: 0,
@@ -33,18 +34,31 @@ const ItemSearchResultRow: React.FC<ItemSearchResultRowProps> = ({
             },
           ];
         });
+
         setQuery("");
       }}
       key={item.uid}
       className="grid grid-cols-[1fr_.2fr] items-center px-4 h-20 text-sm text-gray-500 hover:text-primary hover:bg-gray-50 hover:cursor-pointer"
     >
-      <div className="grid grid-cols-[4rem_1fr] items-center">
-        <div className="bg-gray-200 rounded-lg h-12 w-12"></div>
+      <div className="grid grid-cols-[4rem_1fr] items-center ">
+        <div className="bg-gray-200 rounded-lg h-12 w-12 overflow-hidden flex-shrink-0">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.description}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full bg-gray-200" />
+          )}
+        </div>
+
         <div className="flex flex-col">
           <p className="font-semibold">{item.description}</p>
           <p className="text-xs text-gray-500">{item.sku}</p>
         </div>
       </div>
+
       <div className="text-right font-semibold">${item.unitPrice}/unit</div>
     </div>
   );

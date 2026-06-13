@@ -6,6 +6,7 @@ public class EventItemResponseDto
   public decimal UnitPrice { get; set; }
   public ItemType Type { get; set; }
   public Guid? PackageUid { get; set; }
+  public string? ImageUrl { get; set; }
   public int Quantity { get; set; }
   public string InventoryItemSKU { get; set; } = "";
   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

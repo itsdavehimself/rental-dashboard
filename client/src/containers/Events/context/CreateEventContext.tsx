@@ -2,6 +2,7 @@ import React, { createContext } from "react";
 import type { ClientDetail } from "../../Clients/types/Client";
 import type { AddressEntry } from "../../../types/Address";
 import type { EventStatus } from "../types/Event";
+import type { EventLineItem } from "../CreateEvent/CreateEvent";
 
 export interface CreateEventContextType {
   client: ClientDetail | null;
@@ -22,6 +23,7 @@ export interface CreateEventContextType {
   eventType: string | null;
   eventStart: { date: Date; time: string } | null;
   eventEnd: { date: Date; time: string } | null;
+  eventItems: EventLineItem[];
 }
 
 export const CreateEventContext = createContext<

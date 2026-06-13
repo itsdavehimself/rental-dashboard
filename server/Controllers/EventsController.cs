@@ -6,6 +6,8 @@ using server.DTOs.Event;
 using server.Models.Event;
 using server.DTOs;
 using Stripe;
+using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace server.Controllers;
 
@@ -17,12 +19,14 @@ public class EventsController : ControllerBase
   private readonly AppDbContext _context;
   private readonly IConfiguration _config;
   private readonly IMapper _mapper;
+  private readonly IAmazonS3 _s3;
 
-  public EventsController(AppDbContext context, IConfiguration config, IMapper mapper)
+  public EventsController(AppDbContext context, IConfiguration config, IMapper mapper, IAmazonS3 s3)
   {
     _context = context;
     _config = config;
     _mapper = mapper;
+    _s3 = s3;
   }
 
   [HttpGet]
@@ -118,6 +122,7 @@ public class EventsController : ControllerBase
         Description = i.InventoryItem?.Description ?? "",
         InventoryItemUid = i.InventoryItem?.Uid,
         UnitPrice = i.UnitPrice,
+        ImageUrl = GetInventoryImageUrl(i.InventoryItem?.ImageUrl),
         Type = i.Type,
         PackageUid = i.Package?.Uid,
         Quantity = i.Quantity,
@@ -195,6 +200,13 @@ public class EventsController : ControllerBase
         .Distinct()
         .Select(l => _mapper.Map<LogisticsTripResponseDto>(l))
         .ToList();
+
+    foreach (var dtoItem in dto.Items)
+    {
+        var sourceItem = eventObject.Items.FirstOrDefault(i => i.Uid == dtoItem.Uid);
+
+        dtoItem.ImageUrl = GetInventoryImageUrl(sourceItem?.InventoryItem?.ImageUrl);
+    }
 
     var cardPayments = dto.Transactions
       .Where(t => t.Method == PaymentMethod.Card && t.ExternalTransactionId != null)
@@ -800,5 +812,24 @@ public class EventsController : ControllerBase
       await _context.SaveChangesAsync();
 
       return NoContent();
+  }
+
+  private string? GetInventoryImageUrl(string? imageKey)
+  {
+      if (string.IsNullOrWhiteSpace(imageKey))
+      {
+          return null;
+      }
+
+      var bucketName = _config["AWS:S3BucketName"];
+
+      var request = new GetPreSignedUrlRequest
+      {
+          BucketName = bucketName,
+          Key = imageKey,
+          Expires = DateTime.UtcNow.AddHours(1)
+      };
+
+      return _s3.GetPreSignedURL(request);
   }
 }

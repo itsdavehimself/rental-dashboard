@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useFetchEvent } from "../hooks/useFetchEvent";
 import { useFetchClient } from "../hooks/useFetchClient";
 import { mapAddressResToEvent } from "../helpers/mapAddressResToEvent";
+import type { EventLineItem } from "../CreateEvent/CreateEvent";
 
 export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -21,6 +22,7 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [eventType, setEventType] = useState<string | null>(null);
   const [eventStatus, setEventStatus] = useState<EventStatus | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [eventItems, setEventItems] = useState<EventLineItem[]>([]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -65,6 +67,18 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
       setEventType(fetchedEvent.eventType);
       setEventUid(fetchedEvent.uid);
       setEventStatus(fetchedEvent.status);
+      setEventItems(
+        fetchedEvent.items.map((item) => ({
+          uid: item.inventoryItemUid,
+          description: item.description,
+          sku: item.inventoryItemSKU,
+          imageUrl: item.imageUrl,
+          count: item.quantity,
+          unitPrice: item.unitPrice,
+          quantityAvailable: 0,
+          availabilityChecked: false,
+        })),
+      );
 
       const mappedAddresses = mapAddressResToEvent(fetchedEvent);
       setEventBilling(mappedAddresses.billing);
@@ -128,6 +142,7 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     setEventNotes(null);
     setInternalNotes(null);
     setEventType(null);
+    setEventItems([]);
   };
 
   const value = {
@@ -149,6 +164,7 @@ export const CreateEventProvider: React.FC<{ children: React.ReactNode }> = ({
     eventEnd,
     setEventStatus,
     eventStatus,
+    eventItems,
   };
 
   return (

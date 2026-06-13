@@ -10,11 +10,16 @@ import RunManifestPanel from "./components/RunManifestPanel";
 import AddModal from "../../components/common/AddModal";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { openModal } from "../../app/slices/uiSlice";
-import NewRunForm from "./components/NewRunForm";
+import NewRunForm, {
+  type PrefillManifestItem,
+  type EventWorkType,
+} from "./components/NewRunForm";
 import {
   deleteManifestTrip,
   getDispatchSchedule,
-} from "./components/services/logisticsService";
+  getUnassignedLogisticsEvents,
+  type UnassignedLogisticsEvent,
+} from "./services/logisticsService";
 import { useToast } from "../../hooks/useToast";
 import DeleteModal from "../../components/common/DeleteModal";
 
@@ -30,10 +35,53 @@ const Logistics: React.FC = () => {
   const [view, setView] = useState<"default" | "edit" | "add" | "delete">(
     "default",
   );
+  const [unassignedEvents, setUnassignedEvents] = useState<
+    UnassignedLogisticsEvent[]
+  >([]);
+  const [isLoadingUnassignedEvents, setIsLoadingUnassignedEvents] =
+    useState<boolean>(false);
+  const [prefillManifestItems, setPrefillManifestItems] = useState<
+    PrefillManifestItem[]
+  >([]);
+
   const { addToast } = useToast();
 
   const activeModal = useAppSelector((state) => state.ui.activeModal);
   const dispatch = useAppDispatch();
+
+  const formatWorkType = (type: string) => {
+    const labels: Record<string, string> = {
+      WarehouseLoad: "Warehouse Load",
+      WarehouseReload: "Warehouse Reload",
+      WarehouseUnload: "Warehouse Unload",
+      ReturnToWarehouse: "Return to Warehouse",
+      Delivery: "Delivery",
+      Setup: "Setup",
+      Teardown: "Teardown",
+      Pickup: "Pickup",
+    };
+
+    return labels[type] ?? type;
+  };
+
+  const fetchUnassignedEvents = async (date: Date) => {
+    try {
+      setIsLoadingUnassignedEvents(true);
+
+      const events = await getUnassignedLogisticsEvents(apiUrl, date);
+      setUnassignedEvents(events);
+    } catch (err) {
+      console.error("Error fetching unassigned events:", err);
+
+      if (err instanceof Error) {
+        addToast("Error", err.message);
+      } else {
+        addToast("Error", "There was a problem fetching unassigned events.");
+      }
+    } finally {
+      setIsLoadingUnassignedEvents(false);
+    }
+  };
 
   const selectedRun = useMemo(() => {
     return runs.find((run) => run.id === selectedRunId) ?? null;
@@ -75,6 +123,7 @@ const Logistics: React.FC = () => {
 
   useEffect(() => {
     fetchDispatchSchedule(selectedDate);
+    fetchUnassignedEvents(selectedDate);
   }, [selectedDate]);
 
   const normalizeCreatedRun = (createdRun: any): DispatchRun => {
@@ -144,16 +193,38 @@ const Logistics: React.FC = () => {
     }
   };
 
+  const handleBuildRunFromUnassignedEvent = (
+    event: UnassignedLogisticsEvent,
+  ) => {
+    const eventName = event.eventName || `${event.clientName}'s Event`;
+
+    setPrefillManifestItems(
+      event.missingWorkTypes.map((type) => ({
+        type: type as EventWorkType,
+        eventUid: event.uid,
+        eventName,
+        location: event.location,
+      })),
+    );
+
+    dispatch(openModal("addRun"));
+  };
+
   return (
     <>
       {activeModal === "addRun" && (
         <AddModal title="New Truck Run" modalKey="addRun">
           <NewRunForm
+            initialRunDate={selectedDate}
+            initialManifestItems={prefillManifestItems}
             onRunCreated={(createdRun) => {
               const normalizedRun = normalizeCreatedRun(createdRun);
 
               setRuns((prev) => [...prev, normalizedRun]);
               setSelectedRunId(normalizedRun.id);
+              setPrefillManifestItems([]);
+
+              fetchUnassignedEvents(selectedDate);
             }}
           />
         </AddModal>
@@ -194,7 +265,10 @@ const Logistics: React.FC = () => {
             label="New Run"
             icon={Plus}
             style="filled"
-            onClick={() => dispatch(openModal("addRun"))}
+            onClick={() => {
+              setPrefillManifestItems([]);
+              dispatch(openModal("addRun"));
+            }}
           />
         </div>
 
@@ -233,9 +307,52 @@ const Logistics: React.FC = () => {
             <div className="flex flex-col gap-2 pt-2 min-h-0">
               <h4 className="text-sm font-semibold">Unassigned Events</h4>
 
-              <div className="flex flex-1 justify-center items-center text-sm text-gray-400 text-center border-1 border-dashed border-gray-300 rounded-xl p-4">
-                Later this will show confirmed events that still need delivery,
-                setup, teardown, or pickup.
+              <div className="flex flex-col gap-2 min-h-0 overflow-y-auto pr-1">
+                {isLoadingUnassignedEvents ? (
+                  <div className="flex justify-center items-center text-sm text-gray-400 text-center border-1 border-dashed border-gray-300 rounded-xl p-4">
+                    Loading unassigned events...
+                  </div>
+                ) : unassignedEvents.length === 0 ? (
+                  <div className="flex justify-center items-center text-sm text-gray-400 text-center border-1 border-dashed border-gray-300 rounded-xl p-4">
+                    No unassigned logistics work for this date.
+                  </div>
+                ) : (
+                  unassignedEvents.map((event) => (
+                    <button
+                      key={event.uid}
+                      type="button"
+                      onClick={() => handleBuildRunFromUnassignedEvent(event)}
+                      className="flex flex-col gap-1 rounded-xl border-1 border-gray-200 bg-gray-50 p-3 text-left hover:bg-gray-100 hover:border-gray-300 transition-colors"
+                    >
+                      <div className="flex justify-between gap-2">
+                        <p className="text-sm font-semibold text-primary truncate">
+                          {event.eventName || `${event.clientName}'s Event`}
+                        </p>
+                        <span className="text-xs text-gray-400 shrink-0">
+                          {event.missingWorkTypes.length} open
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-gray-500 truncate">
+                        {event.clientName}
+                      </p>
+                      <p className="text-xs text-gray-400 truncate">
+                        {event.location}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {event.missingWorkTypes.map((type) => (
+                          <span
+                            key={type}
+                            className="rounded-full bg-white border border-gray-200 px-2 py-0.5 text-[11px] font-semibold text-gray-600"
+                          >
+                            {formatWorkType(type)}
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           </aside>

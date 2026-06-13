@@ -4,6 +4,7 @@ type InventoryListItem = {
   quantityTotal: number;
   sku: string;
   unitPrice: number;
+  imageUrl?: string | null;
 };
 
 export type InventoryPurchase = {
@@ -66,6 +67,7 @@ type InventoryItemSearchResult = {
   material?: string;
   color?: string;
   bounceHouseType?: string;
+  imageUrl?: string | null;
 };
 
 type InventoryAvailability = {

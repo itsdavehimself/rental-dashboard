@@ -17,7 +17,7 @@ import {
   createManifestTrip,
   updateManifestTrip,
   type CreateManifestTripRequest,
-} from "./services/logisticsService";
+} from "../services/logisticsService";
 import { fetchEvents } from "../../Events/services/eventService";
 import type { DispatchRun } from "./RunCard";
 
@@ -41,18 +41,29 @@ type WarehouseWorkType =
   | "WarehouseUnload"
   | "ReturnToWarehouse";
 
-type EventWorkType = "Delivery" | "Setup" | "Teardown" | "Pickup";
+export type EventWorkType = "Delivery" | "Setup" | "Teardown" | "Pickup";
 
 type ManifestWorkType = WarehouseWorkType | EventWorkType;
 
+export type PrefillManifestItem = {
+  type: EventWorkType;
+  eventUid: string;
+  eventName: string;
+  location: string;
+  eventStart?: string | null;
+  eventEnd?: string | null;
+};
+
 type ManifestItemDraft = {
   id: string;
-  workItemUid?: string | null;
+  workItemUid?: string;
   sortOrder: number;
   type: ManifestWorkType;
   eventUid?: string;
   eventName?: string;
   location?: string;
+  eventStart?: string | null;
+  eventEnd?: string | null;
 };
 
 type EventOption = {
@@ -61,13 +72,17 @@ type EventOption = {
   clientName: string;
   location: string;
   status: string;
+  eventStart: string;
+  eventEnd: string;
 };
 
 interface NewRunFormProps {
   mode?: "create" | "edit";
-  initialRun?: DispatchRun | null;
+  initialRun?: DispatchRun;
   onRunCreated?: (run: any) => void;
   onRunUpdated?: (run: any) => void;
+  initialRunDate?: Date;
+  initialManifestItems?: PrefillManifestItem[];
 }
 
 const NewRunForm: React.FC<NewRunFormProps> = ({
@@ -75,6 +90,8 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
   initialRun,
   onRunCreated,
   onRunUpdated,
+  initialRunDate,
+  initialManifestItems = [],
 }) => {
   const {
     handleSubmit,
@@ -85,7 +102,7 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
     formState: { errors },
   } = useForm<NewRunInputs>({
     defaultValues: {
-      runDate: new Date(),
+      runDate: initialRunDate ?? new Date(),
       crew: [],
     },
   });
@@ -97,7 +114,18 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-  const [manifestItems, setManifestItems] = useState<ManifestItemDraft[]>([]);
+  const [manifestItems, setManifestItems] = useState<ManifestItemDraft[]>(() =>
+    initialManifestItems.map((item, index) => ({
+      id: crypto.randomUUID(),
+      sortOrder: index + 1,
+      type: item.type,
+      eventUid: item.eventUid,
+      eventName: item.eventName,
+      location: item.location,
+      eventStart: item.eventStart,
+      eventEnd: item.eventEnd,
+    })),
+  );
   const [selectedWarehouseTask, setSelectedWarehouseTask] =
     useState<WarehouseWorkType>("WarehouseLoad");
   const [selectedEventTask, setSelectedEventTask] =
@@ -138,10 +166,75 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
     { value: "Pickup", label: "Pickup" },
   ];
 
-  const eventOptions = eventOptionsRaw.map((event) => ({
-    value: event.uid,
-    label: `${event.eventName} - ${event.location}`,
-  }));
+  const formatEventDate = (value?: string | null) => {
+    if (!value) return "";
+
+    return new Date(value).toLocaleDateString([], {
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const formatEventTime = (value?: string | null) => {
+    if (!value) return "";
+
+    return new Date(value).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const isSameLocalDate = (a: Date, b: Date) => {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  };
+
+  const formatEventWindow = (
+    eventStart?: string | null,
+    eventEnd?: string | null,
+  ) => {
+    if (!eventStart || !eventEnd) return null;
+
+    const start = new Date(eventStart);
+    const end = new Date(eventEnd);
+
+    if (isSameLocalDate(start, end)) {
+      return `${formatEventDate(eventStart)}, ${formatEventTime(
+        eventStart,
+      )} - ${formatEventTime(eventEnd)}`;
+    }
+
+    return `${formatEventDate(eventStart)}, ${formatEventTime(
+      eventStart,
+    )} - ${formatEventDate(eventEnd)}, ${formatEventTime(eventEnd)}`;
+  };
+
+  const getTaskTimingHint = (item: ManifestItemDraft) => {
+    if (!item.eventStart || !item.eventEnd) return null;
+
+    if (item.type === "Delivery" || item.type === "Setup") {
+      return `Event starts at ${formatEventTime(item.eventStart)}`;
+    }
+
+    if (item.type === "Teardown" || item.type === "Pickup") {
+      return `Event ends at ${formatEventTime(item.eventEnd)}`;
+    }
+
+    return null;
+  };
+
+  const eventOptions = eventOptionsRaw.map((event) => {
+    const eventWindow = formatEventWindow(event.eventStart, event.eventEnd);
+
+    return {
+      value: event.uid,
+      label: event.eventName,
+      subLabel: `${event.location}${eventWindow ? ` • ${eventWindow}` : ""}`,
+    };
+  });
 
   const formatManifestType = (type: ManifestWorkType) => {
     const allOptions = [...warehouseTaskOptions, ...eventTaskOptions];
@@ -186,6 +279,8 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
         eventUid: selectedEvent.uid,
         eventName: selectedEvent.eventName,
         location: selectedEvent.location,
+        eventStart: selectedEvent.eventStart,
+        eventEnd: selectedEvent.eventEnd,
       },
     ]);
   };
@@ -385,6 +480,8 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
             `${event.clientFirstName ?? ""} ${event.clientLastName ?? ""}`.trim(),
           location: `${event.deliveryCity}, ${event.deliveryState}`,
           status: event.status,
+          eventStart: event.eventStart,
+          eventEnd: event.eventEnd,
         }));
 
       setEventOptionsRaw(options);
@@ -438,6 +535,8 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
         eventUid: item.eventUid ?? undefined,
         eventName: item.eventName,
         location: item.location,
+        eventStart: item.eventStart,
+        eventEnd: item.eventEnd,
       })),
     );
   }, [mode, initialRun, reset]);
@@ -629,6 +728,18 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
                           {item.eventName}
                         </p>
                         <p className="text-xs text-gray-400">{item.location}</p>
+
+                        {formatEventWindow(item.eventStart, item.eventEnd) && (
+                          <p className="text-xs font-semibold text-gray-500">
+                            {formatEventWindow(item.eventStart, item.eventEnd)}
+                          </p>
+                        )}
+
+                        {getTaskTimingHint(item) && (
+                          <p className="text-[11px] text-gray-400">
+                            {getTaskTimingHint(item)}
+                          </p>
+                        )}
                       </>
                     ) : (
                       <p className="text-xs text-gray-400">Warehouse task</p>
@@ -679,9 +790,7 @@ const NewRunForm: React.FC<NewRunFormProps> = ({
 
       <div className="flex justify-end pt-4 pb-2">
         <div className="w-40">
-          <SubmitButton
-            label={mode === "edit" ? "Save Run" : "Create Run"}
-          />{" "}
+          <SubmitButton label={mode === "edit" ? "Save Run" : "Create Run"} />
         </div>
       </div>
     </form>

@@ -152,11 +152,13 @@ public async Task<IActionResult> GetDispatchSchedule(
                   type = w.Type.ToString(),
                   status = w.Status.ToString(),
                   eventUid = w.Event?.Uid,
-                  eventName = w.Event?.EventName,
-                  location = w.Event == null
-                      ? null
-                      : $"{w.Event.DeliveryCity}, {w.Event.DeliveryState}",
-                  specificNotes = w.SpecificNotes
+                    eventName = w.Event?.EventName,
+                    eventStart = w.Event != null ? (DateTime?)w.Event.EventStart : null,
+                    eventEnd = w.Event != null ? (DateTime?)w.Event.EventEnd : null,
+                    location = w.Event == null
+                        ? null
+                        : $"{w.Event.DeliveryCity}, {w.Event.DeliveryState}",
+                    specificNotes = w.SpecificNotes,
               })
       }));
   }
@@ -687,13 +689,11 @@ public async Task<IActionResult> GetDispatchSchedule(
 
       _context.LogisticsTrips.Add(trip);
 
-      foreach (var eventJob in events)
-      {
-          eventJob.Status = EventStatus.Scheduled;
-          eventJob.UpdatedAt = DateTime.UtcNow;
-      }
-
       await _context.SaveChangesAsync();
+
+        await RecalculateEventLogisticsStatus(events.Select(e => e.Id).ToList());
+
+        await _context.SaveChangesAsync();
 
       return Ok(new
       {
@@ -720,12 +720,21 @@ public async Task<IActionResult> GetDispatchSchedule(
                   type = w.Type.ToString(),
                   status = w.Status.ToString(),
                   eventUid = w.EventId.HasValue
-                      ? events.FirstOrDefault(e => e.Id == w.EventId.Value)?.Uid
-                      : null,
-                  eventName = w.EventId.HasValue
-                      ? events.FirstOrDefault(e => e.Id == w.EventId.Value)?.EventName
-                      : null,
-                  specificNotes = w.SpecificNotes
+                    ? events.FirstOrDefault(e => e.Id == w.EventId.Value)?.Uid
+                    : null,
+                eventName = w.EventId.HasValue
+                    ? events.FirstOrDefault(e => e.Id == w.EventId.Value)?.EventName
+                    : null,
+                eventStart = w.EventId.HasValue
+                    ? events.FirstOrDefault(e => e.Id == w.EventId.Value)?.EventStart
+                    : null,
+                eventEnd = w.EventId.HasValue
+                    ? events.FirstOrDefault(e => e.Id == w.EventId.Value)?.EventEnd
+                    : null,
+                location = w.EventId.HasValue
+                    ? $"{events.FirstOrDefault(e => e.Id == w.EventId.Value)?.DeliveryCity}, {events.FirstOrDefault(e => e.Id == w.EventId.Value)?.DeliveryState}"
+                    : null,
+                specificNotes = w.SpecificNotes
               })
       });
   }
@@ -999,11 +1008,9 @@ public async Task<IActionResult> GetDispatchSchedule(
             UpdatedAt = DateTime.UtcNow
         }).ToList();
 
-        foreach (var eventJob in events)
-        {
-            eventJob.Status = EventStatus.Scheduled;
-            eventJob.UpdatedAt = DateTime.UtcNow;
-        }
+        await _context.SaveChangesAsync();
+
+        await RecalculateEventLogisticsStatus(events.Select(e => e.Id).ToList());
 
         await _context.SaveChangesAsync();
 
@@ -1041,6 +1048,8 @@ public async Task<IActionResult> GetDispatchSchedule(
                     status = w.Status.ToString(),
                     eventUid = w.Event?.Uid,
                     eventName = w.Event?.EventName,
+                    eventStart = w.Event != null ? (DateTime?)w.Event.EventStart : null,
+                    eventEnd = w.Event != null ? (DateTime?)w.Event.EventEnd : null,
                     location = w.Event == null
                         ? null
                         : $"{w.Event.DeliveryCity}, {w.Event.DeliveryState}",
@@ -1143,5 +1152,153 @@ public async Task<IActionResult> GetDispatchSchedule(
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    private async Task RecalculateEventLogisticsStatus(List<int> eventIds)
+    {
+        if (!eventIds.Any())
+        {
+            return;
+        }
+
+        var requiredTypes = new[]
+        {
+            LogisticsWorkType.Delivery,
+            LogisticsWorkType.Setup,
+            LogisticsWorkType.Teardown,
+            LogisticsWorkType.Pickup
+        };
+
+        var events = await _context.Events
+            .Where(e => eventIds.Contains(e.Id))
+            .ToListAsync();
+
+        foreach (var eventJob in events)
+        {
+            if (
+                eventJob.Status == EventStatus.Cancelled ||
+                eventJob.Status == EventStatus.Completed ||
+                eventJob.Status == EventStatus.Draft
+            )
+            {
+                continue;
+            }
+
+            var scheduledTypes = await _context.LogisticsWorkItems
+                .Where(w =>
+                    w.EventId == eventJob.Id &&
+                    w.Status != LogisticsWorkItemStatus.Cancelled
+                )
+                .Select(w => w.Type)
+                .ToListAsync();
+
+            var isFullyScheduled = requiredTypes.All(rt =>
+                scheduledTypes.Contains(rt)
+            );
+
+            eventJob.Status = isFullyScheduled
+                ? EventStatus.Scheduled
+                : EventStatus.Confirmed;
+
+            eventJob.UpdatedAt = DateTime.UtcNow;
+        }
+    }
+
+    [HttpGet("unassigned-events/{date}")]
+    public async Task<IActionResult> GetUnassignedEvents(
+        DateOnly date,
+        [FromHeader(Name = "x-user-timezone")] string? timezone = null
+    )
+    {
+        timezone ??= "America/Chicago";
+
+        TimeZoneInfo tz;
+
+        try
+        {
+            tz = TimeZoneInfo.FindSystemTimeZoneById(timezone);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            tz = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+        }
+        catch (InvalidTimeZoneException)
+        {
+            tz = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+        }
+
+        var localStart = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0);
+        var localEnd = localStart.AddDays(1);
+
+        var utcStart = TimeZoneInfo.ConvertTimeToUtc(localStart, tz);
+        var utcEnd = TimeZoneInfo.ConvertTimeToUtc(localEnd, tz);
+
+        var events = await _context.Events
+            .Include(e => e.LogisticsWorkItems)
+            .Where(e =>
+                e.Status != EventStatus.Draft &&
+                e.Status != EventStatus.Cancelled &&
+                e.Status != EventStatus.Completed &&
+                (
+                    (e.EventStart >= utcStart && e.EventStart < utcEnd) ||
+                    (e.EventEnd >= utcStart && e.EventEnd < utcEnd)
+                )
+            )
+            .OrderBy(e => e.EventStart)
+            .ToListAsync();
+
+        var eventWorkTypes = new[]
+        {
+            LogisticsWorkType.Delivery,
+            LogisticsWorkType.Setup,
+            LogisticsWorkType.Teardown,
+            LogisticsWorkType.Pickup
+        };
+
+        var response = events
+            .Select(e =>
+            {
+                var isStartDay = e.EventStart >= utcStart && e.EventStart < utcEnd;
+                var isEndDay = e.EventEnd >= utcStart && e.EventEnd < utcEnd;
+
+                var requiredTypes = new List<LogisticsWorkType>();
+
+                if (isStartDay)
+                {
+                    requiredTypes.Add(LogisticsWorkType.Delivery);
+                    requiredTypes.Add(LogisticsWorkType.Setup);
+                }
+
+                if (isEndDay)
+                {
+                    requiredTypes.Add(LogisticsWorkType.Teardown);
+                    requiredTypes.Add(LogisticsWorkType.Pickup);
+                }
+
+                var alreadyScheduledTypes = e.LogisticsWorkItems
+                    .Where(w => w.Status != LogisticsWorkItemStatus.Cancelled)
+                    .Select(w => w.Type)
+                    .ToHashSet();
+
+                var missingTypes = requiredTypes
+                    .Where(type => !alreadyScheduledTypes.Contains(type))
+                    .Distinct()
+                    .ToList();
+
+                return new
+                {
+                    uid = e.Uid,
+                    eventName = e.EventName,
+                    clientName = $"{e.ClientFirstName} {e.ClientLastName}".Trim(),
+                    location = $"{e.DeliveryCity}, {e.DeliveryState}",
+                    eventStart = e.EventStart,
+                    eventEnd = e.EventEnd,
+                    missingWorkTypes = missingTypes.Select(t => t.ToString()).ToList()
+                };
+            })
+            .Where(e => e.missingWorkTypes.Any())
+            .ToList();
+
+        return Ok(response);
     }
 }
