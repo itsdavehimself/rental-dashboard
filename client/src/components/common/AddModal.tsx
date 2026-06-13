@@ -9,6 +9,7 @@ interface AddModalProps<T extends string | null> {
   children: React.ReactNode;
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
   modalKey: T;
+  disableClose?: boolean;
 }
 
 const AddModal = <T extends string | null>({
@@ -16,6 +17,7 @@ const AddModal = <T extends string | null>({
   children,
   setErrors,
   modalKey,
+  disableClose,
 }: AddModalProps<T>) => {
   const ref = useRef<HTMLDivElement>(null);
   const activeModal = useAppSelector((state) => state.ui.activeModal);
@@ -23,6 +25,7 @@ const AddModal = <T extends string | null>({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (disableClose) return;
       if (
         activeModal === modalKey &&
         !ref.current?.contains(event.target as Node)
@@ -43,7 +46,7 @@ const AddModal = <T extends string | null>({
       >
         <div className="flex justify-between items-center pl-6 pr-4">
           <h4 className="text-lg font-semibold">{title}</h4>
-          <XButton setErrors={setErrors} />
+          {!disableClose && <XButton setErrors={setErrors} />}
         </div>
         {children}
       </div>

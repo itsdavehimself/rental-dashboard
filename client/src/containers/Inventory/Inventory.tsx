@@ -20,6 +20,7 @@ const Inventory: React.FC = () => {
     uid: string;
     name: string;
   } | null>(null);
+  const [isCreatingItem, setIsCreatingItem] = useState(false);
 
   const headers = ["SKU", "Item", "Total Qty", "Unit Price"];
   const columnTemplate = "[grid-template-columns:1fr_1fr_3.8rem_4rem]";
@@ -40,9 +41,10 @@ const Inventory: React.FC = () => {
     <div className="flex flex-col items-center bg-white h-screen w-full rounded-3xl p-8 gap-6">
       {activeModal === "addItem" && (
         <AddModal<InventoryModalType>
-          title="Add Item"
+          title={isCreatingItem ? "Creating Item..." : "Add Item"}
           setErrors={setErrors}
           modalKey="addItem"
+          disableClose={isCreatingItem}
         >
           <InventoryItemForm
             errors={errors}
@@ -50,6 +52,8 @@ const Inventory: React.FC = () => {
             setErrors={setErrors}
             setItems={setItems}
             items={items}
+            isSubmitting={isCreatingItem}
+            setIsSubmitting={setIsCreatingItem}
           />
         </AddModal>
       )}

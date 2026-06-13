@@ -132,7 +132,7 @@ const ResidentialClientDetails: React.FC = () => {
   ) => (
     <div
       key={addr.uid}
-      className="group flex justify-between gap-3 p-4 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition-colors"
+      className="group flex justify-between gap-3 p-4 rounded-xl bg-white hover:bg-gray-50 transition-colors"
     >
       <div className="flex gap-3 min-w-0">
         <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
@@ -167,17 +167,17 @@ const ResidentialClientDetails: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0  items-center">
         <button
           onClick={() => openAddressModal("edit", type, addr.uid)}
-          className="p-2 text-gray-400 hover:text-primary cursor-pointer rounded-lg hover:bg-white transition-colors"
+          className="p-2 text-gray-400 hover:text-primary cursor-pointer rounded-lg transition-colors"
         >
           <Edit className="w-4 h-4" />
         </button>
 
         <button
           onClick={() => handleDeleteAddress(addr.uid)}
-          className="p-2 text-gray-400 hover:text-red-600 cursor-pointer rounded-lg hover:bg-red-50 transition-colors"
+          className="p-2 text-gray-400 hover:text-red-600 cursor-pointer rounded-lg transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using server.Helpers;
 using System.Security.Claims;
 using server.Models.Event;
+using Amazon.S3;
+using Amazon.S3.Model;
 
 namespace server.Controllers;
 
@@ -15,11 +17,17 @@ public class InventoryController : ControllerBase
 {
   private readonly AppDbContext _context;
   private readonly IConfiguration _config;
+  private readonly IAmazonS3 _s3;
 
-  public InventoryController(AppDbContext context, IConfiguration config)
+public InventoryController(
+      AppDbContext context,
+      IConfiguration config,
+      IAmazonS3 s3
+  )
   {
-    _context = context;
-    _config = config;
+      _context = context;
+      _config = config;
+      _s3 = s3;
   }
 
 [HttpGet]
@@ -111,7 +119,10 @@ public async Task<IActionResult> GetInventory(
   }
 
   [HttpPost("item")]
-  public async Task<IActionResult> CreateInventoryItem(CreateInventoryItemDto request)
+  public async Task<IActionResult> CreateInventoryItem(
+      [FromForm] CreateInventoryItemDto request,
+      [FromForm] IFormFile? image
+  )
   {
     var role = User.FindFirst(ClaimTypes.Role)?.Value;
     if (role != "Admin")
@@ -182,15 +193,38 @@ public async Task<IActionResult> GetInventory(
 
     item.SKU = InventorySkuHelper.GenerateSku(item);
 
+    if (image != null && image.Length > 0)
+    {
+        var bucketName = _config["AWS:S3BucketName"];
+
+        var extension = Path.GetExtension(image.FileName);
+        var objectKey = $"inventory/items/{item.Uid}{extension}";
+
+        await using var stream = image.OpenReadStream();
+
+        var putRequest = new PutObjectRequest
+        {
+            BucketName = bucketName,
+            Key = objectKey,
+            InputStream = stream,
+            ContentType = image.ContentType
+        };
+
+        await _s3.PutObjectAsync(putRequest);
+
+        item.ImageUrl = objectKey;
+    }
+
     _context.InventoryItems.Add(item);
     await _context.SaveChangesAsync();
 
     return Ok(new ListInventoryItemResponseDto
     {
-      Uid = item.Uid,
-      Description = item.Description,
-      SKU = item.SKU,
-      UnitPrice = item.UnitPrice,
+        Uid = item.Uid,
+        Description = item.Description,
+        SKU = item.SKU,
+        UnitPrice = item.UnitPrice,
+        ImageUrl = item.ImageUrl
     });
   }
 
@@ -468,6 +502,22 @@ public async Task<IActionResult> GetInventory(
 
       if (item == null) return NotFound(new { message = "Item not found" });
 
+      string? imageUrl = null;
+
+      if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+      {
+          var bucketName = _config["AWS:S3BucketName"];
+
+          var presignedRequest = new GetPreSignedUrlRequest
+          {
+              BucketName = bucketName,
+              Key = item.ImageUrl,
+              Expires = DateTime.UtcNow.AddHours(1)
+          };
+
+          imageUrl = await _s3.GetPreSignedURLAsync(presignedRequest);
+      }
+
       var response = new
       {
           uid = item.Uid,
@@ -479,7 +529,7 @@ public async Task<IActionResult> GetInventory(
           bounceHouseType = item.BounceHouseType?.Name ?? "",
           sku = item.SKU,
           notes = item.Notes,
-          imageUrl = item.ImageUrl,
+          imageUrl,
           length = item.Length,
           width = item.Width,
           height = item.Height,

@@ -13,4 +13,5 @@ public class ListInventoryItemResponseDto
   public string? Material { get; set; }
   public string? Color { get; set; }
   public string? BounceHouseType { get; set; }
+  public string? ImageUrl { get; set; }
 }

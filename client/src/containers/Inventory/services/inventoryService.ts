@@ -11,7 +11,7 @@ import type { InventoryPurchaseInput } from "../components/InventoryPurchaseForm
 
 const fetchInventoryItems = async (
   apiUrl: string,
-  page: number
+  page: number,
 ): Promise<PaginatedResponse<InventoryListItem>> => {
   const response = await fetch(
     `${apiUrl}/api/inventory?page=${page}&pageSize=25&isActive=true`,
@@ -21,7 +21,7 @@ const fetchInventoryItems = async (
         "Content-Type": "application/json",
       },
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -33,7 +33,7 @@ const fetchInventoryItems = async (
 };
 
 const fetchInventoryConfig = async (
-  apiUrl: string
+  apiUrl: string,
 ): Promise<InventoryConfigResponse> => {
   const response = await fetch(`${apiUrl}/api/inventory/config`, {
     method: "GET",
@@ -53,32 +53,30 @@ const fetchInventoryConfig = async (
 
 const createInventoryItem = async (
   apiUrl: string,
-  data: InventoryItemInput
-): Promise<InventoryListItem> => {
-  const response = await fetch(`${apiUrl}/api/inventory/item`, {
+  data: any,
+  imageFile?: File | null,
+) => {
+  const formData = new FormData();
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      formData.append(key, String(value));
+    }
+  });
+
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
+  const response = await fetch(`${apiUrl}/api/Inventory/item`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     credentials: "include",
-    body: JSON.stringify({
-      description: data.description,
-      type: data.type,
-      subType: data.subType,
-      color: data.color,
-      notes: data.notes,
-      length: data.length,
-      width: data.width,
-      height: data.height,
-      unitPrice: data.unitPrice / 100,
-      material: data.material,
-      variant: data.variant,
-    }),
+    body: formData,
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new CustomError("Creating sku failed.", errorData);
+    throw errorData;
   }
 
   return await response.json();
@@ -87,7 +85,7 @@ const createInventoryItem = async (
 const createInventoryPurchase = async (
   apiUrl: string,
   data: InventoryPurchaseInput,
-  uid: string
+  uid: string,
 ): Promise<{ uid: string; quantityTotal: number }> => {
   const response = await fetch(`${apiUrl}/api/inventory/stock/${uid}`, {
     method: "POST",
@@ -113,7 +111,7 @@ const createInventoryPurchase = async (
 const searchInventory = async (
   apiUrl: string,
   page: number,
-  query: string
+  query: string,
 ): Promise<PaginatedResponse<InventoryItemSearchResult>> => {
   const response = await fetch(
     `${apiUrl}/api/inventory/fuzzy-search?page=${page}&pageSize=25&query=${query}`,
@@ -123,7 +121,7 @@ const searchInventory = async (
         "Content-Type": "application/json",
       },
       credentials: "include",
-    }
+    },
   );
 
   if (!response.ok) {
@@ -141,7 +139,7 @@ const checkAvailability = async (
   startTime: string,
   endDate: Date,
   endTime: string,
-  eventUid: string | null
+  eventUid: string | null,
 ): Promise<InventoryAvailability[]> => {
   const response = await fetch(`${apiUrl}/api/inventory/availability`, {
     method: "POST",

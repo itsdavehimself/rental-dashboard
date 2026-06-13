@@ -5,6 +5,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
+using Amazon;
+using Amazon.S3;
+using Amazon.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +72,20 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAutoMapper(typeof(EventProfile));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddAuthorization();
+
+builder.Services.AddSingleton<IAmazonS3>(_ =>
+{
+    var accessKey = builder.Configuration["AWS:AccessKey"];
+    var secretKey = builder.Configuration["AWS:SecretKey"];
+    var region = builder.Configuration["AWS:Region"];
+
+    var credentials = new BasicAWSCredentials(accessKey, secretKey);
+
+    return new AmazonS3Client(
+        credentials,
+        RegionEndpoint.GetBySystemName(region)
+    );
+});
 
 var app = builder.Build();
 

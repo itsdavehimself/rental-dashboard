@@ -15,8 +15,8 @@ const Events: React.FC = () => {
   const headers = [
     "Client",
     "Name",
-    "Delivery",
-    "Pick Up",
+    "Start",
+    "End",
     "Location",
     "Paid",
     "Status",

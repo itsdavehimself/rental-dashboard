@@ -36,6 +36,8 @@ interface InventoryItemFormProps {
   setErrors: React.Dispatch<React.SetStateAction<ErrorsState>>;
   setItems: React.Dispatch<React.SetStateAction<InventoryListItem[]>>;
   items: InventoryListItem[];
+  isSubmitting: boolean;
+  setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
@@ -44,6 +46,8 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
   setErrors,
   setItems,
   items,
+  isSubmitting,
+  setIsSubmitting,
 }) => {
   const {
     handleSubmit,
@@ -59,6 +63,7 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,8 +93,10 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
-      // Create a local preview URL for the selected image
+      setImageFile(file);
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -100,30 +107,37 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
 
   // --- SUBMIT HANDLER ---
   const onSubmit: SubmitHandler<InventoryItemInput> = async (data) => {
+    if (isSubmitting) return;
+
     try {
+      setIsSubmitting(true);
       setErrors(null);
 
       const payload = {
         ...data,
-        unitPrice: data.unitPrice ? Number(data.unitPrice) : 0,
+        unitPrice: data.unitPrice ? Number(data.unitPrice) / 100 : 0,
         length: Number.isNaN(data.length) ? null : data.length,
         width: Number.isNaN(data.width) ? null : data.width,
         height: Number.isNaN(data.height) ? null : data.height,
       };
 
-      // TODO: If you update your C# backend to accept multipart/form-data for images,
-      // you will append the fileInputRef.current.files[0] to a FormData object here instead!
-      const newItem = await createInventoryItem(apiUrl, payload as any);
+      const newItem = await createInventoryItem(
+        apiUrl,
+        payload as any,
+        imageFile,
+      );
 
       const updatedItems = [...items, newItem].sort((a, b) => {
         return a.sku.localeCompare(b.sku);
       });
 
       setItems(updatedItems);
-      dispatch(closeModal());
       addToast("Success", `${newItem.sku} successfully added.`);
+      dispatch(closeModal());
     } catch (err) {
       handleError(err, setErrors);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -185,8 +199,15 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
         {/* --- LEFT COLUMN: IMAGE UPLOAD --- */}
         <div className="flex flex-col items-center gap-3 w-1/4 pt-6">
           <div
-            onClick={handleImageClick}
-            className="relative w-48 h-48 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 flex-shrink-0 group cursor-pointer hover:bg-gray-100 transition-colors"
+            onClick={() => {
+              if (isSubmitting) return;
+              handleImageClick();
+            }}
+            className={`relative w-48 h-48 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 flex-shrink-0 group transition-colors ${
+              isSubmitting
+                ? "opacity-60 cursor-not-allowed"
+                : "cursor-pointer hover:bg-gray-100"
+            }`}
           >
             {imagePreview ? (
               <img
@@ -386,7 +407,7 @@ const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
       {/* --- BOTTOM ACTIONS --- */}
       <div className="flex justify-end">
         <div className="w-40">
-          <SubmitButton label="Create Item" />
+          <SubmitButton label="Create Item" loading={isSubmitting} />
         </div>
       </div>
     </form>
